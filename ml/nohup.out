@@ -1,0 +1,17 @@
+INFO:     Started server process [126338]
+INFO:     Waiting for application startup.
+INFO:src.api.service:🔄 Loading ML models...
+INFO:src.api.service:✅ All ML models loaded successfully
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+✅ Model loaded from /home/thaianh/Workspace/UnityWallet/ml/artifacts/models/spend_classifier.joblib
+✅ Credit model loaded from /home/thaianh/Workspace/UnityWallet/ml/artifacts/models/credit_score_model.joblib
+✅ Anomaly detector loaded from /home/thaianh/Workspace/UnityWallet/ml/artifacts/models/anomaly_detector.joblib
+INFO:     127.0.0.1:54180 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33938 - "GET /health HTTP/1.1" 200 OK
+ERROR:src.api.service:Spend classification error: 'rule_matched'
+INFO:     127.0.0.1:57696 - "POST /analytics/spend HTTP/1.1" 500 Internal Server Error
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [126338]
