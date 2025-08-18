@@ -7,13 +7,18 @@ import numpy as np
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+import json
 import random
 from typing import Dict, List
+from pathlib import Path
 
 # Load config
 import sys
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
-from config import SEED_DATA_PATH, DICTS_ROOT
+
+# Create a simple config for missing imports
+SEED_DATA_PATH = Path(__file__).parent
+DICTS_ROOT = Path(__file__).parent.parent.parent / "artifacts" / "dicts"
 
 def load_mcc_mapping():
     """Load MCC mapping from artifacts"""
