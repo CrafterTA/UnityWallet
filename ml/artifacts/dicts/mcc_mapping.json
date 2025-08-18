@@ -1,0 +1,114 @@
+{
+  "mcc_categories": {
+    "3000": {"category": "Travel", "subcategory": "Airline", "description": "United Airlines"},
+    "3001": {"category": "Travel", "subcategory": "Airline", "description": "American Airlines"},
+    "3003": {"category": "Travel", "subcategory": "Airline", "description": "VietJet Air"},
+    "3004": {"category": "Travel", "subcategory": "Airline", "description": "Vietnam Airlines"},
+    "3005": {"category": "Travel", "subcategory": "Airline", "description": "Bamboo Airways"},
+    
+    "3501": {"category": "Accommodation", "subcategory": "Hotel", "description": "Holiday Inn"},
+    "3502": {"category": "Accommodation", "subcategory": "Resort", "description": "Marriott Resort"},
+    "3503": {"category": "Accommodation", "subcategory": "Resort", "description": "Sovico Resort"},
+    "3504": {"category": "Accommodation", "subcategory": "Hotel", "description": "Sheraton Hotel"},
+    "3505": {"category": "Accommodation", "subcategory": "Homestay", "description": "Airbnb"},
+    
+    "5812": {"category": "F&B", "subcategory": "Restaurant", "description": "Restaurant"},
+    "5814": {"category": "F&B", "subcategory": "Fast Food", "description": "Fast Food"},
+    "5411": {"category": "F&B", "subcategory": "Grocery", "description": "Grocery Store"},
+    "5813": {"category": "F&B", "subcategory": "Bar", "description": "Bar/Tavern"},
+    "5815": {"category": "F&B", "subcategory": "Cafe", "description": "Cafe"},
+    
+    "5541": {"category": "Transportation", "subcategory": "Fuel", "description": "Gas Station"},
+    "4121": {"category": "Transportation", "subcategory": "Taxi", "description": "Taxi/Rideshare"},
+    "4131": {"category": "Transportation", "subcategory": "Bus", "description": "Bus Line"},
+    "5542": {"category": "Transportation", "subcategory": "Parking", "description": "Parking"},
+    "7523": {"category": "Transportation", "subcategory": "Parking", "description": "Parking Lot"},
+    
+    "5300": {"category": "Shopping", "subcategory": "Retail", "description": "Wholesale Club"},
+    "5311": {"category": "Shopping", "subcategory": "Department Store", "description": "Department Store"},
+    "5331": {"category": "Shopping", "subcategory": "Retail", "description": "Variety Store"},
+    "5399": {"category": "Shopping", "subcategory": "Retail", "description": "Misc Retail"},
+    
+    "6011": {"category": "Banking", "subcategory": "ATM", "description": "ATM Cash Advance"},
+    "6012": {"category": "Banking", "subcategory": "Bank", "description": "Customer Financial Institution"},
+    "6300": {"category": "Banking", "subcategory": "Insurance", "description": "Insurance"},
+    "6051": {"category": "Banking", "subcategory": "Bank", "description": "Quasi Cash"},
+    
+    "7832": {"category": "Entertainment", "subcategory": "Movie", "description": "Movie Theater"},
+    "7941": {"category": "Entertainment", "subcategory": "Sports", "description": "Sports Club"},
+    "7994": {"category": "Entertainment", "subcategory": "Gaming", "description": "Video Game Arcade"},
+    "5993": {"category": "Entertainment", "subcategory": "Music", "description": "Cigar Store"},
+    
+    "8011": {"category": "Healthcare", "subcategory": "Doctor", "description": "Doctor"},
+    "8021": {"category": "Healthcare", "subcategory": "Dentist", "description": "Dentist"},
+    "8099": {"category": "Healthcare", "subcategory": "Healthcare", "description": "Health Practitioner"},
+    "5912": {"category": "Healthcare", "subcategory": "Pharmacy", "description": "Drug Store"},
+    
+    "8220": {"category": "Education", "subcategory": "University", "description": "College/University"},
+    "8241": {"category": "Education", "subcategory": "School", "description": "School"},
+    "8299": {"category": "Education", "subcategory": "Education", "description": "Educational Service"},
+    "5942": {"category": "Education", "subcategory": "Books", "description": "Book Store"}
+  },
+  
+  "partners": {
+    "vietjet": {
+      "name": "VietJet Air",
+      "category": "Travel",
+      "subcategory": "Airline", 
+      "mcc": "3003",
+      "keywords": ["vietjet", "vj", "vietnam jet"],
+      "loyalty_program": "SkyPoint"
+    },
+    "vietnam_airlines": {
+      "name": "Vietnam Airlines", 
+      "category": "Travel",
+      "subcategory": "Airline",
+      "mcc": "3004",
+      "keywords": ["vietnam airlines", "vna", "hãng hàng không quốc gia"],
+      "loyalty_program": "Golden Lotus"
+    },
+    "sovico_resort": {
+      "name": "Sovico Resort",
+      "category": "Accommodation", 
+      "subcategory": "Resort",
+      "mcc": "3503",
+      "keywords": ["sovico resort", "sovico", "resort"],
+      "loyalty_program": "Sovico Points"
+    },
+    "hdbank": {
+      "name": "HD Bank",
+      "category": "Banking",
+      "subcategory": "Bank", 
+      "mcc": "6012",
+      "keywords": ["hdbank", "hd bank", "ngân hàng hdbank"],
+      "loyalty_program": "HD Rewards"
+    }
+  },
+  
+  "insights_rules": {
+    "travel_spending_high": {
+      "condition": "travel_percentage > 30",
+      "message": "Bạn đã chi {amount:,.0f} VNĐ cho du lịch tháng này ({percentage:.1f}% tổng chi tiêu). Hãy cân nhắc gói bay-nghỉ dưỡng để tiết kiệm ~15%.",
+      "suggestion": "combo_travel_package",
+      "priority": "high"
+    },
+    "food_spending_frequent": {
+      "condition": "fb_transactions > 15 and fb_percentage > 25", 
+      "message": "Bạn có {count} giao dịch ăn uống ({percentage:.1f}% chi tiêu). Có thể cân nhắc nấu ăn tại nhà để tiết kiệm.",
+      "suggestion": "cooking_tips",
+      "priority": "medium"
+    },
+    "accommodation_luxury": {
+      "condition": "accommodation_avg > 2000000",
+      "message": "Chi tiêu lưu trú trung bình {amount:,.0f} VNĐ/đêm. Có nhiều lựa chọn tiết kiệm với chất lượng tương đương.",
+      "suggestion": "budget_accommodation",
+      "priority": "medium"
+    },
+    "entertainment_weekend": {
+      "condition": "entertainment_weekend_ratio > 0.8",
+      "message": "Bạn chủ yếu chi tiêu giải trí vào cuối tuần. Hãy thử các hoạt động miễn phí trong tuần.",
+      "suggestion": "free_activities", 
+      "priority": "low"
+    }
+  }
+}
