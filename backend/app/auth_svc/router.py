@@ -5,7 +5,7 @@ from ..common.database import get_db
 from ..common.auth import get_current_user
 from ..common.models import User
 from .service import AuthService
-from .schema import LoginRequest, TokenResponse, UserResponse
+from .schema import LoginRequest, RegisterRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -26,6 +26,24 @@ async def login(
     login_data = LoginRequest(username=username, password=password)
     auth_service = AuthService(db)
     return auth_service.login(login_data)
+
+@router.post("/register", response_model=UserResponse)
+async def register(
+    register_data: RegisterRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Register a new user account
+    
+    - **username**: Unique username (3-50 characters)
+    - **password**: Password (minimum 8 characters)
+    - **full_name**: User's full name
+    
+    Returns user profile information after successful registration.
+    Note: New users start with KYC status 'pending'.
+    """
+    auth_service = AuthService(db)
+    return auth_service.register(register_data)
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(

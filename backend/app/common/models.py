@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Text, Boolean, DECIMAL
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import UUID
 import enum
+import uuid
 from datetime import datetime
 
 Base = declarative_base()
@@ -31,9 +33,10 @@ class AlertType(enum.Enum):
 class User(Base):
     __tablename__ = "users"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     full_name = Column(String(100), nullable=False)
+    hashed_password = Column(String(255), nullable=False)
     kyc_status = Column(Enum(KYCStatus), default=KYCStatus.PENDING, nullable=False)
     
     # Relationships
@@ -46,8 +49,8 @@ class User(Base):
 class Account(Base):
     __tablename__ = "accounts"
     
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     asset_code = Column(String(12), nullable=False)
     stellar_address = Column(String(56), nullable=False)
     
@@ -58,8 +61,8 @@ class Account(Base):
 class Balance(Base):
     __tablename__ = "balances"
     
-    id = Column(Integer, primary_key=True, index=True)
-    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    account_id = Column(UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=False)
     asset_code = Column(String(12), nullable=False)
     amount = Column(DECIMAL(19, 7), nullable=False, default=0)
     
@@ -69,8 +72,8 @@ class Balance(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
     
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     tx_type = Column(Enum(TransactionType), nullable=False)
     asset_code = Column(String(12), nullable=False)
     amount = Column(DECIMAL(19, 7), nullable=False)
@@ -92,8 +95,8 @@ class Transaction(Base):
 class LoyaltyPoint(Base):
     __tablename__ = "loyalty_points"
     
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     points = Column(Integer, nullable=False, default=0)
     
     # Relationships
@@ -102,7 +105,7 @@ class LoyaltyPoint(Base):
 class Offer(Base):
     __tablename__ = "offers"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     code = Column(String(20), unique=True, nullable=False)
     description = Column(String(200), nullable=False)
     points_required = Column(Integer, nullable=False)
@@ -111,8 +114,8 @@ class Offer(Base):
 class CreditScore(Base):
     __tablename__ = "credit_score"
     
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     score = Column(Integer, nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
@@ -122,8 +125,8 @@ class CreditScore(Base):
 class Alert(Base):
     __tablename__ = "alerts"
     
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     type = Column(Enum(AlertType), nullable=False)
     message = Column(String(200), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

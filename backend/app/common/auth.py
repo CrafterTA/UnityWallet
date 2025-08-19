@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 import jwt
+from passlib.context import CryptContext
 from .config import settings
 from .models import User, KYCStatus
 from .database import get_db
@@ -15,15 +16,16 @@ logger = logging.getLogger(__name__)
 # JWT Security
 security = HTTPBearer()
 
+# Password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash (mock implementation)"""
-    # For demo purposes, accept any password
-    return True
+    """Verify a password against its hash"""
+    return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
-    """Hash a password (mock implementation)"""
-    # For demo purposes, return a simple hash
-    return f"mock_hash_{password}"
+    """Hash a password using bcrypt"""
+    return pwd_context.hash(password)
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token"""
@@ -32,14 +34,14 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
     
     encoded_jwt = jwt.encode(
         to_encode, 
-        settings.JWT_SECRET, 
-        algorithm=settings.JWT_ALG
+        settings.JWT_SECRET_KEY, 
+        algorithm=settings.JWT_ALGORITHM
     )
     
     return encoded_jwt
@@ -49,8 +51,8 @@ def verify_token(token: str) -> Dict[str, Any]:
     try:
         payload = jwt.decode(
             token, 
-            settings.JWT_SECRET, 
-            algorithms=[settings.JWT_ALG]
+            settings.JWT_SECRET_KEY, 
+            algorithms=[settings.JWT_ALGORITHM]
         )
         return payload
     except jwt.ExpiredSignatureError:
@@ -69,19 +71,22 @@ def verify_token(token: str) -> Dict[str, Any]:
         )
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
-    """Authenticate a user (mock implementation for demo)"""
+    """Authenticate a user with real password verification"""
     user = db.query(User).filter(User.username == username).first()
     
-    if not user:
+    if not user or not user.hashed_password:
         return None
     
-    # Mock password verification - in demo, any password works for verified users
-    if user.kyc_status == KYCStatus.VERIFIED:
-        logger.info(f"User {username} authenticated successfully")
-        return user
+    if not verify_password(password, user.hashed_password):
+        logger.warning(f"User {username} authentication failed - incorrect password")
+        return None
     
-    logger.warning(f"User {username} authentication failed - KYC not verified")
-    return None
+    if user.kyc_status != KYCStatus.VERIFIED:
+        logger.warning(f"User {username} authentication failed - KYC not verified")
+        return None
+        
+    logger.info(f"User {username} authenticated successfully")
+    return user
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -124,7 +129,7 @@ class MockKYC:
         return KYCStatus.VERIFIED
     
     @staticmethod
-    def get_user_status(user_id: int) -> KYCStatus:
+    def get_user_status(user_id: str) -> KYCStatus:
         """Get KYC status for a user"""
         # In demo, assume all users are verified
         return KYCStatus.VERIFIED

@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 from .config import settings
 from .models import Base
-import redis
+from .redis_client import RedisClient
 from typing import Generator
 
 # Database engine
@@ -18,7 +18,7 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Redis client
-redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+redis_client = RedisClient()
 
 def get_db() -> Generator[Session, None, None]:
     """Database session dependency"""
