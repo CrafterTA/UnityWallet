@@ -31,10 +31,10 @@ class AuthService:
             )
         
         # Set user context for logging
-        set_user_id(user.id)
+        set_user_id(str(user.id))
         
         # Create access token
-        access_token = create_access_token(data={"sub": user.username, "user_id": user.id})
+        access_token = create_access_token(data={"sub": user.username, "user_id": str(user.id)})
         
         logger.info(f"User {user.username} logged in successfully")
         
@@ -43,7 +43,7 @@ class AuthService:
     def get_user_profile(self, user: User) -> dict:
         """Get user profile information"""
         return {
-            "id": user.id,
+            "id": str(user.id),
             "username": user.username,
             "full_name": user.full_name,
             "kyc_status": user.kyc_status.value
