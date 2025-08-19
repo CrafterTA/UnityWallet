@@ -11,11 +11,12 @@ The Unity Wallet backend follows a microservices pattern with the following serv
 - **Payments Service** - QR code payments with idempotency support
 - **Loyalty Service** - SYP points earning and burning system
 - **Analytics Service** - User insights, credit scoring, and alerts
+- **QR Service** - QR code generation and payment processing
 
 ## 🚀 Features
 
 ### Core Features
-- ✅ **JWT Authentication** - Secure login with SHA-256 password hashing
+- ✅ **JWT Authentication** - Secure login with bcrypt password hashing
 - ✅ **Multi-Currency Wallet** - Support for SYP and USD assets
 - ✅ **Stellar Integration** - Testnet transactions with dry-run capability
 - ✅ **1:1 Currency Swaps** - Real-time SYP ↔ USD conversions
@@ -195,7 +196,7 @@ The backend integrates with Stellar testnet for blockchain operations:
 ## 🔒 Security Features
 
 - **JWT Authentication** - HS256 algorithm with configurable expiration
-- **Password Hashing** - SHA-256 with proper verification
+- **Password Hashing** - bcrypt with proper verification
 - **Rate Limiting** - Per-minute and hourly request limits
 - **Input Validation** - Pydantic schemas for all endpoints
 - **Correlation IDs** - Request tracking across services
