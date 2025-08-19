@@ -9,13 +9,14 @@ from .wallet_svc.router import router as wallet_router
 from .payments_svc.router import router as payments_router
 from .loyalty_svc.router import router as loyalty_router
 from .analytics_svc.router import router as analytics_router
+from .qr_svc.router import router as qr_router
 
 # Setup logging
 setup_logging()
 
 # Create FastAPI application
 app = FastAPI(
-    title="Stellar Fintech API",
+    title="Unity Wallet API",
     description="Demo Stellar-based fintech API with wallets, payments, and swaps",
     version="1.0.0",
     docs_url="/docs",
@@ -31,6 +32,7 @@ app.include_router(wallet_router)
 app.include_router(payments_router)
 app.include_router(loyalty_router)
 app.include_router(analytics_router)
+app.include_router(qr_router)
 
 @app.on_event("startup")
 async def startup_event():
@@ -42,7 +44,7 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "message": "Stellar Fintech API is running",
+        "message": "Unity Wallet API is running",
         "environment": settings.ENV,
         "dry_run": settings.STELLAR_DRY_RUN
     }
