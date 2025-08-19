@@ -83,14 +83,17 @@ function Settings() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-navy-900 mb-2">Settings</h1>
-        <p className="text-navy-600">Manage your account and preferences</p>
+        <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Shield className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
+        <p className="text-white/70">Manage your account and preferences</p>
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white rounded-xl p-6 border border-navy-200">
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-xl flex items-center justify-center">
             {user?.avatar ? (
               <img
                 src={user.avatar}
@@ -102,13 +105,13 @@ function Settings() {
             )}
           </div>
           <div>
-            <h3 className="font-semibold text-navy-900">{user?.name}</h3>
-            <p className="text-navy-600">{user?.email}</p>
+            <h3 className="font-semibold text-white">{user?.name}</h3>
+            <p className="text-white/70">{user?.email}</p>
             <div className="flex items-center space-x-2 mt-1">
               <div className={`w-2 h-2 rounded-full ${
-                user?.kycStatus === 'verified' ? 'bg-success' : 'bg-warning'
+                user?.kycStatus === 'verified' ? 'bg-green-400' : 'bg-yellow-400'
               }`} />
-              <span className="text-sm text-navy-600">
+              <span className="text-sm text-white/70">
                 {user?.kycStatus === 'verified' ? 'Verified Account' : 'Pending Verification'}
               </span>
             </div>
@@ -118,26 +121,26 @@ function Settings() {
 
       {/* Settings Sections */}
       {settingSections.map((section) => (
-        <div key={section.title} className="bg-white rounded-xl border border-navy-200 overflow-hidden">
-          <div className="p-4 border-b border-navy-100 flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <section.icon className="w-4 h-4 text-primary" />
+        <div key={section.title} className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden shadow-xl">
+          <div className="p-4 border-b border-white/20 flex items-center space-x-3">
+            <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
+              <section.icon className="w-4 h-4 text-red-400" />
             </div>
-            <h3 className="font-semibold text-navy-900">{section.title}</h3>
+            <h3 className="font-semibold text-white">{section.title}</h3>
           </div>
           
-          <div className="divide-y divide-navy-100">
+          <div className="divide-y divide-white/20">
             {section.items.map((item, index) => (
               <button
                 key={index}
                 onClick={item.action}
-                className="w-full p-4 flex items-center justify-between hover:bg-navy-50 transition-colors text-left"
+                className="w-full p-4 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
               >
                 <div>
-                  <p className="font-medium text-navy-900">{item.label}</p>
-                  <p className="text-sm text-navy-600">{item.value}</p>
+                  <p className="font-medium text-white">{item.label}</p>
+                  <p className="text-sm text-white/70">{item.value}</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-navy-400" />
+                <ChevronRight className="w-5 h-5 text-white/60" />
               </button>
             ))}
           </div>
@@ -145,34 +148,34 @@ function Settings() {
       ))}
 
       {/* Demo Actions */}
-      <div className="bg-white rounded-xl border border-navy-200 overflow-hidden">
-        <div className="p-4 border-b border-navy-100 flex items-center space-x-3">
-          <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-            <RefreshCw className="w-4 h-4 text-accent" />
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-white/20 flex items-center space-x-3">
+          <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+            <RefreshCw className="w-4 h-4 text-yellow-400" />
           </div>
-          <h3 className="font-semibold text-navy-900">Demo</h3>
+          <h3 className="font-semibold text-white">Demo</h3>
         </div>
         
         <button
           onClick={handleReplayDemo}
-          className="w-full p-4 flex items-center justify-between hover:bg-navy-50 transition-colors text-left"
+          className="w-full p-4 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
         >
           <div>
-            <p className="font-medium text-navy-900">Replay Demo</p>
-            <p className="text-sm text-navy-600">Reset demo state for another walkthrough</p>
+            <p className="font-medium text-white">Replay Demo</p>
+            <p className="text-sm text-white/70">Reset demo state for another walkthrough</p>
           </div>
-          <ChevronRight className="w-5 h-5 text-navy-400" />
+          <ChevronRight className="w-5 h-5 text-white/60" />
         </button>
       </div>
 
       {/* About */}
-      <div className="bg-white rounded-xl p-6 border border-navy-200 text-center">
-        <div className="w-12 h-12 wallet-gradient rounded-xl flex items-center justify-center mx-auto mb-3">
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 text-center shadow-xl">
+        <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-yellow-500 rounded-xl flex items-center justify-center mx-auto mb-3">
           <span className="text-white font-bold">UW</span>
         </div>
-        <h3 className="font-semibold text-navy-900 mb-1">UnityWallet</h3>
-        <p className="text-sm text-navy-600 mb-3">Version 1.0.0</p>
-        <p className="text-xs text-navy-500">
+        <h3 className="font-semibold text-white mb-1">UnityWallet</h3>
+        <p className="text-sm text-white/70 mb-3">Version 1.0.0</p>
+        <p className="text-xs text-white/60">
           Powered by Stellar Blockchain • Built for Hackathon Demo
         </p>
       </div>

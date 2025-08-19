@@ -6,6 +6,7 @@ import Login from '@/pages/Login'
 import Home from '@/pages/Home'
 import Pay from '@/pages/Pay'
 import Swap from '@/pages/Swap'
+import Activity from '@/pages/Activity'
 import Insights from '@/pages/Insights'
 import Assistant from '@/pages/Assistant'
 import Settings from '@/pages/Settings'
@@ -28,6 +29,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/pay" element={<Pay />} />
         <Route path="/swap" element={<Swap />} />
+        <Route path="/activity" element={<Activity />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/assistant" element={<Assistant />} />
         <Route path="/settings" element={<Settings />} />
