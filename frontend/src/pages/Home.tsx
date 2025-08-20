@@ -578,27 +578,36 @@ export default function Web3ModernLayout() {
             <div className="h-1.5 w-6 rounded-full bg-gradient-to-r from-red-400 to-yellow-400" />
             <h2 className="text-xl font-bold tracking-tight">What you can do</h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="feature-card">
-              <Feature
-                icon={Coins}
-                title="Send & Receive"
-                desc="Transfer digital assets instantly across multiple networks with low fees and real-time confirmations."
-              />
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                  <Coins className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Send & Receive</h3>
+              </div>
+              <p className="text-sm leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Transfer digital assets instantly across multiple networks with low fees and real-time confirmations.</p>
+              <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
-            <div className="feature-card">
-              <Feature
-                icon={LineChart}
-                title="Swap & Trade"
-                desc="Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools."
-              />
+            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                  <LineChart className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Swap & Trade</h3>
+              </div>
+              <p className="text-sm leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools.</p>
+              <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
-            <div className="feature-card">
-              <Feature
-                icon={Shield}
-                title="Secure Storage"
-                desc="Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management."
-              />
+            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                  <Shield className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Secure Storage</h3>
+              </div>
+              <p className="text-sm leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management.</p>
+              <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
           </div>
         </div>
@@ -658,7 +667,7 @@ export default function Web3ModernLayout() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: Shield, title: "Bank-Grade Security", desc: "Multi-signature protection and cold storage" },
               { icon: Zap, title: "Lightning Fast", desc: "Instant transactions across multiple networks" },
@@ -667,11 +676,11 @@ export default function Web3ModernLayout() {
             ].map((feature, index) => (
               <div
                 key={index}
-                className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group"
+                className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
               >
                 <feature.icon className="w-12 h-12 text-red-400 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <h3 className="text-white font-semibold mb-2">{feature.title}</h3>
-                <p className="text-white/60 text-sm">{feature.desc}</p>
+                <h3 className="text-white font-semibold mb-2 group-hover:text-red-300 transition-colors duration-300">{feature.title}</h3>
+                <p className="text-white/60 text-sm group-hover:text-white/80 transition-colors duration-300">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -758,11 +767,29 @@ export default function Web3ModernLayout() {
 
         .feature-card {
           transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
         }
 
         .feature-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          transform: translateY(-8px);
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .feature-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          transition: left 0.5s;
+        }
+
+        .feature-card:hover::before {
+          left: 100%;
         }
 
         .stat-card {
