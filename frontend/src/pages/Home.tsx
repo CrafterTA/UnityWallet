@@ -89,17 +89,17 @@ const StatCard = ({ icon: Icon, label, value, sub }: any) => {
     <div
       ref={cardRef}
       className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.4)] ring-1 ring-inset ring-white/5 group"
-    >
-      <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200">
-          <Icon className="h-5 w-5" />
-        </div>
-        <div>
-          <p className="text-sm text-white/70">{label}</p>
-          <p className="mt-0.5 text-xl font-semibold tracking-tight text-white">{value}</p>
-        </div>
+  >
+    <div className="flex items-center gap-3">
+      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200">
+        <Icon className="h-5 w-5" />
       </div>
-      {sub && <p className="mt-3 text-xs text-white/60">{sub}</p>}
+      <div>
+        <p className="text-sm text-white/70">{label}</p>
+        <p className="mt-0.5 text-xl font-semibold tracking-tight text-white">{value}</p>
+      </div>
+    </div>
+    {sub && <p className="mt-3 text-xs text-white/60">{sub}</p>}
       
       {/* Animated background glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-yellow-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -168,17 +168,17 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
     <div
       ref={featureRef}
       className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all hover:bg-white/7.5"
-    >
-      <div className="mb-3 flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200">
-          <Icon className="h-5 w-5" />
-        </div>
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+  >
+    <div className="mb-3 flex items-center gap-3">
+      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200">
+        <Icon className="h-5 w-5" />
       </div>
-      <p className="text-sm leading-6 text-white/70">{desc}</p>
-      <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
+      <h3 className="text-lg font-semibold text-white">{title}</h3>
     </div>
-  );
+    <p className="text-sm leading-6 text-white/70">{desc}</p>
+    <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
+    </div>
+);
 };
 
 const TokenRow = ({ name, symbol, price, change, mcap }: any) => (
@@ -450,62 +450,62 @@ export default function Web3ModernLayout() {
       <AnimatedBackground />
       
       {/* HERO */}
-      <section ref={heroRef} className="relative mx-auto max-w-7xl px-4 pb-26 pt-20 sm:pt-24 z-10">
-        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
-          <div>
+      <section ref={heroRef} className="relative mx-auto max-w-7xl px-4 pb-16 sm:pb-26 pt-16 sm:pt-20 lg:pt-24 z-10">
+        <div className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-2">
+          <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 text-reveal">
               <Sparkles className="h-3.5 w-3.5" />
               Powering the digital future
             </div>
-            <h1 ref={titleRef} className="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 ref={titleRef} className="mt-4 text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight lg:text-5xl xl:text-6xl">
               Your unified <span className="bg-gradient-to-r from-red-300 via-yellow-300 to-red-300 bg-clip-text text-transparent">digital wallet</span> experience
             </h1>
-            <p ref={subtitleRef} className="mt-4 max-w-xl text-base leading-7 text-white/70">
+            <p ref={subtitleRef} className="mt-4 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-7 text-white/70">
               Send, receive, swap, and manage your digital assets across multiple networks with real‑time insights, secure transactions, and seamless user experience.
             </p>
-            <div ref={ctaRef} className="mt-6 flex flex-wrap items-center gap-3">
+            <div ref={ctaRef} className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
               <button
                 onClick={() => navigate('/pay')}
-                className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
+                className="w-full sm:w-auto group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
               >
                 <span className="relative z-10">Start Trading</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
               <button
                 onClick={() => navigate('/activity')}
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                className="w-full sm:w-auto rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 hover:bg-white/10 transition-all duration-300 hover:scale-105"
               >
                 View Activity
               </button>
             </div>
-            <div className="mt-6 flex items-center gap-4 text-xs text-white/60 text-reveal">
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs text-white/60 text-reveal">
               <div className="flex items-center gap-1"><Shield className="h-3.5 w-3.5"/> Bank Grade Security</div>
               <div className="flex items-center gap-1"><Lock className="h-3.5 w-3.5"/> Multi-Sig Protection</div>
               <div className="flex items-center gap-1"><Users className="h-3.5 w-3.5"/> 50k+ users</div>
             </div>
           </div>
-                      <div ref={dashboardRef} className="relative">
-              {/* dashboard preview card */}
-              <div className="dashboard-card relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/5 mt-24 transition-all duration-300 hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] hover:border-white/20 group">
-                                <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3 mb-4 border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/20">
-                  <div className="flex items-center gap-2 text-sm text-white/80">
-                    <LayoutDashboard className="h-4 w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/> Portfolio Overview
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-white/60">
+                      <div ref={dashboardRef} className="relative mt-8 sm:mt-16 lg:mt-24">
+            {/* dashboard preview card */}
+              <div className="dashboard-card relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-white/5 p-3 sm:p-4 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/5 transition-all duration-300 hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] hover:border-white/20 group">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl bg-white/5 px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/20 gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-white/80">
+                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/> Portfolio Overview
+                </div>
+                <div className="flex items-center gap-2 text-xs text-white/60">
                     <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300 animate-pulse group-hover:bg-emerald-400/25 transition-colors duration-300">Net +12.8%</span>
                     <span className="rounded-full bg-white/10 px-2 py-0.5 group-hover:bg-white/15 transition-colors duration-300">30d</span>
-                  </div>
                 </div>
-              <div className="grid gap-4 p-4 lg:grid-cols-3">
+              </div>
+              <div className="grid gap-3 sm:gap-4 p-3 sm:p-4 lg:grid-cols-3">
                 <div className="lg:col-span-2">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="mb-3 flex items-center justify-between text-sm text-white/70">
+                  <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
+                    <div className="mb-3 flex items-center justify-between text-xs sm:text-sm text-white/70">
                       <span>Total Balance</span>
-                      <span className="flex items-center gap-1 text-emerald-300"><TrendingUp className="h-4 w-4"/> +8.2%</span>
+                      <span className="flex items-center gap-1 text-emerald-300"><TrendingUp className="h-3 w-3 sm:h-4 sm:w-4"/> +8.2%</span>
                     </div>
-                    <p className="text-3xl font-bold tracking-tight text-white">$24,856.42</p>
+                    <p className="text-2xl sm:text-3xl font-bold tracking-tight text-white">$24,856.42</p>
                     {/* Animated sparkline */}
-                    <svg viewBox="0 0 200 60" className="mt-4 h-16 w-full">
+                    <svg viewBox="0 0 200 60" className="mt-3 sm:mt-4 h-12 sm:h-16 w-full">
                       <polyline 
                         fill="none" 
                         stroke="url(#gradient)" 
@@ -527,19 +527,62 @@ export default function Web3ModernLayout() {
                       </defs>
                     </svg>
                   </div>
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="grid grid-cols-12 px-3 pb-2 pt-1 text-xs text-white/50">
+                  <div className="mt-3 sm:mt-4 rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 p-2 sm:p-3">
+                    <div className="hidden sm:grid grid-cols-12 px-3 pb-2 pt-1 text-xs text-white/50">
                       <div className="col-span-5">Asset</div>
                       <div className="col-span-2">Price</div>
                       <div className="col-span-2">24h</div>
                       <div className="col-span-3 text-right">Holdings</div>
                     </div>
+                    <div className="space-y-2 sm:hidden">
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded bg-white/10"></div>
+                          <div>
+                            <p className="text-sm font-medium text-white">Bitcoin</p>
+                            <p className="text-xs text-white/60">BTC</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-white">$64,230</p>
+                          <p className="text-xs text-emerald-400">+1.8%</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded bg-white/10"></div>
+                          <div>
+                            <p className="text-sm font-medium text-white">Ethereum</p>
+                            <p className="text-xs text-white/60">ETH</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-white">$3,210</p>
+                          <p className="text-xs text-emerald-400">+0.7%</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded bg-white/10"></div>
+                          <div>
+                            <p className="text-sm font-medium text-white">USDC</p>
+                            <p className="text-xs text-white/60">USDC</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-white">$1.00</p>
+                          <p className="text-xs text-emerald-400">+0.1%</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="hidden sm:block">
                     <TokenRow name="Bitcoin" symbol="BTC" price="64,230" change="+1.8%" mcap="0.25 BTC" />
                     <TokenRow name="Ethereum" symbol="ETH" price="3,210" change="+0.7%" mcap="2.5 ETH" />
                     <TokenRow name="USDC" symbol="USDC" price="1.00" change="+0.1%" mcap="5,420 USDC" />
                   </div>
                 </div>
-                <div className="grid gap-4">
+                </div>
+                <div className="grid gap-3 sm:gap-4">
                   <StatCard icon={Coins} label="Rewards" value="$342" sub="Earned this month" />
                   <StatCard icon={Shield} label="Security" value="Active" sub="Multi-sig protection" />
                   <StatCard icon={LineChart} label="Growth" value="12.8%" sub="Portfolio performance" />
@@ -557,93 +600,93 @@ export default function Web3ModernLayout() {
       <section className="stats-section mx-auto max-w-7xl px-4 pb-6 z-10 relative">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="stat-card">
-            <StatCard icon={Users} label="Active Users" value="50,384" sub="Growing monthly" />
+          <StatCard icon={Users} label="Active Users" value="50,384" sub="Growing monthly" />
           </div>
           <div className="stat-card">
-            <StatCard icon={Rocket} label="Networks" value="8" sub="Multi-chain support" />
+          <StatCard icon={Rocket} label="Networks" value="8" sub="Multi-chain support" />
           </div>
           <div className="stat-card">
-            <StatCard icon={Lock} label="Security Score" value="A+" sub="Bank-grade protection" />
+          <StatCard icon={Lock} label="Security Score" value="A+" sub="Bank-grade protection" />
           </div>
           <div className="stat-card">
-            <StatCard icon={TrendingUp} label="Volume" value="$12.4M" sub="Monthly transactions" />
+          <StatCard icon={TrendingUp} label="Volume" value="$12.4M" sub="Monthly transactions" />
           </div>
         </div>
       </section>
 
       {/* FEATURES */}
-      <section id="products" className="features-section mx-auto max-w-7xl px-4 py-10 z-10 relative">
+      <section id="products" className="features-section mx-auto max-w-7xl px-4 py-8 sm:py-10 z-10 relative">
         <div>
-          <div className="mb-6 flex items-center gap-2 text-reveal">
+          <div className="mb-4 sm:mb-6 flex items-center gap-2 text-reveal">
             <div className="h-1.5 w-6 rounded-full bg-gradient-to-r from-red-400 to-yellow-400" />
-            <h2 className="text-xl font-bold tracking-tight">What you can do</h2>
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight">What you can do</h2>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
+            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
               <div className="mb-3 flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
-                  <Coins className="h-5 w-5" />
+                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                  <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Send & Receive</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Send & Receive</h3>
               </div>
-              <p className="text-sm leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Transfer digital assets instantly across multiple networks with low fees and real-time confirmations.</p>
-              <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
+              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Transfer digital assets instantly across multiple networks with low fees and real-time confirmations.</p>
+              <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
-            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
               <div className="mb-3 flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
-                  <LineChart className="h-5 w-5" />
+                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                  <LineChart className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Swap & Trade</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Swap & Trade</h3>
               </div>
-              <p className="text-sm leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools.</p>
-              <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
+              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools.</p>
+              <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
-            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
               <div className="mb-3 flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
-                  <Shield className="h-5 w-5" />
+                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                  <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Secure Storage</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Secure Storage</h3>
               </div>
-              <p className="text-sm leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management.</p>
-              <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
+              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management.</p>
+              <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
           </div>
-        </div>
+          </div>
       </section>
 
       {/* ENHANCED CTA */}
-      <section id="app" className="relative mx-auto max-w-7xl px-4 py-12 z-10">
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-6 backdrop-blur-xl text-reveal">
+      <section id="app" className="relative mx-auto max-w-7xl px-4 py-8 sm:py-12 z-10">
+        <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-4 sm:p-6 backdrop-blur-xl text-reveal">
           <div className="grid items-center gap-6 md:grid-cols-2">
-            <div>
-              <h3 className="text-2xl font-bold tracking-tight">Ready to start your digital journey?</h3>
+            <div className="text-center md:text-left">
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight">Ready to start your digital journey?</h3>
               <p className="mt-2 text-sm text-white/70">
                 Join thousands of users managing their digital assets with UnityWallet. Secure, fast, and user-friendly.
               </p>
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <button 
                   onClick={() => navigate('/pay')}
-                  className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 px-4 py-2 text-sm font-semibold shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
+                  className="w-full sm:w-auto group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 px-6 py-3 text-sm font-semibold shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
                 >
                   <span className="relative z-10">Get Started</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </button>
                 <button 
                   onClick={() => navigate('/activity')}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 hover:bg-white/10 transition-all duration-300 hover:scale-105"
                 >
                   Learn More
                 </button>
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {["Wallet", "DeFi", "Staking", "NFTs", "Swap", "Bridge", "Security", "Analytics", "Mobile"].map((t, index) => (
                   <div 
                     key={t} 
-                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-xs text-white/80 hover:bg-white/10 transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className="rounded-lg sm:rounded-xl border border-white/10 bg-white/5 px-2 sm:px-3 py-2 text-center text-xs text-white/80 hover:bg-white/10 transition-all duration-300 hover:scale-105 cursor-pointer"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     {t}
@@ -656,18 +699,18 @@ export default function Web3ModernLayout() {
       </section>
 
       {/* ENHANCED FEATURES SECTION */}
-      <section className="relative mx-auto max-w-7xl px-4 py-20 z-10">
-        <div className="text-center space-y-12">
+      <section className="relative mx-auto max-w-7xl px-4 py-12 sm:py-20 z-10">
+        <div className="text-center space-y-8 sm:space-y-12">
           <div className="text-reveal">
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
               Why Choose <span className="bg-gradient-to-r from-red-400 to-yellow-400 bg-clip-text text-transparent">UnityWallet?</span>
             </h2>
-            <p className="text-white/70 text-lg max-w-2xl mx-auto">
+            <p className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto px-4">
               Experience the next generation of digital finance with cutting-edge security and seamless user experience.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
               { icon: Shield, title: "Bank-Grade Security", desc: "Multi-signature protection and cold storage" },
               { icon: Zap, title: "Lightning Fast", desc: "Instant transactions across multiple networks" },
@@ -698,15 +741,15 @@ export default function Web3ModernLayout() {
       </section>
 
       {/* ENHANCED FOOTER */}
-      <footer className="mx-auto max-w-7xl px-4 pb-20 md:pb-12 pt-8 z-10 relative">
-        <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-4 text-reveal">
-          <div className="col-span-2 md:col-span-1">
-            <div className="mb-3 flex items-center gap-2 text-white/80">
+      <footer className="mx-auto max-w-7xl px-4 pb-16 sm:pb-20 md:pb-12 pt-8 z-10 relative">
+        <div className="grid gap-6 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 text-reveal">
+          <div className="col-span-1 sm:col-span-2 md:col-span-1 text-center sm:text-left">
+            <div className="mb-3 flex items-center justify-center sm:justify-start gap-2 text-white/80">
               <Wallet className="h-4 w-4" /> UnityWallet
             </div>
             <p className="text-sm text-white/60">Secure, fast, and delightful digital wallet experience.</p>
           </div>
-          <div>
+          <div className="text-center sm:text-left">
             <p className="mb-2 text-sm font-semibold text-white/80">Features</p>
             <ul className="space-y-1 text-sm text-white/60">
               <li><button onClick={() => navigate('/pay')} className="hover:text-white transition-colors">Send & Receive</button></li>
@@ -715,7 +758,7 @@ export default function Web3ModernLayout() {
               <li><button onClick={() => navigate('/insights')} className="hover:text-white transition-colors">Analytics</button></li>
             </ul>
           </div>
-          <div>
+          <div className="text-center sm:text-left">
             <p className="mb-2 text-sm font-semibold text-white/80">Security</p>
             <ul className="space-y-1 text-sm text-white/60">
               <li><a href="#" className="hover:text-white transition-colors">Multi-Sig</a></li>
@@ -723,7 +766,7 @@ export default function Web3ModernLayout() {
               <li><a href="#" className="hover:text-white transition-colors">Audit Reports</a></li>
             </ul>
           </div>
-          <div>
+          <div className="text-center sm:text-left">
             <p className="mb-2 text-sm font-semibold text-white/80">Support</p>
             <ul className="space-y-1 text-sm text-white/60">
               <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
@@ -732,9 +775,9 @@ export default function Web3ModernLayout() {
             </ul>
           </div>
         </div>
-        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-white/10 pt-4 text-xs text-white/50 gap-2">
+        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-white/10 pt-4 text-xs text-white/50 gap-2 text-center sm:text-left">
           <span>© {new Date().getFullYear()} UnityWallet Labs</span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center sm:justify-start gap-3">
             <a href="#" className="hover:text-white transition-colors">Privacy</a>
             <a href="#" className="hover:text-white transition-colors">Terms</a>
           </div>
@@ -832,6 +875,32 @@ export default function Web3ModernLayout() {
 
         .glow:hover {
           box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+          .dashboard-card {
+            animation: none;
+          }
+          
+          .feature-card:hover {
+            transform: translateY(-4px);
+          }
+          
+          .stat-card:hover {
+            transform: translateY(-3px) scale(1.01);
+          }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) {
+          .feature-card:hover {
+            transform: none;
+          }
+          
+          .stat-card:hover {
+            transform: none;
+          }
         }
 
         /* Sparkline drawing animation */
