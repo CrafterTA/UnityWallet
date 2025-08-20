@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { User, Shield, Bell, RefreshCw, LogOut, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/store/session'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
 function Settings() {
+  const { t } = useTranslation()
   const [notifications, setNotifications] = useState(true)
   const [language, setLanguage] = useState('en')
   const { user, logout } = useAuthStore()
@@ -21,63 +23,63 @@ function Settings() {
     // In a real app, this would reset demo state
   }
 
-  const settingSections = [
-    {
-      title: 'Account',
-      icon: User,
-      items: [
-        {
-          label: 'Profile Information',
-          value: user?.name || 'Demo User',
-          action: () => toast('Profile editing coming soon', { icon: 'ℹ️' }),
-        },
-        {
-          label: 'KYC Status',
-          value: user?.kycStatus === 'verified' ? 'Verified' : 'Pending',
-          action: () => toast('KYC management coming soon', { icon: 'ℹ️' }),
-        },
-      ],
-    },
-    {
-      title: 'Security',
-      icon: Shield,
-      items: [
-        {
-          label: 'Two-Factor Authentication',
-          value: 'Enabled',
-          action: () => toast('2FA settings coming soon', { icon: 'ℹ️' }),
-        },
-        {
-          label: 'Backup Phrase',
-          value: 'Secured',
-          action: () => toast('Backup management coming soon', { icon: 'ℹ️' }),
-        },
-      ],
-    },
-    {
-      title: 'Preferences',
-      icon: Bell,
-      items: [
-        {
-          label: 'Push Notifications',
-          value: notifications ? 'Enabled' : 'Disabled',
-          action: () => {
-            setNotifications(!notifications)
-            toast.success(`Notifications ${!notifications ? 'enabled' : 'disabled'}`)
-          },
-        },
-        {
-          label: 'Language',
-          value: language === 'en' ? 'English' : 'Vietnamese',
-          action: () => {
-            const newLang = language === 'en' ? 'vi' : 'en'
-            setLanguage(newLang)
-            toast.success(`Language changed to ${newLang === 'en' ? 'English' : 'Vietnamese'}`)
-          },
-        },
-      ],
-    },
-  ]
+     const settingSections = [
+     {
+       title: t('settings.account', 'Account'),
+       icon: User,
+       items: [
+         {
+           label: t('settings.profileInfo', 'Profile Information'),
+           value: user?.name || 'Demo User',
+           action: () => toast('Profile editing coming soon', { icon: 'ℹ️' }),
+         },
+         {
+           label: t('settings.kycStatus', 'KYC Status'),
+           value: user?.kycStatus === 'verified' ? t('settings.verified', 'Verified') : t('settings.pending', 'Pending'),
+           action: () => toast('KYC management coming soon', { icon: 'ℹ️' }),
+         },
+       ],
+     },
+     {
+       title: t('settings.security', 'Security'),
+       icon: Shield,
+       items: [
+         {
+           label: t('settings.twoFactorAuth', 'Two-Factor Authentication'),
+           value: t('settings.enabled', 'Enabled'),
+           action: () => toast('2FA settings coming soon', { icon: 'ℹ️' }),
+         },
+         {
+           label: t('settings.backupPhrase', 'Backup Phrase'),
+           value: t('settings.secured', 'Secured'),
+           action: () => toast('Backup management coming soon', { icon: 'ℹ️' }),
+         },
+       ],
+     },
+     {
+       title: t('settings.preferences', 'Preferences'),
+       icon: Bell,
+       items: [
+         {
+           label: t('settings.pushNotifications', 'Push Notifications'),
+           value: notifications ? t('settings.enabled', 'Enabled') : t('settings.disabled', 'Disabled'),
+           action: () => {
+             setNotifications(!notifications)
+             toast.success(`Notifications ${!notifications ? 'enabled' : 'disabled'}`)
+           },
+         },
+         {
+           label: t('settings.language', 'Language'),
+           value: language === 'en' ? 'English' : 'Vietnamese',
+           action: () => {
+             const newLang = language === 'en' ? 'vi' : 'en'
+             setLanguage(newLang)
+             toast.success(`Language changed to ${newLang === 'en' ? 'English' : 'Vietnamese'}`)
+           },
+         },
+       ],
+     },
+   ]
 
   return (
     <div className="space-y-6">
@@ -86,8 +88,8 @@ function Settings() {
         <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Shield className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-        <p className="text-white/70">Manage your account and preferences</p>
+                 <h1 className="text-3xl font-bold text-white mb-2">{t('settings.title', 'Settings')}</h1>
+         <p className="text-white/70">{t('settings.subtitle', 'Manage your account preferences')}</p>
       </div>
 
       {/* Profile Card */}

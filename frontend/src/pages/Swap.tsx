@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowUpDown, Zap, TrendingUp } from 'lucide-react'
 import { walletApi } from '@/api/wallet'
@@ -6,6 +7,7 @@ import { formatBalance } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 function Swap() {
+  const { t } = useTranslation()
   const [fromAsset, setFromAsset] = useState('SYP')
   const [toAsset, setToAsset] = useState('USDC')
   const [fromAmount, setFromAmount] = useState('')
@@ -63,31 +65,31 @@ function Swap() {
         <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <ArrowUpDown className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">Swap Assets</h1>
-        <p className="text-white/70">Exchange your digital assets instantly</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t('swap.title', 'Swap Assets')}</h1>
+        <p className="text-white/70">{t('swap.subtitle', 'Exchange your digital assets instantly')}</p>
       </div>
 
       {/* Swap Interface */}
       <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl space-y-6">
         {/* From Asset */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-white/80">From</label>
-            <span className="text-sm text-white/70">
-              Balance: {formatBalance(getAssetBalance(fromAsset).toString(), 2)}
-            </span>
-          </div>
+                     <div className="flex items-center justify-between">
+             <label className="text-sm font-medium text-white/80">{t('swap.from', 'From')}</label>
+             <span className="text-sm text-white/70">
+               {t('swap.balance', 'Balance')}: {formatBalance(getAssetBalance(fromAsset).toString(), 2)}
+             </span>
+           </div>
           
           <div className="flex space-x-3">
-            <input
-              type="number"
-              value={fromAmount}
-              onChange={(e) => setFromAmount(e.target.value)}
-              className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/50 backdrop-blur-sm"
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
+                         <input
+               type="number"
+               value={fromAmount}
+               onChange={(e) => setFromAmount(e.target.value)}
+               className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/50 backdrop-blur-sm"
+               placeholder={t('swap.enterAmount', '0.00')}
+               min="0"
+               step="0.01"
+             />
             
             <select
               value={fromAsset}
@@ -102,9 +104,9 @@ function Swap() {
             </select>
           </div>
           
-          {fromAmount && parseFloat(fromAmount) > getAssetBalance(fromAsset) && (
-            <p className="text-sm text-red-500">Insufficient balance</p>
-          )}
+                     {fromAmount && parseFloat(fromAmount) > getAssetBalance(fromAsset) && (
+             <p className="text-sm text-red-500">{t('swap.insufficientBalance', 'Insufficient balance')}</p>
+           )}
         </div>
 
         {/* Swap Button */}
@@ -117,18 +119,18 @@ function Swap() {
           </button>
         </div>
 
-        {/* To Asset */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-white/80">To</label>
+                 {/* To Asset */}
+         <div className="space-y-3">
+           <label className="text-sm font-medium text-white/80">{t('swap.to', 'To')}</label>
           
           <div className="flex space-x-3">
-            <input
-              type="text"
-              value={quote?.destination_amount || ''}
-              readOnly
-              className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white/70 backdrop-blur-sm"
-              placeholder="0.00"
-            />
+                         <input
+               type="text"
+               value={quote?.destination_amount || ''}
+               readOnly
+               className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white/70 backdrop-blur-sm"
+               placeholder={t('swap.enterAmount', '0.00')}
+             />
             
             <select
               value={toAsset}
@@ -144,45 +146,45 @@ function Swap() {
           </div>
         </div>
 
-        {/* Quote Details */}
-        {quote && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-2 border border-white/20">
-            <div className="flex justify-between text-sm">
-              <span className="text-white/70">Exchange Rate:</span>
-              <span className="font-medium text-white">
-                1 {fromAsset} = {quote.price} {toAsset}
-              </span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span className="text-white/70">Network Fee:</span>
-              <span className="font-medium text-white">{quote.fee} {fromAsset}</span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span className="text-white/70">You will receive:</span>
-              <span className="font-semibold text-white">
-                {quote.destination_amount} {toAsset}
-              </span>
-            </div>
-          </div>
-        )}
+                 {/* Quote Details */}
+         {quote && (
+           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-2 border border-white/20">
+             <div className="flex justify-between text-sm">
+               <span className="text-white/70">{t('swap.swapRate', 'Exchange Rate')}:</span>
+               <span className="font-medium text-white">
+                 1 {fromAsset} = {quote.price} {toAsset}
+               </span>
+             </div>
+             
+             <div className="flex justify-between text-sm">
+               <span className="text-white/70">{t('swap.networkFee', 'Network Fee')}:</span>
+               <span className="font-medium text-white">{quote.fee} {fromAsset}</span>
+             </div>
+             
+             <div className="flex justify-between text-sm">
+               <span className="text-white/70">{t('swap.estimatedOutput', 'You will receive')}:</span>
+               <span className="font-semibold text-white">
+                 {quote.destination_amount} {toAsset}
+               </span>
+             </div>
+           </div>
+         )}
 
-        {/* Swap Button */}
-        <button
-          onClick={handleSwap}
-          disabled={!isValidAmount || quoteLoading || isSwapping}
-          className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-lg shadow-red-500/20"
-        >
-          {isSwapping ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <Zap className="w-5 h-5" />
-              <span>Swap Now</span>
-            </>
-          )}
-        </button>
+                 {/* Swap Button */}
+         <button
+           onClick={handleSwap}
+           disabled={!isValidAmount || quoteLoading || isSwapping}
+           className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-lg shadow-red-500/20"
+         >
+           {isSwapping ? (
+             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+           ) : (
+             <>
+               <Zap className="w-5 h-5" />
+               <span>{t('swap.swapButton', 'Swap Now')}</span>
+             </>
+           )}
+         </button>
       </div>
 
       {/* Market Info */}

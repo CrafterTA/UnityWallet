@@ -1,17 +1,19 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Activity, Filter, Search, ArrowUpRight, ArrowDownLeft, RefreshCw, Download, Calendar, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 function ActivityPage() {
+  const { t } = useTranslation()
   const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received' | 'swapped'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const navigate = useNavigate()
 
   const filters = [
-    { id: 'all', label: 'All', icon: Activity },
-    { id: 'sent', label: 'Sent', icon: ArrowUpRight },
-    { id: 'received', label: 'Received', icon: ArrowDownLeft },
-    { id: 'swapped', label: 'Swapped', icon: RefreshCw },
+    { id: 'all', label: t('activity.all', 'All'), icon: Activity },
+    { id: 'sent', label: t('activity.sent', 'Sent'), icon: ArrowUpRight },
+    { id: 'received', label: t('activity.received', 'Received'), icon: ArrowDownLeft },
+    { id: 'swapped', label: t('activity.swapped', 'Swapped'), icon: RefreshCw },
   ]
 
   const transactions = [
@@ -103,24 +105,24 @@ function ActivityPage() {
           <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Activity className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Activity</h1>
-          <p className="text-white/70">Track all your transactions and payments</p>
+                     <h1 className="text-3xl font-bold text-white mb-2">{t('activity.title', 'Activity')}</h1>
+           <p className="text-white/70">{t('activity.subtitle', 'Track your transaction history')}</p>
         </div>
       </div>
 
       {/* Search and Filter */}
       <div className="space-y-4 mb-6">
-        {/* Search Bar */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search by address or transaction ID..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/50 backdrop-blur-sm"
-          />
-          <Search className="absolute left-3 top-3.5 w-5 h-5 text-white/60" />
-        </div>
+                 {/* Search Bar */}
+         <div className="relative">
+           <input
+             type="text"
+             placeholder={t('common.search', 'Search by address or transaction ID...')}
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/50 backdrop-blur-sm"
+           />
+           <Search className="absolute left-3 top-3.5 w-5 h-5 text-white/60" />
+         </div>
 
         {/* Filter Tabs */}
         <div className="bg-white/10 p-1.5 rounded-2xl flex overflow-x-auto border border-white/20 backdrop-blur-sm">
@@ -148,16 +150,16 @@ function ActivityPage() {
       <div className="space-y-4">
         {filteredTransactions.length > 0 ? (
           <>
-            {/* Export Button */}
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">
-                Recent Transactions ({filteredTransactions.length})
-              </h2>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white/80 rounded-xl transition-colors border border-white/20">
-                <Download className="w-4 h-4" />
-                <span className="text-sm font-medium">Export</span>
-              </button>
-            </div>
+                         {/* Export Button */}
+             <div className="flex justify-between items-center">
+               <h2 className="text-lg font-semibold text-white">
+                 {t('activity.recentActivity', 'Recent Transactions')} ({filteredTransactions.length})
+               </h2>
+               <button className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white/80 rounded-xl transition-colors border border-white/20">
+                 <Download className="w-4 h-4" />
+                 <span className="text-sm font-medium">{t('common.export', 'Export')}</span>
+               </button>
+             </div>
 
             {/* Transaction Cards */}
             <div className="space-y-3">

@@ -590,9 +590,9 @@ export default function Web3ModernLayout() {
                 </div>
                 </div>
                 <div className="grid gap-3 sm:gap-4">
-                  <StatCard icon={Coins} label="Rewards" value="$342" sub="Earned this month" />
-                  <StatCard icon={Shield} label="Security" value="Active" sub="Multi-sig protection" />
-                  <StatCard icon={LineChart} label="Growth" value="12.8%" sub="Portfolio performance" />
+                  <StatCard icon={Coins} label={t('dashboard.rewards', 'Rewards')} value="$342" sub={t('dashboard.earnedThisMonth', 'Earned this month')} />
+                  <StatCard icon={Shield} label={t('dashboard.security', 'Security')} value="Active" sub={t('dashboard.multiSigProtection', 'Multi-sig protection')} />
+                  <StatCard icon={LineChart} label={t('dashboard.growth', 'Growth')} value="12.8%" sub={t('dashboard.portfolioPerformance', 'Portfolio performance')} />
                 </div>
               </div>
             </div>
@@ -607,16 +607,16 @@ export default function Web3ModernLayout() {
       <section className="stats-section mx-auto max-w-7xl px-4 pb-6 z-10 relative">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="stat-card">
-          <StatCard icon={Users} label="Active Users" value="50,384" sub="Growing monthly" />
+          <StatCard icon={Users} label={t('home.stats.activeUsers', 'Active Users')} value="50,384" sub={t('home.stats.growingMonthly', 'Growing monthly')} />
           </div>
           <div className="stat-card">
-          <StatCard icon={Rocket} label="Networks" value="8" sub="Multi-chain support" />
+          <StatCard icon={Rocket} label={t('home.stats.networks', 'Networks')} value="8" sub={t('home.stats.multiChainSupport', 'Multi-chain support')} />
           </div>
           <div className="stat-card">
-          <StatCard icon={Lock} label="Security Score" value="A+" sub="Bank-grade protection" />
+          <StatCard icon={Lock} label={t('home.stats.securityScore', 'Security Score')} value="A+" sub={t('home.stats.bankGradeProtection', 'Bank-grade protection')} />
           </div>
           <div className="stat-card">
-          <StatCard icon={TrendingUp} label="Volume" value="$12.4M" sub="Monthly transactions" />
+          <StatCard icon={TrendingUp} label={t('home.stats.volume', 'Volume')} value="$12.4M" sub={t('home.stats.monthlyTransactions', 'Monthly transactions')} />
           </div>
         </div>
       </section>
@@ -626,7 +626,7 @@ export default function Web3ModernLayout() {
         <div>
           <div className="mb-4 sm:mb-6 flex items-center gap-2 text-reveal">
             <div className="h-1.5 w-6 rounded-full bg-gradient-to-r from-red-400 to-yellow-400" />
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight">What you can do</h2>
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.features.title', 'What you can do')}</h2>
           </div>
           <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
             <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
@@ -634,9 +634,9 @@ export default function Web3ModernLayout() {
                 <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
                   <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Send & Receive</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">{t('home.features.sendReceive.title', 'Send & Receive')}</h3>
               </div>
-              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Transfer digital assets instantly across multiple networks with low fees and real-time confirmations.</p>
+              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">{t('home.features.sendReceive.description', 'Transfer digital assets instantly across multiple networks with low fees and real-time confirmations.')}</p>
               <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
             <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
@@ -644,9 +644,9 @@ export default function Web3ModernLayout() {
                 <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
                   <LineChart className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Swap & Trade</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">{t('home.features.swapTrade.title', 'Swap & Trade')}</h3>
               </div>
-              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools.</p>
+              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">{t('home.features.swapTrade.description', 'Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools.')}</p>
               <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
             <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
@@ -654,9 +654,9 @@ export default function Web3ModernLayout() {
                 <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
                   <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">Secure Storage</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">{t('home.features.secureStorage.title', 'Secure Storage')}</h3>
               </div>
-              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management.</p>
+              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">{t('home.features.secureStorage.description', 'Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management.')}</p>
               <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
           </div>
@@ -668,23 +668,23 @@ export default function Web3ModernLayout() {
         <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-4 sm:p-6 backdrop-blur-xl text-reveal">
           <div className="grid items-center gap-6 md:grid-cols-2">
             <div className="text-center md:text-left">
-              <h3 className="text-xl sm:text-2xl font-bold tracking-tight">Ready to start your digital journey?</h3>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.cta.title', 'Ready to start your digital journey?')}</h3>
               <p className="mt-2 text-sm text-white/70">
-                Join thousands of users managing their digital assets with UnityWallet. Secure, fast, and user-friendly.
+                {t('home.cta.subtitle', 'Join thousands of users managing their digital assets with UnityWallet. Secure, fast, and user-friendly.')}
               </p>
               <div className="mt-4 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <button 
                   onClick={() => navigate('/pay')}
                   className="w-full sm:w-auto group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 px-6 py-3 text-sm font-semibold shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
                 >
-                  <span className="relative z-10">Get Started</span>
+                  <span className="relative z-10">{t('home.cta.getStarted', 'Get Started')}</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </button>
                 <button 
                   onClick={() => navigate('/activity')}
                   className="w-full sm:w-auto rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 hover:bg-white/10 transition-all duration-300 hover:scale-105"
                 >
-                  Learn More
+                  {t('home.cta.learnMore', 'Learn More')}
                 </button>
               </div>
             </div>
@@ -710,19 +710,19 @@ export default function Web3ModernLayout() {
         <div className="text-center space-y-8 sm:space-y-12">
           <div className="text-reveal">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-              Why Choose <span className="bg-gradient-to-r from-red-400 to-yellow-400 bg-clip-text text-transparent">UnityWallet?</span>
+              {t('home.whyChoose.title', 'Why Choose')} <span className="bg-gradient-to-r from-red-400 to-yellow-400 bg-clip-text text-transparent">UnityWallet?</span>
             </h2>
             <p className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto px-4">
-              Experience the next generation of digital finance with cutting-edge security and seamless user experience.
+              {t('home.whyChoose.subtitle', 'Experience the next generation of digital finance with cutting-edge security and seamless user experience.')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
-              { icon: Shield, title: "Bank-Grade Security", desc: "Multi-signature protection and cold storage" },
-              { icon: Zap, title: "Lightning Fast", desc: "Instant transactions across multiple networks" },
-              { icon: Lock, title: "Full Control", desc: "Your keys, your crypto, your choice" },
-              { icon: Users, title: "24/7 Support", desc: "Expert help whenever you need it" }
+              { icon: Shield, title: t('home.whyChoose.bankGradeSecurity.title', 'Bank-Grade Security'), desc: t('home.whyChoose.bankGradeSecurity.description', 'Multi-signature protection and cold storage') },
+              { icon: Zap, title: t('home.whyChoose.lightningFast.title', 'Lightning Fast'), desc: t('home.whyChoose.lightningFast.description', 'Instant transactions across multiple networks') },
+              { icon: Lock, title: t('home.whyChoose.fullControl.title', 'Full Control'), desc: t('home.whyChoose.fullControl.description', 'Your keys, your crypto, your choice') },
+              { icon: Users, title: t('home.whyChoose.support.title', '24/7 Support'), desc: t('home.whyChoose.support.description', 'Expert help whenever you need it') }
             ].map((feature, index) => (
               <div
                 key={index}
@@ -754,39 +754,39 @@ export default function Web3ModernLayout() {
             <div className="mb-3 flex items-center justify-center sm:justify-start gap-2 text-white/80">
               <Wallet className="h-4 w-4" /> UnityWallet
             </div>
-            <p className="text-sm text-white/60">Secure, fast, and delightful digital wallet experience.</p>
+            <p className="text-sm text-white/60">{t('home.footer.description', 'Secure, fast, and delightful digital wallet experience.')}</p>
           </div>
           <div className="text-center sm:text-left">
-            <p className="mb-2 text-sm font-semibold text-white/80">Features</p>
+            <p className="mb-2 text-sm font-semibold text-white/80">{t('home.footer.features', 'Features')}</p>
             <ul className="space-y-1 text-sm text-white/60">
-              <li><button onClick={() => navigate('/pay')} className="hover:text-white transition-colors">Send & Receive</button></li>
-              <li><button onClick={() => navigate('/swap')} className="hover:text-white transition-colors">Swap Assets</button></li>
-              <li><button onClick={() => navigate('/activity')} className="hover:text-white transition-colors">Transaction History</button></li>
-              <li><button onClick={() => navigate('/insights')} className="hover:text-white transition-colors">Analytics</button></li>
+              <li><button onClick={() => navigate('/pay')} className="hover:text-white transition-colors">{t('home.footer.sendReceive', 'Send & Receive')}</button></li>
+              <li><button onClick={() => navigate('/swap')} className="hover:text-white transition-colors">{t('home.footer.swapAssets', 'Swap Assets')}</button></li>
+              <li><button onClick={() => navigate('/activity')} className="hover:text-white transition-colors">{t('home.footer.transactionHistory', 'Transaction History')}</button></li>
+              <li><button onClick={() => navigate('/insights')} className="hover:text-white transition-colors">{t('home.footer.analytics', 'Analytics')}</button></li>
             </ul>
           </div>
           <div className="text-center sm:text-left">
-            <p className="mb-2 text-sm font-semibold text-white/80">Security</p>
+            <p className="mb-2 text-sm font-semibold text-white/80">{t('home.footer.security', 'Security')}</p>
             <ul className="space-y-1 text-sm text-white/60">
-              <li><a href="#" className="hover:text-white transition-colors">Multi-Sig</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Encryption</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Audit Reports</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.multiSig', 'Multi-Sig')}</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.encryption', 'Encryption')}</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.auditReports', 'Audit Reports')}</a></li>
             </ul>
           </div>
           <div className="text-center sm:text-left">
-            <p className="mb-2 text-sm font-semibold text-white/80">Support</p>
+            <p className="mb-2 text-sm font-semibold text-white/80">{t('home.footer.support', 'Support')}</p>
             <ul className="space-y-1 text-sm text-white/60">
-              <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.helpCenter', 'Help Center')}</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.contactUs', 'Contact Us')}</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.community', 'Community')}</a></li>
             </ul>
           </div>
         </div>
         <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-white/10 pt-4 text-xs text-white/50 gap-2 text-center sm:text-left">
           <span>© {new Date().getFullYear()} UnityWallet Labs</span>
           <div className="flex items-center justify-center sm:justify-start gap-3">
-            <a href="#" className="hover:text-white transition-colors">Privacy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms</a>
+            <a href="#" className="hover:text-white transition-colors">{t('home.footer.privacy', 'Privacy')}</a>
+            <a href="#" className="hover:text-white transition-colors">{t('home.footer.terms', 'Terms')}</a>
           </div>
         </div>
       </footer>

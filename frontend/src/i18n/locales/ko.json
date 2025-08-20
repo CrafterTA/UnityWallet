@@ -24,6 +24,7 @@
   },
   "navigation": {
     "home": "홈",
+    "wallet": "지갑",
     "pay": "결제",
     "swap": "스왑",
     "activity": "활동",
@@ -36,7 +37,7 @@
     "hero": {
       "badge": "디지털 미래를 주도",
       "title": "당신의 통합 디지털 지갑 경험",
-      "subtitle": "여러 네트워크에서 디지털 자산을 전송, 수신, 스왑 및 관리하며 실시간 인사이트, 안전한 거래, 원활한 사용자 경험을 제공합니다.",
+      "subtitle": "여러 네트워크에서 디지털 자산을 전송, 수신, 교환, 관리하며 실시간 인사이트, 안전한 거래, 원활한 사용자 경험을 제공합니다.",
       "startTrading": "거래 시작",
       "viewActivity": "활동 보기",
       "features": {
@@ -56,30 +57,30 @@
       "monthlyTransactions": "월간 거래"
     },
     "features": {
-      "title": "할 수 있는 것들",
+      "title": "할 수 있는 것",
       "sendReceive": {
         "title": "전송 및 수신",
         "description": "여러 네트워크에서 디지털 자산을 즉시 전송하며 낮은 수수료와 실시간 확인을 제공합니다."
       },
       "swapTrade": {
-        "title": "스왑 및 거래",
-        "description": "통합 DEX 어그리게이터와 유동성 풀로 최고 환율로 암호화폐를 교환합니다."
+        "title": "교환 및 거래",
+        "description": "통합된 DEX 어그리게이터와 유동성 풀을 통해 최고 환율로 암호화폐를 교환합니다."
       },
       "secureStorage": {
         "title": "안전한 저장",
-        "description": "은행급 보안, 멀티시그 보호, 생체 인증 및 암호화된 키 관리."
+        "description": "은행급 보안, 멀티시그 보호, 생체 인증, 암호화 키 관리."
       }
     },
     "whyChoose": {
       "title": "왜 UnityWallet을 선택해야 할까요?",
-      "subtitle": "최첨단 보안과 원활한 사용자 경험으로 차세대 디지털 금융을 경험하세요.",
+      "subtitle": "최첨단 보안과 원활한 사용자 경험을 갖춘 차세대 디지털 금융을 경험하세요.",
       "bankGradeSecurity": {
         "title": "은행급 보안",
         "description": "멀티시그 보호 및 콜드 스토리지"
       },
       "lightningFast": {
         "title": "번개처럼 빠름",
-        "description": "여러 네트워크에서 즉시 거래"
+        "description": "여러 네트워크에서의 즉시 거래"
       },
       "fullControl": {
         "title": "완전한 제어",
@@ -87,12 +88,12 @@
       },
       "support": {
         "title": "24/7 지원",
-        "description": "필요할 때 전문적인 도움"
+        "description": "언제든 전문적인 도움"
       }
     },
     "cta": {
       "title": "디지털 여정을 시작할 준비가 되셨나요?",
-      "subtitle": "UnityWallet으로 디지털 자산을 관리하는 수천 명의 사용자와 함께하세요. 안전하고 빠르며 사용자 친화적입니다.",
+      "subtitle": "UnityWallet로 디지털 자산을 관리하는 수천 명의 사용자에 합류하세요. 안전하고 빠르며 사용자 친화적입니다.",
       "getStarted": "시작하기",
       "learnMore": "자세히 보기"
     },
@@ -102,7 +103,7 @@
       "security": "보안",
       "support": "지원",
       "sendReceive": "전송 및 수신",
-      "swapAssets": "자산 스왑",
+      "swapAssets": "자산 교환",
       "transactionHistory": "거래 내역",
       "analytics": "분석",
       "multiSig": "멀티시그",
@@ -121,7 +122,7 @@
     "rewards": "보상",
     "security": "보안",
     "growth": "성장",
-    "earnedThisMonth": "이번 달 획득",
+    "earnedThisMonth": "이번 달 수익",
     "multiSigProtection": "멀티시그 보호",
     "portfolioPerformance": "포트폴리오 성과",
     "asset": "자산",
@@ -134,5 +135,121 @@
     "zh": "中文",
     "ja": "日本語",
     "ko": "한국어"
+  },
+  "wallet": {
+    "title": "내 지갑",
+    "subtitle": "디지털 자산을 안전하게 관리",
+    "mainWallet": "메인 지갑",
+    "totalBalance": "총 잔액",
+    "send": "전송",
+    "receive": "수신",
+    "swap": "교환",
+    "history": "내역",
+    "assets": "자산",
+    "addAsset": "자산 추가",
+    "recentTransactions": "최근 거래",
+    "viewAll": "모두 보기"
+  },
+  "pay": {
+    "title": "결제",
+    "subtitle": "디지털 자산을 즉시 전송 및 수신",
+    "send": "전송",
+    "receive": "수신",
+    "transferAssets": "자산 전송",
+    "getQRCode": "QR 코드 가져오기",
+    "sendPayment": "결제 전송",
+    "recipientAddress": "수신자 주소",
+    "enterWalletAddress": "지갑 주소 입력 또는 QR 스캔",
+    "amount": "금액",
+    "quickAmounts": "빠른 금액",
+    "message": "메시지 (선택사항)",
+    "enterMessage": "수신자에게 메시지 입력",
+    "recentContacts": "최근 연락처",
+    "scanQRCode": "QR 코드 스캔",
+    "generateQRCode": "QR 코드 생성",
+    "yourAddress": "당신의 주소",
+    "copyAddress": "주소 복사",
+    "shareQRCode": "QR 코드 공유",
+    "sendButton": "결제 전송",
+    "cancel": "취소",
+    "confirm": "확인"
+  },
+  "swap": {
+    "title": "자산 교환",
+    "subtitle": "디지털 자산을 즉시 교환",
+    "from": "에서",
+    "to": "로",
+    "balance": "잔액",
+    "amount": "금액",
+    "swapButton": "교환",
+    "swapRate": "교환율",
+    "estimatedOutput": "예상 출력",
+    "networkFee": "네트워크 수수료",
+    "slippage": "슬리피지",
+    "swapAssets": "자산 교환",
+    "insufficientBalance": "잔액 부족",
+    "enterAmount": "금액 입력"
+  },
+  "activity": {
+    "title": "활동",
+    "subtitle": "거래 내역 추적",
+    "all": "모두",
+    "sent": "전송됨",
+    "received": "수신됨",
+    "swapped": "교환됨",
+    "pending": "대기 중",
+    "completed": "완료",
+    "failed": "실패",
+    "noTransactions": "거래가 없습니다",
+    "viewDetails": "세부사항 보기",
+    "transactionHash": "거래 해시",
+    "blockNumber": "블록 번호",
+    "gasUsed": "사용된 가스",
+    "status": "상태"
+  },
+  "insights": {
+    "title": "인사이트",
+    "subtitle": "분석 및 포트폴리오 성과",
+    "portfolioValue": "포트폴리오 가치",
+    "totalAssets": "총 자산",
+    "performance": "성과",
+    "topAssets": "상위 자산",
+    "recentActivity": "최근 활동",
+    "marketTrends": "시장 동향",
+    "profitLoss": "손익",
+    "percentageChange": "백분율 변화"
+  },
+  "settings": {
+    "title": "설정",
+    "subtitle": "계정 기본 설정 관리",
+    "account": "계정",
+    "security": "보안",
+    "notifications": "알림",
+    "appearance": "외관",
+    "language": "언어",
+    "currency": "통화",
+    "network": "네트워크",
+    "about": "정보",
+    "logout": "로그아웃",
+    "changePassword": "비밀번호 변경",
+    "twoFactorAuth": "2단계 인증",
+    "biometricAuth": "생체 인증",
+    "pushNotifications": "푸시 알림",
+    "emailNotifications": "이메일 알림",
+    "darkMode": "다크 모드",
+    "lightMode": "라이트 모드",
+    "systemDefault": "시스템 기본값"
+  },
+  "assistant": {
+    "title": "AI 어시스턴트",
+    "subtitle": "암호화폐 질문에 대한 도움 받기",
+    "placeholder": "암호화폐에 대해 무엇이든 물어보세요...",
+    "send": "전송",
+    "clearChat": "채팅 지우기",
+    "suggestions": "제안",
+    "howToSend": "암호화폐를 전송하는 방법은?",
+    "whatIsDeFi": "DeFi란?",
+    "securityTips": "보안 팁",
+    "marketAnalysis": "시장 분석"
   }
 }

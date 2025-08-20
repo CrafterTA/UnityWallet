@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Send, MessageCircle, Lightbulb, TrendingUp, DollarSign } from 'lucide-react'
 import { analyticsApi } from '@/api/analytics'
 import toast from 'react-hot-toast'
@@ -11,6 +12,7 @@ interface Message {
 }
 
 function Assistant() {
+  const { t } = useTranslation()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -96,8 +98,8 @@ function Assistant() {
         <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <MessageCircle className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">Financial Assistant</h1>
-        <p className="text-white/70">Ask me anything about your finances</p>
+                 <h1 className="text-3xl font-bold text-white mb-2">{t('assistant.title', 'Financial Assistant')}</h1>
+         <p className="text-white/70">{t('assistant.subtitle', 'Ask me anything about your finances')}</p>
       </div>
 
       {/* Messages */}
@@ -160,7 +162,7 @@ function Assistant() {
       {/* Quick Questions */}
       {messages.length === 1 && (
         <div className="mb-6">
-          <p className="text-sm font-medium text-white/80 mb-3">Quick questions:</p>
+                     <p className="text-sm font-medium text-white/80 mb-3">{t('assistant.suggestions', 'Quick questions')}:</p>
           <div className="space-y-2">
             {quickQuestions.map((question, index) => (
               <button
@@ -186,7 +188,7 @@ function Assistant() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me about your finances..."
+                         placeholder={t('assistant.placeholder', 'Ask me about your finances...')}
             className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm"
             disabled={isLoading}
           />

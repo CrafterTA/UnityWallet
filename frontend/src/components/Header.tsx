@@ -176,20 +176,14 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
               {/* Language Switcher */}
               <LanguageSwitcher />
 
-              {/* Wallet Address */}
-              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm">
-                <Wallet className="h-4 w-4 text-white/70" />
-                <span className="text-white/90 font-mono text-xs">0x1234...5678</span>
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText('0x1234567890abcdef1234567890abcdef12345678')
-                    // You can add a toast notification here
-                  }}
-                  className="text-white/50 hover:text-white transition-colors"
-                >
-                  <Copy className="h-3 w-3" />
-                </button>
-              </div>
+              {/* Wallet Button */}
+              <button 
+                onClick={() => handleNavigation('/wallet')}
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group"
+              >
+                <Wallet className="h-4 w-4 text-white/70 group-hover:text-red-400 transition-colors" />
+                <span className="text-white/90 font-medium">Wallet</span>
+              </button>
 
               {/* Notifications */}
               <button className="relative p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
@@ -313,6 +307,14 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
             </button>
             
             <button 
+              onClick={() => handleNavigation('/wallet')}
+              className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
+            >
+              <Wallet className="h-5 w-5 group-hover:text-yellow-400 transition-colors" />
+              <span>{t('navigation.wallet', 'Wallet')}</span>
+            </button>
+
+            <button 
               onClick={() => handleNavigation('/activity')}
               className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
             >
@@ -336,26 +338,24 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
               <LanguageSwitcher />
             </div>
 
-            {/* Wallet Address */}
-            <div className="flex items-center justify-between rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl px-4 py-4">
+            {/* Wallet Button */}
+            <button
+              onClick={() => handleNavigation('/wallet')}
+              className="flex items-center justify-between rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl px-4 py-4 text-left hover:bg-white/20 transition-all"
+            >
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
                   <Wallet className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-white/90 font-mono text-sm">0x1234...5678</p>
-                  <p className="text-white/60 text-xs">Main Wallet</p>
+                  <p className="text-white/90 font-medium">Wallet</p>
+                  <p className="text-white/60 text-xs">Manage your assets</p>
                 </div>
               </div>
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText('0x1234567890abcdef1234567890abcdef12345678')
-                }}
-                className="text-white/50 hover:text-white transition-colors p-2 rounded-xl hover:bg-white/20"
-              >
-                <Copy className="h-4 w-4" />
-              </button>
-            </div>
+              <div className="text-white/40">
+                <ArrowRight className="h-4 w-4" />
+              </div>
+            </button>
 
             {/* User Profile */}
             <button
@@ -400,3 +400,4 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
 }
 
 export default Header
+

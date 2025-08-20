@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, DollarSign, PiggyBank, CreditCard, Star } from 'lucide-react'
 import { analyticsApi } from '@/api/analytics'
@@ -6,6 +7,7 @@ import { analyticsApi } from '@/api/analytics'
 const COLORS = ['#E31E24', '#FFC107', '#16A34A', '#3B82F6', '#8B5CF6']
 
 function Insights() {
+  const { t } = useTranslation()
   const { data: spendingSummary, isLoading } = useQuery({
     queryKey: ['spending-summary'],
     queryFn: analyticsApi.getSpendingSummary,
@@ -35,8 +37,8 @@ function Insights() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-navy-900 mb-2">Financial Insights</h1>
-        <p className="text-navy-600">Track your spending and discover savings opportunities</p>
+                 <h1 className="text-2xl font-bold text-navy-900 mb-2">{t('insights.title', 'Financial Insights')}</h1>
+         <p className="text-navy-600">{t('insights.subtitle', 'Track your spending and discover savings opportunities')}</p>
       </div>
 
       {/* Credit Score Card */}

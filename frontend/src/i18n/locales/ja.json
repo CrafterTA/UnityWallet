@@ -24,6 +24,7 @@
   },
   "navigation": {
     "home": "ホーム",
+    "wallet": "ウォレット",
     "pay": "支払い",
     "swap": "スワップ",
     "activity": "アクティビティ",
@@ -36,11 +37,11 @@
     "hero": {
       "badge": "デジタル未来を推進",
       "title": "あなたの統合デジタルウォレット体験",
-      "subtitle": "複数のネットワークでデジタル資産を送信、受信、スワップ、管理し、リアルタイムインサイト、安全な取引、シームレスなユーザー体験を提供します。",
+      "subtitle": "複数のネットワークでデジタル資産を送信、受信、交換、管理し、リアルタイムの洞察、安全な取引、シームレスなユーザー体験を提供します。",
       "startTrading": "取引開始",
-      "viewActivity": "アクティビティ表示",
+      "viewActivity": "アクティビティを表示",
       "features": {
-        "security": "銀行級セキュリティ",
+        "security": "銀行レベルのセキュリティ",
         "multiSig": "マルチシグ保護",
         "users": "50k+ ユーザー"
       }
@@ -52,29 +53,29 @@
       "volume": "取引量",
       "growingMonthly": "月次成長",
       "multiChainSupport": "マルチチェーンサポート",
-      "bankGradeProtection": "銀行級保護",
+      "bankGradeProtection": "銀行レベルの保護",
       "monthlyTransactions": "月次取引"
     },
     "features": {
       "title": "できること",
       "sendReceive": {
-        "title": "送信・受信",
-        "description": "複数のネットワークでデジタル資産を即座に転送し、低手数料とリアルタイム確認を提供します。"
+        "title": "送信と受信",
+        "description": "複数のネットワークでデジタル資産を即座に転送し、低手数料でリアルタイム確認を提供します。"
       },
       "swapTrade": {
-        "title": "スワップ・取引",
-        "description": "統合DEXアグリゲーターと流動性プールで最高レートで暗号通貨を交換します。"
+        "title": "スワップと取引",
+        "description": "統合されたDEXアグリゲーターと流動性プールで最高レートで暗号通貨を交換します。"
       },
       "secureStorage": {
         "title": "安全な保管",
-        "description": "銀行級セキュリティ、マルチシグ保護、生体認証、暗号化キー管理。"
+        "description": "銀行レベルのセキュリティ、マルチシグ保護、生体認証、暗号化キー管理を提供します。"
       }
     },
     "whyChoose": {
       "title": "なぜUnityWalletを選ぶのか？",
-      "subtitle": "最先端のセキュリティとシームレスなユーザー体験で次世代デジタル金融を体験してください。",
+      "subtitle": "最先端のセキュリティとシームレスなユーザー体験を持つ次世代デジタル金融を体験してください。",
       "bankGradeSecurity": {
-        "title": "銀行級セキュリティ",
+        "title": "銀行レベルのセキュリティ",
         "description": "マルチシグ保護とコールドストレージ"
       },
       "lightningFast": {
@@ -87,11 +88,11 @@
       },
       "support": {
         "title": "24/7サポート",
-        "description": "必要な時に専門的なヘルプ"
+        "description": "いつでも専門的なヘルプを提供"
       }
     },
     "cta": {
-      "title": "デジタルジャーニーを始める準備はできていますか？",
+      "title": "デジタルジャーニーを始める準備はできましたか？",
       "subtitle": "UnityWalletでデジタル資産を管理する何千人ものユーザーに参加してください。安全、高速、ユーザーフレンドリー。",
       "getStarted": "始める",
       "learnMore": "詳細を見る"
@@ -101,7 +102,7 @@
       "features": "機能",
       "security": "セキュリティ",
       "support": "サポート",
-      "sendReceive": "送信・受信",
+      "sendReceive": "送信と受信",
       "swapAssets": "資産スワップ",
       "transactionHistory": "取引履歴",
       "analytics": "分析",
@@ -121,7 +122,7 @@
     "rewards": "報酬",
     "security": "セキュリティ",
     "growth": "成長",
-    "earnedThisMonth": "今月獲得",
+    "earnedThisMonth": "今月の収益",
     "multiSigProtection": "マルチシグ保護",
     "portfolioPerformance": "ポートフォリオパフォーマンス",
     "asset": "資産",
@@ -134,5 +135,121 @@
     "zh": "中文",
     "ja": "日本語",
     "ko": "한국어"
+  },
+  "wallet": {
+    "title": "マイウォレット",
+    "subtitle": "デジタル資産を安全に管理",
+    "mainWallet": "メインウォレット",
+    "totalBalance": "総残高",
+    "send": "送信",
+    "receive": "受信",
+    "swap": "スワップ",
+    "history": "履歴",
+    "assets": "資産",
+    "addAsset": "資産を追加",
+    "recentTransactions": "最近の取引",
+    "viewAll": "すべて表示"
+  },
+  "pay": {
+    "title": "支払い",
+    "subtitle": "デジタル資産を即座に送受信",
+    "send": "送信",
+    "receive": "受信",
+    "transferAssets": "資産を転送",
+    "getQRCode": "QRコードを取得",
+    "sendPayment": "支払いを送信",
+    "recipientAddress": "受信者アドレス",
+    "enterWalletAddress": "ウォレットアドレスを入力またはQRをスキャン",
+    "amount": "金額",
+    "quickAmounts": "クイック金額",
+    "message": "メッセージ（オプション）",
+    "enterMessage": "受信者へのメッセージを入力",
+    "recentContacts": "最近の連絡先",
+    "scanQRCode": "QRコードをスキャン",
+    "generateQRCode": "QRコードを生成",
+    "yourAddress": "あなたのアドレス",
+    "copyAddress": "アドレスをコピー",
+    "shareQRCode": "QRコードを共有",
+    "sendButton": "支払いを送信",
+    "cancel": "キャンセル",
+    "confirm": "確認"
+  },
+  "swap": {
+    "title": "資産スワップ",
+    "subtitle": "デジタル資産を即座に交換",
+    "from": "から",
+    "to": "へ",
+    "balance": "残高",
+    "amount": "金額",
+    "swapButton": "スワップ",
+    "swapRate": "スワップレート",
+    "estimatedOutput": "推定出力",
+    "networkFee": "ネットワーク手数料",
+    "slippage": "スリッページ",
+    "swapAssets": "資産をスワップ",
+    "insufficientBalance": "残高不足",
+    "enterAmount": "金額を入力"
+  },
+  "activity": {
+    "title": "アクティビティ",
+    "subtitle": "取引履歴を追跡",
+    "all": "すべて",
+    "sent": "送信済み",
+    "received": "受信済み",
+    "swapped": "スワップ済み",
+    "pending": "保留中",
+    "completed": "完了",
+    "failed": "失敗",
+    "noTransactions": "取引がありません",
+    "viewDetails": "詳細を表示",
+    "transactionHash": "取引ハッシュ",
+    "blockNumber": "ブロック番号",
+    "gasUsed": "使用ガス",
+    "status": "ステータス"
+  },
+  "insights": {
+    "title": "インサイト",
+    "subtitle": "分析とポートフォリオパフォーマンス",
+    "portfolioValue": "ポートフォリオ価値",
+    "totalAssets": "総資産",
+    "performance": "パフォーマンス",
+    "topAssets": "トップ資産",
+    "recentActivity": "最近のアクティビティ",
+    "marketTrends": "市場トレンド",
+    "profitLoss": "損益",
+    "percentageChange": "パーセンテージ変化"
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "アカウント設定を管理",
+    "account": "アカウント",
+    "security": "セキュリティ",
+    "notifications": "通知",
+    "appearance": "外観",
+    "language": "言語",
+    "currency": "通貨",
+    "network": "ネットワーク",
+    "about": "について",
+    "logout": "ログアウト",
+    "changePassword": "パスワードを変更",
+    "twoFactorAuth": "二要素認証",
+    "biometricAuth": "生体認証",
+    "pushNotifications": "プッシュ通知",
+    "emailNotifications": "メール通知",
+    "darkMode": "ダークモード",
+    "lightMode": "ライトモード",
+    "systemDefault": "システムデフォルト"
+  },
+  "assistant": {
+    "title": "AIアシスタント",
+    "subtitle": "暗号通貨の質問についてヘルプを取得",
+    "placeholder": "暗号通貨について何でも聞いてください...",
+    "send": "送信",
+    "clearChat": "チャットをクリア",
+    "suggestions": "提案",
+    "howToSend": "暗号通貨を送信する方法は？",
+    "whatIsDeFi": "DeFiとは？",
+    "securityTips": "セキュリティのヒント",
+    "marketAnalysis": "市場分析"
   }
 }

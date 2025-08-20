@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/session'
 import Layout from '@/app/Layout'
 import Login from '@/pages/Login'
 import Home from '@/pages/Home'
+import Wallet from '@/pages/Wallet'
 import Pay from '@/pages/Pay'
 import Swap from '@/pages/Swap'
 import Activity from '@/pages/Activity'
@@ -27,6 +28,7 @@ function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/wallet" element={<Wallet />} />
         <Route path="/pay" element={<Pay />} />
         <Route path="/swap" element={<Swap />} />
         <Route path="/activity" element={<Activity />} />
