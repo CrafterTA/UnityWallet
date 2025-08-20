@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Wallet, Send, Repeat, Activity, ArrowRight, Menu, X, Bell, Copy, ArrowLeftRight, BarChart3, Home } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useAuthStore } from '@/store/session'
+import LanguageSwitcher from './LanguageSwitcher'
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger)
@@ -14,6 +16,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   const navRef = useRef<HTMLElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
@@ -143,33 +146,36 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
                 className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
               >
                 <Home className="h-4 w-4 group-hover:text-blue-400 transition-colors" />
-                <span>Home</span>
+                <span>{t('navigation.home')}</span>
               </button>
               <button 
                 onClick={() => handleNavigation('/pay')}
                 className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
               >
                 <Send className="h-4 w-4 group-hover:text-red-400 transition-colors" />
-                <span>Pay</span>
+                <span>{t('navigation.pay')}</span>
               </button>
               <button 
                 onClick={() => handleNavigation('/swap')}
                 className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
               >
                 <Repeat className="h-4 w-4 group-hover:text-yellow-400 transition-colors" />
-                <span>Swap</span>
+                <span>{t('navigation.swap')}</span>
               </button>
               <button 
                 onClick={() => handleNavigation('/activity')}
                 className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
               >
                 <Activity className="h-4 w-4 group-hover:text-blue-400 transition-colors" />
-                <span>Activity</span>
+                <span>{t('navigation.activity')}</span>
               </button>
             </div>
 
             {/* Right side - Wallet Info for authenticated users */}
             <div className="hidden lg:flex items-center gap-3">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+
               {/* Wallet Address */}
               <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm">
                 <Wallet className="h-4 w-4 text-white/70" />
@@ -287,7 +293,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
               className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
             >
               <Home className="h-5 w-5 group-hover:text-blue-400 transition-colors" />
-              <span>Home</span>
+              <span>{t('navigation.home')}</span>
             </button>
             
             <button 
@@ -295,7 +301,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
               className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
             >
               <Send className="h-5 w-5 group-hover:text-red-400 transition-colors" />
-              <span>Pay</span>
+              <span>{t('navigation.pay')}</span>
             </button>
             
             <button 
@@ -303,7 +309,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
               className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
             >
               <ArrowLeftRight className="h-5 w-5 group-hover:text-yellow-400 transition-colors" />
-              <span>Swap</span>
+              <span>{t('navigation.swap')}</span>
             </button>
             
             <button 
@@ -311,7 +317,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
               className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
             >
               <Activity className="h-5 w-5 group-hover:text-blue-400 transition-colors" />
-              <span>Activity</span>
+              <span>{t('navigation.activity')}</span>
             </button>
 
             <button 
@@ -319,12 +325,17 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
               className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
             >
               <BarChart3 className="h-5 w-5 group-hover:text-green-400 transition-colors" />
-              <span>Insights</span>
+              <span>{t('navigation.insights')}</span>
             </button>
           </div>
 
           {/* Mobile User Info */}
           <div className="flex flex-col gap-4 mt-8">
+            {/* Language Switcher */}
+            <div className="flex justify-center">
+              <LanguageSwitcher />
+            </div>
+
             {/* Wallet Address */}
             <div className="flex items-center justify-between rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl px-4 py-4">
               <div className="flex items-center gap-3">

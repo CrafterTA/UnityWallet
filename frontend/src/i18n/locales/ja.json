@@ -1,0 +1,138 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "add": "追加",
+    "search": "検索",
+    "filter": "フィルター",
+    "sort": "並び替え",
+    "refresh": "更新",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "close": "閉じる",
+    "open": "開く",
+    "yes": "はい",
+    "no": "いいえ",
+    "confirm": "確認",
+    "language": "言語"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "pay": "支払い",
+    "swap": "スワップ",
+    "activity": "アクティビティ",
+    "insights": "インサイト",
+    "settings": "設定",
+    "profile": "プロフィール",
+    "logout": "ログアウト"
+  },
+  "home": {
+    "hero": {
+      "badge": "デジタル未来を推進",
+      "title": "あなたの統合デジタルウォレット体験",
+      "subtitle": "複数のネットワークでデジタル資産を送信、受信、スワップ、管理し、リアルタイムインサイト、安全な取引、シームレスなユーザー体験を提供します。",
+      "startTrading": "取引開始",
+      "viewActivity": "アクティビティ表示",
+      "features": {
+        "security": "銀行級セキュリティ",
+        "multiSig": "マルチシグ保護",
+        "users": "50k+ ユーザー"
+      }
+    },
+    "stats": {
+      "activeUsers": "アクティブユーザー",
+      "networks": "ネットワーク",
+      "securityScore": "セキュリティスコア",
+      "volume": "取引量",
+      "growingMonthly": "月次成長",
+      "multiChainSupport": "マルチチェーンサポート",
+      "bankGradeProtection": "銀行級保護",
+      "monthlyTransactions": "月次取引"
+    },
+    "features": {
+      "title": "できること",
+      "sendReceive": {
+        "title": "送信・受信",
+        "description": "複数のネットワークでデジタル資産を即座に転送し、低手数料とリアルタイム確認を提供します。"
+      },
+      "swapTrade": {
+        "title": "スワップ・取引",
+        "description": "統合DEXアグリゲーターと流動性プールで最高レートで暗号通貨を交換します。"
+      },
+      "secureStorage": {
+        "title": "安全な保管",
+        "description": "銀行級セキュリティ、マルチシグ保護、生体認証、暗号化キー管理。"
+      }
+    },
+    "whyChoose": {
+      "title": "なぜUnityWalletを選ぶのか？",
+      "subtitle": "最先端のセキュリティとシームレスなユーザー体験で次世代デジタル金融を体験してください。",
+      "bankGradeSecurity": {
+        "title": "銀行級セキュリティ",
+        "description": "マルチシグ保護とコールドストレージ"
+      },
+      "lightningFast": {
+        "title": "稲妻のように高速",
+        "description": "複数ネットワークでの即座の取引"
+      },
+      "fullControl": {
+        "title": "完全な制御",
+        "description": "あなたの鍵、あなたの暗号通貨、あなたの選択"
+      },
+      "support": {
+        "title": "24/7サポート",
+        "description": "必要な時に専門的なヘルプ"
+      }
+    },
+    "cta": {
+      "title": "デジタルジャーニーを始める準備はできていますか？",
+      "subtitle": "UnityWalletでデジタル資産を管理する何千人ものユーザーに参加してください。安全、高速、ユーザーフレンドリー。",
+      "getStarted": "始める",
+      "learnMore": "詳細を見る"
+    },
+    "footer": {
+      "description": "安全、高速、楽しいデジタルウォレット体験。",
+      "features": "機能",
+      "security": "セキュリティ",
+      "support": "サポート",
+      "sendReceive": "送信・受信",
+      "swapAssets": "資産スワップ",
+      "transactionHistory": "取引履歴",
+      "analytics": "分析",
+      "multiSig": "マルチシグ",
+      "encryption": "暗号化",
+      "auditReports": "監査レポート",
+      "helpCenter": "ヘルプセンター",
+      "contactUs": "お問い合わせ",
+      "community": "コミュニティ",
+      "privacy": "プライバシー",
+      "terms": "利用規約"
+    }
+  },
+  "dashboard": {
+    "portfolioOverview": "ポートフォリオ概要",
+    "totalBalance": "総残高",
+    "rewards": "報酬",
+    "security": "セキュリティ",
+    "growth": "成長",
+    "earnedThisMonth": "今月獲得",
+    "multiSigProtection": "マルチシグ保護",
+    "portfolioPerformance": "ポートフォリオパフォーマンス",
+    "asset": "資産",
+    "price": "価格",
+    "holdings": "保有量"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}

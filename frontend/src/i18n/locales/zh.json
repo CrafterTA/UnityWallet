@@ -1,0 +1,138 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "refresh": "刷新",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "close": "关闭",
+    "open": "打开",
+    "yes": "是",
+    "no": "否",
+    "confirm": "确认",
+    "language": "语言"
+  },
+  "navigation": {
+    "home": "首页",
+    "pay": "支付",
+    "swap": "兑换",
+    "activity": "活动",
+    "insights": "洞察",
+    "settings": "设置",
+    "profile": "个人资料",
+    "logout": "登出"
+  },
+  "home": {
+    "hero": {
+      "badge": "推动数字未来",
+      "title": "您的统一数字钱包体验",
+      "subtitle": "在多个网络上发送、接收、兑换和管理您的数字资产，实时洞察、安全交易和无缝用户体验。",
+      "startTrading": "开始交易",
+      "viewActivity": "查看活动",
+      "features": {
+        "security": "银行级安全",
+        "multiSig": "多重签名保护",
+        "users": "50k+ 用户"
+      }
+    },
+    "stats": {
+      "activeUsers": "活跃用户",
+      "networks": "网络",
+      "securityScore": "安全评分",
+      "volume": "交易量",
+      "growingMonthly": "月增长",
+      "multiChainSupport": "多链支持",
+      "bankGradeProtection": "银行级保护",
+      "monthlyTransactions": "月交易量"
+    },
+    "features": {
+      "title": "您可以做什么",
+      "sendReceive": {
+        "title": "发送和接收",
+        "description": "在多个网络上即时转移数字资产，费用低廉，实时确认。"
+      },
+      "swapTrade": {
+        "title": "兑换和交易",
+        "description": "通过我们集成的DEX聚合器和流动性池以最佳汇率兑换加密货币。"
+      },
+      "secureStorage": {
+        "title": "安全存储",
+        "description": "银行级安全，多重签名保护、生物识别认证和加密密钥管理。"
+      }
+    },
+    "whyChoose": {
+      "title": "为什么选择UnityWallet？",
+      "subtitle": "体验具有尖端安全性和无缝用户体验的下一代数字金融。",
+      "bankGradeSecurity": {
+        "title": "银行级安全",
+        "description": "多重签名保护和冷存储"
+      },
+      "lightningFast": {
+        "title": "闪电般快速",
+        "description": "跨多个网络的即时交易"
+      },
+      "fullControl": {
+        "title": "完全控制",
+        "description": "您的密钥，您的加密货币，您的选择"
+      },
+      "support": {
+        "title": "24/7支持",
+        "description": "随时提供专业帮助"
+      }
+    },
+    "cta": {
+      "title": "准备开始您的数字之旅？",
+      "subtitle": "加入数千名使用UnityWallet管理数字资产的用户。安全、快速、用户友好。",
+      "getStarted": "开始使用",
+      "learnMore": "了解更多"
+    },
+    "footer": {
+      "description": "安全、快速、愉悦的数字钱包体验。",
+      "features": "功能",
+      "security": "安全",
+      "support": "支持",
+      "sendReceive": "发送和接收",
+      "swapAssets": "兑换资产",
+      "transactionHistory": "交易历史",
+      "analytics": "分析",
+      "multiSig": "多重签名",
+      "encryption": "加密",
+      "auditReports": "审计报告",
+      "helpCenter": "帮助中心",
+      "contactUs": "联系我们",
+      "community": "社区",
+      "privacy": "隐私",
+      "terms": "条款"
+    }
+  },
+  "dashboard": {
+    "portfolioOverview": "投资组合概览",
+    "totalBalance": "总余额",
+    "rewards": "奖励",
+    "security": "安全",
+    "growth": "增长",
+    "earnedThisMonth": "本月赚取",
+    "multiSigProtection": "多重签名保护",
+    "portfolioPerformance": "投资组合表现",
+    "asset": "资产",
+    "price": "价格",
+    "holdings": "持有量"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}

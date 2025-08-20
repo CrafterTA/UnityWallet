@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
@@ -333,6 +334,7 @@ const AnimatedBackground = () => {
 
 export default function Web3ModernLayout() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const heroRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -455,27 +457,32 @@ export default function Web3ModernLayout() {
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 text-reveal">
               <Sparkles className="h-3.5 w-3.5" />
-              Powering the digital future
+              {t('home.hero.badge')}
             </div>
             <h1 ref={titleRef} className="mt-4 text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight lg:text-5xl xl:text-6xl">
-              Your unified <span className="bg-gradient-to-r from-red-300 via-yellow-300 to-red-300 bg-clip-text text-transparent">digital wallet</span> experience
+              {t('home.hero.title').split('digital wallet').map((part, index) => (
+                <React.Fragment key={index}>
+                  {part}
+                  {index === 0 && <span className="bg-gradient-to-r from-red-300 via-yellow-300 to-red-300 bg-clip-text text-transparent">digital wallet</span>}
+                </React.Fragment>
+              ))}
             </h1>
             <p ref={subtitleRef} className="mt-4 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-7 text-white/70">
-              Send, receive, swap, and manage your digital assets across multiple networks with real‑time insights, secure transactions, and seamless user experience.
+              {t('home.hero.subtitle')}
             </p>
             <div ref={ctaRef} className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
               <button
                 onClick={() => navigate('/pay')}
                 className="w-full sm:w-auto group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
               >
-                <span className="relative z-10">Start Trading</span>
+                <span className="relative z-10">{t('home.hero.startTrading')}</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
               <button
                 onClick={() => navigate('/activity')}
                 className="w-full sm:w-auto rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 hover:bg-white/10 transition-all duration-300 hover:scale-105"
               >
-                View Activity
+                {t('home.hero.viewActivity')}
               </button>
             </div>
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs text-white/60 text-reveal">

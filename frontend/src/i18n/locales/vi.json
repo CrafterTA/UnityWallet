@@ -1,0 +1,138 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "add": "Thêm",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "refresh": "Làm mới",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "close": "Đóng",
+    "open": "Mở",
+    "yes": "Có",
+    "no": "Không",
+    "confirm": "Xác nhận",
+    "language": "Ngôn ngữ"
+  },
+  "navigation": {
+    "home": "Trang chủ",
+    "pay": "Thanh toán",
+    "swap": "Hoán đổi",
+    "activity": "Hoạt động",
+    "insights": "Phân tích",
+    "settings": "Cài đặt",
+    "profile": "Hồ sơ",
+    "logout": "Đăng xuất"
+  },
+  "home": {
+    "hero": {
+      "badge": "Thúc đẩy tương lai số",
+      "title": "Trải nghiệm ví kỹ thuật số thống nhất của bạn",
+      "subtitle": "Gửi, nhận, hoán đổi và quản lý tài sản kỹ thuật số của bạn trên nhiều mạng với thông tin chi tiết theo thời gian thực, giao dịch an toàn và trải nghiệm người dùng mượt mà.",
+      "startTrading": "Bắt đầu Giao dịch",
+      "viewActivity": "Xem Hoạt động",
+      "features": {
+        "security": "Bảo mật Cấp Ngân hàng",
+        "multiSig": "Bảo vệ Đa chữ ký",
+        "users": "50k+ người dùng"
+      }
+    },
+    "stats": {
+      "activeUsers": "Người dùng Hoạt động",
+      "networks": "Mạng lưới",
+      "securityScore": "Điểm Bảo mật",
+      "volume": "Khối lượng",
+      "growingMonthly": "Tăng trưởng hàng tháng",
+      "multiChainSupport": "Hỗ trợ đa chuỗi",
+      "bankGradeProtection": "Bảo vệ cấp ngân hàng",
+      "monthlyTransactions": "Giao dịch hàng tháng"
+    },
+    "features": {
+      "title": "Bạn có thể làm gì",
+      "sendReceive": {
+        "title": "Gửi & Nhận",
+        "description": "Chuyển tài sản kỹ thuật số ngay lập tức trên nhiều mạng với phí thấp và xác nhận theo thời gian thực."
+      },
+      "swapTrade": {
+        "title": "Hoán đổi & Giao dịch",
+        "description": "Trao đổi tiền điện tử với tỷ giá tốt nhất bằng công cụ tổng hợp DEX và nhóm thanh khoản tích hợp của chúng tôi."
+      },
+      "secureStorage": {
+        "title": "Lưu trữ An toàn",
+        "description": "Bảo mật cấp ngân hàng với bảo vệ đa chữ ký, xác thực sinh trắc học và quản lý khóa được mã hóa."
+      }
+    },
+    "whyChoose": {
+      "title": "Tại sao chọn UnityWallet?",
+      "subtitle": "Trải nghiệm thế hệ tài chính kỹ thuật số tiếp theo với bảo mật tiên tiến và trải nghiệm người dùng mượt mà.",
+      "bankGradeSecurity": {
+        "title": "Bảo mật Cấp Ngân hàng",
+        "description": "Bảo vệ đa chữ ký và lưu trữ lạnh"
+      },
+      "lightningFast": {
+        "title": "Nhanh như Chớp",
+        "description": "Giao dịch tức thì trên nhiều mạng"
+      },
+      "fullControl": {
+        "title": "Kiểm soát Hoàn toàn",
+        "description": "Khóa của bạn, tiền điện tử của bạn, lựa chọn của bạn"
+      },
+      "support": {
+        "title": "Hỗ trợ 24/7",
+        "description": "Trợ giúp chuyên môn khi bạn cần"
+      }
+    },
+    "cta": {
+      "title": "Sẵn sàng bắt đầu hành trình kỹ thuật số của bạn?",
+      "subtitle": "Tham gia cùng hàng nghìn người dùng quản lý tài sản kỹ thuật số với UnityWallet. An toàn, nhanh chóng và thân thiện với người dùng.",
+      "getStarted": "Bắt đầu",
+      "learnMore": "Tìm hiểu thêm"
+    },
+    "footer": {
+      "description": "Trải nghiệm ví kỹ thuật số an toàn, nhanh chóng và thú vị.",
+      "features": "Tính năng",
+      "security": "Bảo mật",
+      "support": "Hỗ trợ",
+      "sendReceive": "Gửi & Nhận",
+      "swapAssets": "Hoán đổi Tài sản",
+      "transactionHistory": "Lịch sử Giao dịch",
+      "analytics": "Phân tích",
+      "multiSig": "Đa chữ ký",
+      "encryption": "Mã hóa",
+      "auditReports": "Báo cáo Kiểm toán",
+      "helpCenter": "Trung tâm Trợ giúp",
+      "contactUs": "Liên hệ Chúng tôi",
+      "community": "Cộng đồng",
+      "privacy": "Quyền riêng tư",
+      "terms": "Điều khoản"
+    }
+  },
+  "dashboard": {
+    "portfolioOverview": "Tổng quan Danh mục",
+    "totalBalance": "Tổng Số dư",
+    "rewards": "Phần thưởng",
+    "security": "Bảo mật",
+    "growth": "Tăng trưởng",
+    "earnedThisMonth": "Kiếm được tháng này",
+    "multiSigProtection": "Bảo vệ đa chữ ký",
+    "portfolioPerformance": "Hiệu suất danh mục",
+    "asset": "Tài sản",
+    "price": "Giá",
+    "holdings": "Nắm giữ"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}

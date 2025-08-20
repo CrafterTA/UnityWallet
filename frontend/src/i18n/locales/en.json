@@ -1,0 +1,138 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "open": "Open",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "language": "Language"
+  },
+  "navigation": {
+    "home": "Home",
+    "pay": "Pay",
+    "swap": "Swap",
+    "activity": "Activity",
+    "insights": "Insights",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "home": {
+    "hero": {
+      "badge": "Powering the digital future",
+      "title": "Your unified digital wallet experience",
+      "subtitle": "Send, receive, swap, and manage your digital assets across multiple networks with real‑time insights, secure transactions, and seamless user experience.",
+      "startTrading": "Start Trading",
+      "viewActivity": "View Activity",
+      "features": {
+        "security": "Bank Grade Security",
+        "multiSig": "Multi-Sig Protection",
+        "users": "50k+ users"
+      }
+    },
+    "stats": {
+      "activeUsers": "Active Users",
+      "networks": "Networks",
+      "securityScore": "Security Score",
+      "volume": "Volume",
+      "growingMonthly": "Growing monthly",
+      "multiChainSupport": "Multi-chain support",
+      "bankGradeProtection": "Bank-grade protection",
+      "monthlyTransactions": "Monthly transactions"
+    },
+    "features": {
+      "title": "What you can do",
+      "sendReceive": {
+        "title": "Send & Receive",
+        "description": "Transfer digital assets instantly across multiple networks with low fees and real-time confirmations."
+      },
+      "swapTrade": {
+        "title": "Swap & Trade",
+        "description": "Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools."
+      },
+      "secureStorage": {
+        "title": "Secure Storage",
+        "description": "Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management."
+      }
+    },
+    "whyChoose": {
+      "title": "Why Choose UnityWallet?",
+      "subtitle": "Experience the next generation of digital finance with cutting-edge security and seamless user experience.",
+      "bankGradeSecurity": {
+        "title": "Bank-Grade Security",
+        "description": "Multi-signature protection and cold storage"
+      },
+      "lightningFast": {
+        "title": "Lightning Fast",
+        "description": "Instant transactions across multiple networks"
+      },
+      "fullControl": {
+        "title": "Full Control",
+        "description": "Your keys, your crypto, your choice"
+      },
+      "support": {
+        "title": "24/7 Support",
+        "description": "Expert help whenever you need it"
+      }
+    },
+    "cta": {
+      "title": "Ready to start your digital journey?",
+      "subtitle": "Join thousands of users managing their digital assets with UnityWallet. Secure, fast, and user-friendly.",
+      "getStarted": "Get Started",
+      "learnMore": "Learn More"
+    },
+    "footer": {
+      "description": "Secure, fast, and delightful digital wallet experience.",
+      "features": "Features",
+      "security": "Security",
+      "support": "Support",
+      "sendReceive": "Send & Receive",
+      "swapAssets": "Swap Assets",
+      "transactionHistory": "Transaction History",
+      "analytics": "Analytics",
+      "multiSig": "Multi-Sig",
+      "encryption": "Encryption",
+      "auditReports": "Audit Reports",
+      "helpCenter": "Help Center",
+      "contactUs": "Contact Us",
+      "community": "Community",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
+  "dashboard": {
+    "portfolioOverview": "Portfolio Overview",
+    "totalBalance": "Total Balance",
+    "rewards": "Rewards",
+    "security": "Security",
+    "growth": "Growth",
+    "earnedThisMonth": "Earned this month",
+    "multiSigProtection": "Multi-sig protection",
+    "portfolioPerformance": "Portfolio performance",
+    "asset": "Asset",
+    "price": "Price",
+    "holdings": "Holdings"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}
