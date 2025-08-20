@@ -182,7 +182,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
                 className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group"
               >
                 <Wallet className="h-4 w-4 text-white/70 group-hover:text-red-400 transition-colors" />
-                <span className="text-white/90 font-medium">Wallet</span>
+                <span className="text-white/90 font-medium">{t('navigation.wallet', 'Wallet')}</span>
               </button>
 
               {/* Notifications */}
@@ -348,7 +348,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
                   <Wallet className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-white/90 font-medium">Wallet</p>
+                  <p className="text-white/90 font-medium">{t('navigation.wallet', 'Wallet')}</p>
                   <p className="text-white/60 text-xs">Manage your assets</p>
                 </div>
               </div>
