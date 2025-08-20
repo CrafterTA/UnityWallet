@@ -23,7 +23,6 @@ function buildMockResponse(email: string): LoginResponse {
       id: '1',
       email,
       name: 'Thang Pham',
-      avatar: 'https://api.dicebear.com/7.x/avatars/svg?seed=ThangPham',
       kycStatus: 'verified',
     },
     token: 'mock-jwt-token-' + Date.now(),

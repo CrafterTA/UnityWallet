@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Wallet, Send, Repeat, Activity, ArrowRight, Menu, X, Bell, User, Copy, ArrowLeftRight, BarChart3, Home } from 'lucide-react'
+import { Wallet, Send, Repeat, Activity, ArrowRight, Menu, X, Bell, Copy, ArrowLeftRight, BarChart3, Home } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useAuthStore } from '@/store/session'
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger)
@@ -13,6 +14,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const navRef = useRef<HTMLElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -195,10 +197,26 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
                 onClick={() => handleNavigation('/settings')}
                 className="flex items-center gap-2 p-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
               >
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
+                {user?.avatar ? (
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name}
+                    className="h-8 w-8 rounded-lg object-cover"
+                    onError={(e) => {
+                      // Hide broken image and show fallback
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div className={`h-8 w-8 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center ${user?.avatar ? 'hidden' : ''}`}>
+                  <span className="text-white font-semibold text-sm">
+                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
                 </div>
-                <span className="text-white/90 text-sm font-medium hidden xl:block">CrafterTA</span>
+                <span className="text-white/90 text-sm font-medium hidden xl:block">
+                  {user?.name || 'User'}
+                </span>
               </button>
             </div>
 
@@ -215,8 +233,22 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
                 onClick={() => handleNavigation('/settings')}
                 className="p-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
               >
-                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
-                  <User className="h-3 w-3 text-white" />
+                {user?.avatar ? (
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name}
+                    className="h-7 w-7 rounded-lg object-cover"
+                    onError={(e) => {
+                      // Hide broken image and show fallback
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div className={`h-7 w-7 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center ${user?.avatar ? 'hidden' : ''}`}>
+                  <span className="text-white font-semibold text-xs">
+                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
                 </div>
               </button>
             </div>
@@ -320,10 +352,12 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
               className="flex items-center gap-3 rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl px-4 py-4 text-left hover:bg-white/20 transition-all"
             >
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
-                <User className="h-5 w-5 text-white" />
+                <span className="text-white font-bold text-lg">
+                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </span>
               </div>
               <div>
-                <p className="text-white/90 font-medium">CrafterTA</p>
+                <p className="text-white/90 font-medium">{user?.name || 'User'}</p>
                 <p className="text-white/60 text-sm">View Profile & Settings</p>
               </div>
             </button>

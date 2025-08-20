@@ -16,14 +16,14 @@ function Layout({ children }: LayoutProps) {
   const headerVariant = location.pathname === '/' ? 'landing' : 'app'
 
   return (
-    <div className="relative min-h-screen text-white antialiased">
+    <div className="relative min-h-screen w-full overflow-x-hidden text-white antialiased">
       {/* Beautiful red-yellow gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-rose-950 via-slate-900 to-amber-950"></div>
       <div className="absolute inset-0 bg-gradient-to-tr from-red-900/20 via-transparent to-yellow-900/20"></div>
       <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-orange-950/15 to-transparent"></div>
       
       {/* Background layers */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         {/* subtle grid */}
         <div
           className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:32px_32px] opacity-30"
@@ -44,7 +44,7 @@ function Layout({ children }: LayoutProps) {
       {!shouldHideNav && <Header variant={headerVariant} />}
       
       {/* Content */}
-      <main className="relative mx-auto max-w-7xl px-4 py-8 pt-24 pb-20 md:pb-8">
+      <main className="relative mx-auto w-full max-w-7xl px-4 py-8 pt-24 pb-20 md:pb-8">
         {children}
       </main>
 
