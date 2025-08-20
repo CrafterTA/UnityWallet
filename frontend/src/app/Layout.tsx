@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import Header from '@/components/Header'
+import BottomNav from '@/components/BottomNav'
 
 interface LayoutProps {
   children: ReactNode
@@ -43,9 +44,12 @@ function Layout({ children }: LayoutProps) {
       {!shouldHideNav && <Header variant={headerVariant} />}
       
       {/* Content */}
-      <main className="relative mx-auto max-w-7xl px-4 py-8 pt-24">
+      <main className="relative mx-auto max-w-7xl px-4 py-8 pt-24 pb-20 md:pb-8">
         {children}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      {!shouldHideNav && <BottomNav />}
     </div>
   )
 }

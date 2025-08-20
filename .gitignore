@@ -121,3 +121,46 @@ docs/_build/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# ================= Additional (Frontend / Tooling) =================
+# Vite / build caches
+frontend/.vite/
+frontend/coverage/
+coverage/
+.nyc_output/
+
+# ESLint / TypeScript caches
+.eslintcache
+.tsbuildinfo
+
+# Package manager debug logs
+pnpm-debug.log*
+
+# Test artifacts (Cypress / Playwright)
+cypress/videos/
+cypress/screenshots/
+playwright-report/
+test-results/
+
+# Storybook build
+storybook-static/
+
+# Framework deploy platforms
+.vercel/
+.netlify/
+
+# Turbo / Nx / task runners
+.turbo/
+
+# Python tooling caches (root level)
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Local environment override files not already listed
+.env.test
+.env.staging
+
+# Editor
+.DS_Store
+Thumbs.db

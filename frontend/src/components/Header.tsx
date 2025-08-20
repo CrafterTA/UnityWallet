@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Wallet, Send, Repeat, Activity, ArrowRight, Menu, X, Bell, User, Copy, ArrowLeftRight, BarChart3 } from 'lucide-react'
+import { Wallet, Send, Repeat, Activity, ArrowRight, Menu, X, Bell, User, Copy, ArrowLeftRight, BarChart3, Home } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -138,9 +138,10 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
             <div className={`hidden md:flex items-center ${navGap}`}>
               <button 
                 onClick={() => handleNavigation('/')}
-                className={`${navTextSize} text-white/70 hover:text-white transition-colors`}
+                className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
               >
-                Home
+                <Home className="h-4 w-4 group-hover:text-blue-400 transition-colors" />
+                <span>Home</span>
               </button>
               <button 
                 onClick={() => handleNavigation('/pay')}
@@ -197,7 +198,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
                   <User className="h-4 w-4 text-white" />
                 </div>
-                <span className="text-white/90 text-sm font-medium hidden xl:block">John Doe</span>
+                <span className="text-white/90 text-sm font-medium hidden xl:block">CrafterTA</span>
               </button>
             </div>
 
@@ -251,9 +252,10 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
           <div className="flex flex-col space-y-4">
             <button 
               onClick={() => handleNavigation('/')}
-              className="flex items-center text-left text-lg text-white/80 hover:text-white transition-colors py-3 px-4 rounded-xl hover:bg-white/10"
+              className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
             >
-              Home
+              <Home className="h-5 w-5 group-hover:text-blue-400 transition-colors" />
+              <span>Home</span>
             </button>
             
             <button 
@@ -321,7 +323,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
                 <User className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="text-white/90 font-medium">John Doe</p>
+                <p className="text-white/90 font-medium">CrafterTA</p>
                 <p className="text-white/60 text-sm">View Profile & Settings</p>
               </div>
             </button>

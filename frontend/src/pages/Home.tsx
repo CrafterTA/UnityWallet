@@ -301,9 +301,9 @@ export default function Web3ModernLayout() {
       </section>
 
       {/* FOOTER */}
-      <footer className="mx-auto max-w-7xl px-4 pb-12 pt-10">
-        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
-          <div>
+      <footer className="mx-auto max-w-7xl px-4 pb-20 md:pb-12 pt-8">
+        <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-4">
+          <div className="col-span-2 md:col-span-1">
             <div className="mb-3 flex items-center gap-2 text-white/80">
               <Wallet className="h-4 w-4" /> UnityWallet
             </div>
@@ -312,34 +312,34 @@ export default function Web3ModernLayout() {
           <div>
             <p className="mb-2 text-sm font-semibold text-white/80">Features</p>
             <ul className="space-y-1 text-sm text-white/60">
-              <li><a href="/pay" className="hover:text-white">Send & Receive</a></li>
-              <li><a href="/swap" className="hover:text-white">Swap Assets</a></li>
-              <li><a href="/activity" className="hover:text-white">Transaction History</a></li>
-              <li><a href="/insights" className="hover:text-white">Analytics</a></li>
+              <li><a href="/pay" className="hover:text-white transition-colors">Send & Receive</a></li>
+              <li><a href="/swap" className="hover:text-white transition-colors">Swap Assets</a></li>
+              <li><a href="/activity" className="hover:text-white transition-colors">Transaction History</a></li>
+              <li><a href="/insights" className="hover:text-white transition-colors">Analytics</a></li>
             </ul>
           </div>
           <div>
             <p className="mb-2 text-sm font-semibold text-white/80">Security</p>
             <ul className="space-y-1 text-sm text-white/60">
-              <li><a href="#" className="hover:text-white">Multi-Sig</a></li>
-              <li><a href="#" className="hover:text-white">Encryption</a></li>
-              <li><a href="#" className="hover:text-white">Audit Reports</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Multi-Sig</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Encryption</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Audit Reports</a></li>
             </ul>
           </div>
           <div>
             <p className="mb-2 text-sm font-semibold text-white/80">Support</p>
             <ul className="space-y-1 text-sm text-white/60">
-              <li><a href="#" className="hover:text-white">Help Center</a></li>
-              <li><a href="#" className="hover:text-white">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white">Community</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
             </ul>
           </div>
         </div>
-        <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-6 text-xs text-white/50">
+        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-white/10 pt-4 text-xs text-white/50 gap-2">
           <span>© {new Date().getFullYear()} UnityWallet Labs</span>
           <div className="flex items-center gap-3">
-            <a href="#" className="hover:text-white">Privacy</a>
-            <a href="#" className="hover:text-white">Terms</a>
+            <a href="#" className="hover:text-white transition-colors">Privacy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms</a>
           </div>
         </div>
       </footer>
