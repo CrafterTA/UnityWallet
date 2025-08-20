@@ -1,403 +1,461 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { Wallet, Send, Repeat, Activity, ArrowRight, Menu, X, Bell, Copy, ArrowLeftRight, BarChart3, Home } from 'lucide-react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useAuthStore } from '@/store/session'
-import LanguageSwitcher from './LanguageSwitcher'
+// Header.tsx — Enhanced Neon Glass header matching UnityWallet style
+// - Center segmented nav with sliding indicator
+// - Glass/gradient background that intensifies on scroll
+// - SPA navigation with useNavigate (requires <BrowserRouter>)
+// - Mobile drawer with blurred radial gradient
+// - Enhanced wallet button and notifications
 
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger)
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import {
+  Wallet,
+  Send,
+  Repeat,
+  Activity,
+  Bell,
+  Menu,
+  X,
+  BarChart3,
+  Home,
+  Settings,
+  User,
+  LogOut,
+} from 'lucide-react';
+import { useAuthStore } from '@/store/session';
+import LanguageSwitcher from './LanguageSwitcher';
 
-interface HeaderProps {
-  variant?: 'landing' | 'app'
+// Register plugin once (safe in CSR)
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
 }
 
-const Header: React.FC<HeaderProps> = ({ variant = 'app' }) => {
-  const navigate = useNavigate()
-  const { t } = useTranslation()
-  const { user } = useAuthStore()
-  const navRef = useRef<HTMLElement>(null)
-  const mobileMenuRef = useRef<HTMLDivElement>(null)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+interface HeaderProps { variant?: 'landing' | 'app' }
 
-  // Toggle mobile menu
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
+const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useTranslation();
+  const { user, logout } = useAuthStore();
 
-  // Handle navigation and close mobile menu
-  const handleNavigation = (path: string) => {
-    navigate(path)
-    setIsMobileMenuOpen(false)
-  }
+  const navRef = useRef<HTMLElement>(null);
+  const pillRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const mobileRef = useRef<HTMLDivElement>(null);
+  const walletButtonRef = useRef<HTMLButtonElement>(null);
 
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(3); // Mock notification count
+
+  const links = useMemo(() => ([
+    { path: '/', label: t('navigation.home', 'Home'), icon: Home },
+    { path: '/pay', label: t('navigation.pay', 'Pay'), icon: Send },
+    { path: '/swap', label: t('navigation.swap', 'Swap'), icon: Repeat },
+    { path: '/activity', label: t('navigation.activity', 'Activity'), icon: Activity },
+    { path: '/insights', label: t('navigation.insights', 'Insights'), icon: BarChart3 },
+  ]), [t]);
+
+  const activeIndex = useMemo(() => {
+    const idx = links.findIndex(l => (l.path === '/' ? location.pathname === '/' : location.pathname.startsWith(l.path)));
+    return idx === -1 ? 0 : idx;
+  }, [location.pathname, links]);
+
+  // Enhanced scroll background intensity
   useEffect(() => {
-    const nav = navRef.current
-    if (!nav) return
+    const nav = navRef.current;
+    if (!nav) return;
 
-    // GSAP scroll animation for border and background
-    const handleScroll = () => {
-      const scrolled = window.scrollY > 20
-      setIsScrolled(scrolled)
-      
-      if (scrolled) {
-        // Show header background and effects when scrolled
-        gsap.to(nav, {
-          duration: 0.4,
-          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(245, 158, 11, 0.15) 30%, rgba(251, 191, 36, 0.12) 70%, rgba(239, 68, 68, 0.08) 100%)',
-          borderBottomColor: 'rgba(245, 158, 11, 0.2)',
-          backdropFilter: 'blur(24px)',
-          boxShadow: '0 8px 40px rgba(239, 68, 68, 0.15)',
-          ease: 'power2.out'
-        })
-      } else {
-        // Completely transparent when at top
-        gsap.to(nav, {
-          duration: 0.4,
-          background: 'transparent',
-          borderBottomColor: 'transparent',
-          backdropFilter: 'none',
-          boxShadow: 'none',
-          ease: 'power2.out'
-        })
+    // Kill existing ScrollTriggers to avoid conflicts
+    ScrollTrigger.getAll().forEach(trigger => {
+      if (trigger.vars.trigger === document.body) {
+        trigger.kill();
       }
-    }
+    });
 
-    handleScroll()
-    window.addEventListener('scroll', handleScroll)
+    // Create new scroll trigger
+    const scrollTrigger = ScrollTrigger.create({
+      trigger: document.body,
+      start: 'top top',
+      end: '300px',
+      scrub: 1,
+      onUpdate: (self) => {
+        const progress = self.progress;
+        nav.style.setProperty('--scroll-progress', progress.toString());
+        
+        // Apply background changes directly
+        const bgOpacity = progress * 0.25;
+        const shadowOpacity = progress * 0.25;
+        const blurAmount = progress * 20;
+        const borderOpacity = progress * 0.18;
+        
+        nav.style.background = `linear-gradient(135deg, rgba(239,68,68,${bgOpacity}) 0%, rgba(245,158,11,${bgOpacity * 0.9}) 40%, rgba(251,191,36,${bgOpacity * 0.7}) 100%)`;
+        nav.style.boxShadow = `0 12px 48px rgba(239,68,68,${shadowOpacity})`;
+        nav.style.backdropFilter = `blur(${blurAmount}px)`;
+        nav.style.borderBottomColor = `rgba(255,255,255,${borderOpacity})`;
+      }
+    });
 
-    // No entrance animation to avoid jumping effect
+    // Fallback scroll listener for immediate response
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const progress = Math.min(scrollY / 300, 1);
+      
+      if (nav) {
+        nav.style.setProperty('--scroll-progress', progress.toString());
+        
+        const bgOpacity = progress * 0.25;
+        const shadowOpacity = progress * 0.25;
+        const blurAmount = progress * 20;
+        const borderOpacity = progress * 0.18;
+        
+        nav.style.background = `linear-gradient(135deg, rgba(239,68,68,${bgOpacity}) 0%, rgba(245,158,11,${bgOpacity * 0.9}) 40%, rgba(251,191,36,${bgOpacity * 0.7}) 100%)`;
+        nav.style.boxShadow = `0 12px 48px rgba(239,68,68,${shadowOpacity})`;
+        nav.style.backdropFilter = `blur(${blurAmount}px)`;
+        nav.style.borderBottomColor = `rgba(255,255,255,${borderOpacity})`;
+      }
+    };
+
+    // Add scroll listener
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Initial call
+    handleScroll();
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
-    }
-  }, [variant])
+      scrollTrigger.kill();
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [location.pathname]); // Re-run when route changes
 
-  // Mobile menu animation
+  // Enhanced sliding indicator with bounce effect
+  const placeIndicator = () => {
+    const list = listRef.current;
+    const pill = pillRef.current;
+    if (!list || !pill) return;
+    const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[data-nav-item]'));
+    const target = items[activeIndex];
+    if (!target) return;
+    const listBox = list.getBoundingClientRect();
+    const box = target.getBoundingClientRect();
+    const x = box.left - listBox.left;
+    const w = box.width;
+    gsap.to(pill, { 
+      x, 
+      width: w, 
+      duration: 0.4, 
+      ease: 'back.out(1.7)'
+    });
+  };
+
+  useEffect(() => { placeIndicator(); }, [activeIndex]);
+  useEffect(() => { 
+    const onResize = () => placeIndicator(); 
+    window.addEventListener('resize', onResize); 
+    return () => window.removeEventListener('resize', onResize); 
+  }, []);
+
+  // Enhanced mobile drawer animation
   useEffect(() => {
-    const mobileMenu = mobileMenuRef.current
-    if (!mobileMenu) return
-
-    if (isMobileMenuOpen) {
-      gsap.to(mobileMenu, {
+    const el = mobileRef.current; 
+    if (!el) return;
+    
+    if (isMobileOpen) {
+      gsap.set(el, { display: 'block' });
+      gsap.to(el, { 
+        y: 0, 
+        opacity: 1, 
         duration: 0.3,
-        opacity: 1,
-        y: 0,
-        visibility: 'visible',
-        ease: 'power2.out'
-      })
+        ease: 'power2.out',
+        onComplete: () => {
+          el.style.pointerEvents = 'auto';
+        }
+      });
     } else {
-      gsap.to(mobileMenu, {
-        duration: 0.3,
+      gsap.to(el, { 
+        y: -20, 
         opacity: 0,
-        y: -20,
-        visibility: 'hidden',
-        ease: 'power2.out'
-      })
+        duration: 0.25, 
+        ease: 'power2.in',
+        onComplete: () => {
+          el.style.pointerEvents = 'none';
+          gsap.set(el, { display: 'none' });
+        }
+      });
     }
-  }, [isMobileMenuOpen])
+  }, [isMobileOpen]);
 
-  const navClass = "fixed top-0 left-0 right-0 z-50 transition-all duration-300" // Always fixed to avoid jumping
+  // Wallet button hover effect
+  useEffect(() => {
+    const walletBtn = walletButtonRef.current;
+    if (!walletBtn) return;
 
-  const navStyle = {
-    background: 'transparent', // Completely transparent at top
-    borderBottom: '1px solid transparent', // No border at top
-    backdropFilter: 'none', // No blur at top
-    boxShadow: 'none' // No shadow at top
-  }
+    const handleMouseEnter = () => {
+      gsap.to(walletBtn, {
+        scale: 1.05,
+        duration: 0.2,
+        ease: 'power2.out'
+      });
+    };
 
-  const heightClass = 'h-16 sm:h-16' // Consistent height
-  const logoSize = 'h-7 w-7 sm:h-8 sm:w-8' // Slightly smaller on mobile
-  const logoIconSize = 'h-3 w-3 sm:h-4 sm:w-4' // Smaller icon on mobile
-  const logoTextSize = 'text-lg sm:text-xl' // Responsive text size
-  const betaTextSize = 'text-[9px] sm:text-[10px]' // Smaller beta text on mobile
-  const navGap = variant === 'landing' ? 'gap-8' : 'gap-8' // Same gap
-  const navTextSize = 'text-sm' // Same nav text size
+    const handleMouseLeave = () => {
+      gsap.to(walletBtn, {
+        scale: 1,
+        duration: 0.2,
+        ease: 'power2.out'
+      });
+    };
+
+    walletBtn.addEventListener('mouseenter', handleMouseEnter);
+    walletBtn.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      walletBtn.removeEventListener('mouseenter', handleMouseEnter);
+      walletBtn.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  const go = (path: string) => { 
+    navigate(path); 
+    setIsMobileOpen(false); 
+    setShowUserMenu(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setShowUserMenu(false);
+  };
 
   return (
     <>
-      <nav ref={navRef} className={navClass} style={navStyle}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className={`flex ${heightClass} items-center justify-between`}>
-            {/* Logo */}
-            <button 
-              onClick={() => handleNavigation('/')}
-              className="flex items-center gap-2 group z-50"
-            >
+      <nav ref={navRef} className="fixed inset-x-0 top-0 z-[100] border-b border-transparent" style={{willChange:'backdrop-filter, background'}}>
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex h-16 items-center justify-between gap-3">
+            {/* Enhanced Logo */}
+            <button onClick={() => go('/')} className="flex items-center gap-2 group">
               <div className="relative">
-                <div className={`grid ${logoSize} place-items-center rounded-xl bg-gradient-to-br from-red-500 to-yellow-500`}>
-                  <Wallet className={`${logoIconSize} text-white`} />
+                <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 shadow-lg">
+                  <Wallet className="h-4 w-4 text-white" />
                 </div>
-                <div className="absolute inset-0 bg-red-400 rounded-lg blur-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 rounded-xl bg-red-400/60 blur-lg opacity-0 transition-opacity duration-300 group-hover:opacity-20" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-red-500/20 to-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
-              <span className={`${logoTextSize} font-bold text-white group-hover:text-red-300 transition-colors duration-300 hidden sm:block`}>
-                UnityWallet
-              </span>
-              <span className={`ml-2 rounded-full border border-white/10 px-2 py-0.5 ${betaTextSize} text-white/60 hidden sm:block`}>beta</span>
+              <span className="hidden sm:block text-white font-bold text-lg group-hover:text-red-200 transition-colors">UnityWallet</span>
+              <span className="hidden sm:inline-block ml-2 rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-white/70 bg-white/5 backdrop-blur-sm">beta</span>
             </button>
 
-            {/* Navigation Links - Desktop */}
-            <div className={`hidden md:flex items-center ${navGap}`}>
+            {/* Enhanced Center segmented nav */}
+            <div className="hidden md:flex items-center">
+              <div ref={listRef} className="relative flex items-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-1 shadow-lg">
+                {/* Enhanced sliding indicator */}
+                <div ref={pillRef} className="absolute left-0 top-1/2 -translate-y-1/2 h-[34px] rounded-xl bg-gradient-to-r from-red-500/25 to-yellow-400/25 ring-1 ring-inset ring-white/10 shadow-[0_4px_18px_rgba(0,0,0,.25)] backdrop-blur-sm" style={{width:0}} />
+                {links.map((l, i) => (
               <button 
-                onClick={() => handleNavigation('/')}
-                className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
-              >
-                <Home className="h-4 w-4 group-hover:text-blue-400 transition-colors" />
-                <span>{t('navigation.home')}</span>
+                    key={l.path}
+                    data-nav-item
+                    onClick={() => go(l.path)}
+                    className={`relative z-10 flex items-center gap-2 rounded-xl px-4 py-2 text-sm transition-all duration-200 ${
+                      i===activeIndex 
+                        ? 'text-white font-medium' 
+                        : 'text-white/70 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <l.icon className={`h-4 w-4 transition-all duration-200 ${
+                      i===activeIndex ? 'opacity-100 scale-110' : 'opacity-80'
+                    }`} />
+                    <span>{l.label}</span>
               </button>
-              <button 
-                onClick={() => handleNavigation('/pay')}
-                className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
-              >
-                <Send className="h-4 w-4 group-hover:text-red-400 transition-colors" />
-                <span>{t('navigation.pay')}</span>
-              </button>
-              <button 
-                onClick={() => handleNavigation('/swap')}
-                className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
-              >
-                <Repeat className="h-4 w-4 group-hover:text-yellow-400 transition-colors" />
-                <span>{t('navigation.swap')}</span>
-              </button>
-              <button 
-                onClick={() => handleNavigation('/activity')}
-                className={`flex items-center gap-2 text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group ${navTextSize}`}
-              >
-                <Activity className="h-4 w-4 group-hover:text-blue-400 transition-colors" />
-                <span>{t('navigation.activity')}</span>
-              </button>
+                ))}
+              </div>
             </div>
 
-            {/* Right side - Wallet Info for authenticated users */}
+            {/* Enhanced Right utilities */}
             <div className="hidden lg:flex items-center gap-3">
-              {/* Language Switcher */}
               <LanguageSwitcher />
-
-              {/* Wallet Button */}
-              <button 
-                onClick={() => handleNavigation('/wallet')}
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group"
+              
+              {/* Enhanced Wallet Button */}
+                <button 
+                ref={walletButtonRef}
+                onClick={() => go('/wallet')} 
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 hover:border-white/20 group"
               >
-                <Wallet className="h-4 w-4 text-white/70 group-hover:text-red-400 transition-colors" />
-                <span className="text-white/90 font-medium">{t('navigation.wallet', 'Wallet')}</span>
+                <Wallet className="h-4 w-4 text-white/70 group-hover:text-red-400 transition-colors duration-200" />
+                <span className="text-white group-hover:text-red-200 transition-colors duration-200">{t('navigation.wallet','Wallet')}</span>
+                </button>
+
+              {/* Enhanced Notifications */}
+              <button className="relative p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 hover:border-white/20 group">
+                <Bell className="h-4 w-4 text-white/70 group-hover:text-yellow-400 transition-colors duration-200" />
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900 animate-pulse" />
+                )}
               </button>
 
-              {/* Notifications */}
-              <button className="relative p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
-                <Bell className="h-4 w-4 text-white/70" />
-                {/* Notification dot */}
-                <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-slate-900"></div>
-              </button>
+                              {/* Enhanced User Menu */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center p-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 hover:border-white/20 group"
+                  >
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10" />
+                    ) : (
+                      <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-sm font-semibold shadow-lg">
+                        {(user?.name?.[0] || 'U').toUpperCase()}
+                      </div>
+                    )}
+                  </button>
 
-              {/* User Avatar */}
+                {/* User Dropdown Menu */}
+                {showUserMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+                    <div className="p-2">
+                      <button 
+                        onClick={() => go('/settings')}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+                      >
+                        <Settings className="h-4 w-4" />
+                        <span>{t('navigation.settings', 'Settings')}</span>
+                      </button>
+                      <button 
+                        onClick={() => go('/profile')}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+                      >
+                        <User className="h-4 w-4" />
+                        <span>{t('navigation.profile', 'Profile')}</span>
+              </button>
+                      <hr className="my-1 border-white/10" />
               <button 
-                onClick={() => handleNavigation('/settings')}
-                className="flex items-center gap-2 p-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
-              >
-                {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name}
-                    className="h-8 w-8 rounded-lg object-cover"
-                    onError={(e) => {
-                      // Hide broken image and show fallback
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                    }}
-                  />
-                ) : null}
-                <div className={`h-8 w-8 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center ${user?.avatar ? 'hidden' : ''}`}>
-                  <span className="text-white font-semibold text-sm">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </span>
-                </div>
-                <span className="text-white/90 text-sm font-medium hidden xl:block">
-                  {user?.name || 'User'}
-                </span>
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>{t('navigation.logout', 'Logout')}</span>
               </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Medium screens - Compact user info */}
-            <div className="hidden md:flex lg:hidden items-center gap-2">
-              {/* Notifications */}
-              <button className="relative p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
-                <Bell className="h-4 w-4 text-white/70" />
-                <div className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></div>
-              </button>
-
-              {/* User Avatar */}
-              <button 
-                onClick={() => handleNavigation('/settings')}
-                className="p-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
-              >
-                {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name}
-                    className="h-7 w-7 rounded-lg object-cover"
-                    onError={(e) => {
-                      // Hide broken image and show fallback
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                    }}
-                  />
-                ) : null}
-                <div className={`h-7 w-7 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center ${user?.avatar ? 'hidden' : ''}`}>
-                  <span className="text-white font-semibold text-xs">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </span>
-                </div>
-              </button>
-            </div>
-
-            {/* Mobile Menu Button */}
+            {/* Enhanced Mobile toggler */}
             <button 
-              onClick={toggleMobileMenu}
-              className="md:hidden text-white/70 hover:text-white transition-colors group z-50 p-2 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm"
+              onClick={() => setIsMobileOpen(v=>!v)} 
+              className="md:hidden rounded-xl border border-white/20 bg-white/10 p-2 text-white/80 hover:bg-white/20 transition-all duration-200"
             >
-              {isMobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              {isMobileOpen ? <X className="h-5 w-5"/> : <Menu className="h-5 w-5"/>}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Enhanced Mobile drawer */}
       <div 
-        ref={mobileMenuRef}
-        className="fixed inset-0 z-40 md:hidden"
+        ref={mobileRef} 
+                 className="fixed inset-0 z-[90] md:hidden hidden" 
         style={{ 
-          visibility: 'hidden',
-          opacity: 0,
-          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(15, 23, 42, 0.95) 50%, rgba(239, 68, 68, 0.1) 100%)',
-          backdropFilter: 'blur(24px)'
+          background: 'linear-gradient(135deg, rgba(2,6,23,.95) 0%, rgba(15,23,42,.95) 50%, rgba(239,68,68,.12) 100%)', 
+          backdropFilter: 'blur(20px)' 
         }}
       >
-        <div className="flex flex-col h-full pt-20 px-6" style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
+        <div className="flex h-full flex-col pt-20 px-6 pb-[max(32px,env(safe-area-inset-bottom))]">
           {/* Mobile Navigation Links */}
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col gap-3">
+            {links.map(l => (
             <button 
-              onClick={() => handleNavigation('/')}
-              className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
+                key={l.path} 
+                onClick={() => go(l.path)} 
+                className="flex items-center gap-4 rounded-2xl px-4 py-3 text-left text-lg text-white/85 hover:bg-white/10 transition-all duration-200"
             >
-              <Home className="h-5 w-5 group-hover:text-blue-400 transition-colors" />
-              <span>{t('navigation.home')}</span>
+                <l.icon className="h-5 w-5" />
+                <span>{l.label}</span>
             </button>
+            ))}
             
+            {/* Mobile Wallet Button */}
             <button 
-              onClick={() => handleNavigation('/pay')}
-              className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
+              onClick={() => go('/wallet')} 
+              className="flex items-center gap-4 rounded-2xl px-4 py-3 text-left text-lg text-white/85 hover:bg-white/10 transition-all duration-200 border border-white/10"
             >
-              <Send className="h-5 w-5 group-hover:text-red-400 transition-colors" />
-              <span>{t('navigation.pay')}</span>
-            </button>
-            
-            <button 
-              onClick={() => handleNavigation('/swap')}
-              className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
-            >
-              <ArrowLeftRight className="h-5 w-5 group-hover:text-yellow-400 transition-colors" />
-              <span>{t('navigation.swap')}</span>
-            </button>
-            
-            <button 
-              onClick={() => handleNavigation('/wallet')}
-              className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
-            >
-              <Wallet className="h-5 w-5 group-hover:text-yellow-400 transition-colors" />
+              <Wallet className="h-5 w-5" />
               <span>{t('navigation.wallet', 'Wallet')}</span>
             </button>
+          </div>
 
-            <button 
-              onClick={() => handleNavigation('/activity')}
-              className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
-            >
-              <Activity className="h-5 w-5 group-hover:text-blue-400 transition-colors" />
-              <span>{t('navigation.activity')}</span>
-            </button>
-
-            <button 
-              onClick={() => handleNavigation('/insights')}
-              className="flex items-center gap-4 text-left text-lg text-white/80 hover:text-white transition-all duration-300 group py-3 px-4 rounded-xl hover:bg-white/10"
-            >
-              <BarChart3 className="h-5 w-5 group-hover:text-green-400 transition-colors" />
-              <span>{t('navigation.insights')}</span>
-            </button>
+          {/* Mobile Language Switcher */}
+          <div className="mt-8 flex justify-center">
+            <LanguageSwitcher />
           </div>
 
           {/* Mobile User Info */}
-          <div className="flex flex-col gap-4 mt-8">
-            {/* Language Switcher */}
-            <div className="flex justify-center">
-              <LanguageSwitcher />
-            </div>
-
-            {/* Wallet Button */}
-            <button
-              onClick={() => handleNavigation('/wallet')}
-              className="flex items-center justify-between rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl px-4 py-4 text-left hover:bg-white/20 transition-all"
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.name} className="h-12 w-12 rounded-full object-cover ring-1 ring-white/10" />
+            ) : (
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-lg font-semibold">
+                {(user?.name?.[0] || 'U').toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1">
+              <p className="text-white font-medium">{user?.name || 'User'}</p>
+              <p className="text-white/60 text-sm">{user?.email || 'user@example.com'}</p>
+              </div>
+              <button 
+              onClick={() => go('/settings')}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
             >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
-                  <Wallet className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-white/90 font-medium">{t('navigation.wallet', 'Wallet')}</p>
-                  <p className="text-white/60 text-xs">Manage your assets</p>
-                </div>
-              </div>
-              <div className="text-white/40">
-                <ArrowRight className="h-4 w-4" />
-              </div>
-            </button>
-
-            {/* User Profile */}
-            <button
-              onClick={() => handleNavigation('/settings')}
-              className="flex items-center gap-3 rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl px-4 py-4 text-left hover:bg-white/20 transition-all"
-            >
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">
-                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                </span>
-              </div>
-              <div>
-                <p className="text-white/90 font-medium">{user?.name || 'User'}</p>
-                <p className="text-white/60 text-sm">View Profile & Settings</p>
-              </div>
-            </button>
-
-            {/* Quick actions */}
-            <div className="flex gap-3">
-              <button className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl px-4 py-3 text-white/80 hover:text-white transition-all hover:bg-white/20">
-                <Bell className="h-4 w-4" />
-                <span className="text-sm">Notifications</span>
+              <Settings className="h-5 w-5 text-white/70" />
               </button>
             </div>
-          </div>
 
-          {/* Mobile Bottom Info */}
-          <div className="mt-auto pb-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-white/60 mb-3">
+          {/* Mobile Footer */}
+          <div className="mt-auto text-center">
+            <div className="mx-auto mb-3 flex w-max items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2">
               <div className="grid h-6 w-6 place-items-center rounded-lg bg-gradient-to-br from-red-500 to-yellow-500">
-                <Wallet className="h-3 w-3 text-white" />
+                <Wallet className="h-3 w-3 text-white"/>
               </div>
-              <span className="text-lg font-bold">UnityWallet</span>
-              <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-xs">beta</span>
+              <span className="text-white font-semibold">UnityWallet</span>
+              <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-xs text-white/70">beta</span>
             </div>
-            <p className="text-sm text-white/50">Secure, fast, and delightful digital wallet experience.</p>
+            <p className="text-white/50 text-sm">{t('home.footer.description', 'Secure, fast, and delightful digital wallet experience.')}</p>
           </div>
         </div>
       </div>
+
+      {/* Enhanced styles for perf & aesthetics */}
+      <style>{`
+        nav { 
+          transition: none; /* Remove transition to avoid conflicts with scroll effects */
+          will-change: background, backdrop-filter, box-shadow, border-bottom-color;
+        }
+        nav > * {
+          position: relative;
+          z-index: 10; /* Ensure content is above pseudo elements */
+        }
+        nav::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(239,68,68,0.05) 0%, rgba(245,158,11,0.03) 40%, rgba(251,191,36,0.02) 100%);
+          pointer-events: none;
+          opacity: calc(var(--scroll-progress, 0) * 1.2);
+          z-index: 1;
+        }
+        nav::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: rgba(15,23,42,0.3);
+          pointer-events: none;
+          opacity: calc(var(--scroll-progress, 0) * 0.8);
+          z-index: 2;
+        }
+      `}</style>
     </>
-  )
-}
+  );
+};
 
-export default Header
-
+export default Header;
