@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { User, Shield, Bell, RefreshCw, LogOut, ChevronRight } from 'lucide-react'
+import { User, Shield, Bell, RefreshCw, LogOut, ChevronRight, Moon, Sun, Monitor } from 'lucide-react'
 import { useAuthStore } from '@/store/session'
+import { useThemeStore } from '@/store/theme'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
@@ -10,6 +11,7 @@ function Settings() {
   const [notifications, setNotifications] = useState(true)
   const [language, setLanguage] = useState('en')
   const { user, logout } = useAuthStore()
+  const { theme, setTheme } = useThemeStore()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -75,6 +77,25 @@ function Settings() {
              const newLang = language === 'en' ? 'vi' : 'en'
              setLanguage(newLang)
              toast.success(`Language changed to ${newLang === 'en' ? 'English' : 'Vietnamese'}`)
+           },
+         },
+         {
+           label: t('settings.appearance', 'Appearance'),
+           value: theme === 'dark' ? t('settings.darkMode', 'Dark Mode') : 
+                  theme === 'light' ? t('settings.lightMode', 'Light Mode') : 
+                  t('settings.systemDefault', 'System Default'),
+           action: () => {
+             const themes: Array<'dark' | 'light' | 'system'> = ['dark', 'light', 'system']
+             const currentIndex = themes.indexOf(theme)
+             const nextTheme = themes[(currentIndex + 1) % themes.length]
+             setTheme(nextTheme)
+             
+             const themeNames = {
+               dark: t('settings.darkMode', 'Dark Mode'),
+               light: t('settings.lightMode', 'Light Mode'),
+               system: t('settings.systemDefault', 'System Default')
+             }
+             toast.success(`${t('settings.appearance', 'Appearance')}: ${themeNames[nextTheme]}`)
            },
          },
        ],

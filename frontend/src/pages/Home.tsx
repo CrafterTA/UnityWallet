@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useThemeStore } from "@/store/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
@@ -202,6 +203,7 @@ const TokenRow = ({ name, symbol, price, change, mcap }: any) => (
 // Animated Background Component
 const AnimatedBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { isDark } = useThemeStore();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -215,7 +217,7 @@ const AnimatedBackground = () => {
 
     // Particle system
     const particles: any[] = [];
-    const particleCount = 50;
+    const particleCount = isDark ? 50 : 30; // Fewer particles for light mode
 
     class Particle {
       x: number;
@@ -233,7 +235,9 @@ const AnimatedBackground = () => {
         this.vy = (Math.random() - 0.5) * 0.5;
         this.size = Math.random() * 3 + 1;
         this.opacity = Math.random() * 0.5 + 0.2;
-        this.color = `hsl(${Math.random() * 60 + 15}, 70%, 60%)`;
+        this.color = isDark 
+          ? `hsl(${Math.random() * 60 + 15}, 70%, 60%)` // Warm colors for dark mode
+          : `hsl(${Math.random() * 60 + 15}, 60%, 70%)`; // More saturated warm colors for light mode
       }
 
       update() {
@@ -272,9 +276,17 @@ const AnimatedBackground = () => {
         canvas.width / 2, canvas.height / 2, 0,
         canvas.width / 2, canvas.height / 2, canvas.width / 2
       );
-      gradient.addColorStop(0, 'rgba(239, 68, 68, 0.1)');
-      gradient.addColorStop(0.5, 'rgba(234, 179, 8, 0.05)');
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      
+      if (isDark) {
+        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.1)');
+        gradient.addColorStop(0.5, 'rgba(234, 179, 8, 0.05)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      } else {
+        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.12)');
+        gradient.addColorStop(0.5, 'rgba(234, 179, 8, 0.08)');
+        gradient.addColorStop(1, 'rgba(254, 226, 226, 0)');
+      }
+      
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -293,8 +305,8 @@ const AnimatedBackground = () => {
 
           if (distance < 100) {
             ctx.save();
-            ctx.globalAlpha = (100 - distance) / 100 * 0.3;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.globalAlpha = (100 - distance) / 100 * (isDark ? 0.3 : 0.1);
+            ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
@@ -321,13 +333,17 @@ const AnimatedBackground = () => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [isDark]);
 
   return (
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
-      style={{ background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)' }}
+      style={{ 
+        background: isDark 
+          ? 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
+          : 'linear-gradient(135deg, #FEE2E2 0%, #FED7AA 50%, #FDE68A 100%)'
+      }}
     />
   );
 };
@@ -335,6 +351,7 @@ const AnimatedBackground = () => {
 export default function Web3ModernLayout() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isDark } = useThemeStore();
   const heroRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -449,7 +466,7 @@ export default function Web3ModernLayout() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <AnimatedBackground />
+      {isDark && <AnimatedBackground />}
       
       {/* HERO */}
       <section ref={heroRef} className="relative mx-auto max-w-7xl px-4 pb-8 sm:pb-12 pt-16 sm:pt-20 lg:pt-24 z-10">
