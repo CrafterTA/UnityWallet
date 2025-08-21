@@ -452,7 +452,7 @@ export default function Web3ModernLayout() {
       <AnimatedBackground />
       
       {/* HERO */}
-      <section ref={heroRef} className="relative mx-auto max-w-7xl px-4 pb-16 sm:pb-26 pt-16 sm:pt-20 lg:pt-24 z-10">
+      <section ref={heroRef} className="relative mx-auto max-w-7xl px-4 pb-8 sm:pb-12 pt-16 sm:pt-20 lg:pt-24 z-10">
         <div className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-2">
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 text-reveal">
@@ -491,7 +491,7 @@ export default function Web3ModernLayout() {
               <div className="flex items-center gap-1"><Users className="h-3.5 w-3.5"/> 50k+ users</div>
             </div>
           </div>
-                      <div ref={dashboardRef} className="relative mt-8 sm:mt-16 lg:mt-24">
+                      <div ref={dashboardRef} className="relative mt-12 sm:mt-20 lg:mt-28">
             {/* dashboard preview card */}
               <div className="dashboard-card relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-white/5 p-3 sm:p-4 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/5 transition-all duration-300 hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] hover:border-white/20 group">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl bg-white/5 px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/20 gap-2">
@@ -604,7 +604,7 @@ export default function Web3ModernLayout() {
       </section>
 
       {/* STATS BELT */}
-      <section className="stats-section mx-auto max-w-7xl px-4 pb-6 z-10 relative">
+      <section className="stats-section mx-auto max-w-7xl px-4 pb-4 z-10 relative">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="stat-card">
           <StatCard icon={Users} label={t('home.stats.activeUsers', 'Active Users')} value="50,384" sub={t('home.stats.growingMonthly', 'Growing monthly')} />
