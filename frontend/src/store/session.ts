@@ -6,6 +6,9 @@ interface User {
   email: string
   name: string
   avatar?: string
+  phone?: string
+  location?: string
+  bio?: string
   kycStatus: 'pending' | 'verified' | 'rejected'
 }
 

@@ -261,5 +261,30 @@
     "whatIsDeFi": "DeFi là gì?",
     "securityTips": "Mẹo bảo mật",
     "marketAnalysis": "Phân tích thị trường"
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "security": "Bảo mật",
+    "preferences": "Tùy chọn",
+    "payment": "Thanh toán",
+    "changePassword": "Đổi mật khẩu",
+    "twoFactor": "Xác thực hai yếu tố",
+    "loginHistory": "Lịch sử đăng nhập",
+    "notifications": "Thông báo",
+    "language": "Ngôn ngữ",
+    "timezone": "Múi giờ",
+    "paymentMethods": "Phương thức thanh toán",
+    "billingHistory": "Lịch sử hóa đơn",
+    "dangerZone": "Khu vực nguy hiểm",
+    "deleteAccount": "Xóa tài khoản",
+    "bio": "Tiểu sử",
+    "bioPlaceholder": "Hãy kể cho chúng tôi về bản thân...",
+    "noBio": "Chưa có tiểu sử.",
+    "namePlaceholder": "Nhập tên của bạn",
+    "emailPlaceholder": "Nhập email của bạn",
+    "phonePlaceholder": "Số điện thoại",
+    "locationPlaceholder": "Vị trí",
+    "noPhone": "Chưa có số điện thoại",
+    "noLocation": "Chưa đặt vị trí"
   }
 }

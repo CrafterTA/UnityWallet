@@ -251,5 +251,30 @@
     "whatIsDeFi": "DeFi란?",
     "securityTips": "보안 팁",
     "marketAnalysis": "시장 분석"
+  },
+  "profile": {
+    "title": "프로필",
+    "security": "보안",
+    "preferences": "기본 설정",
+    "payment": "결제",
+    "changePassword": "비밀번호 변경",
+    "twoFactor": "2단계 인증",
+    "loginHistory": "로그인 기록",
+    "notifications": "알림",
+    "language": "언어",
+    "timezone": "시간대",
+    "paymentMethods": "결제 방법",
+    "billingHistory": "청구 기록",
+    "dangerZone": "위험 영역",
+    "deleteAccount": "계정 삭제",
+    "bio": "자기소개",
+    "bioPlaceholder": "자신에 대해 알려주세요...",
+    "noBio": "자기소개가 없습니다.",
+    "namePlaceholder": "이름을 입력하세요",
+    "emailPlaceholder": "이메일을 입력하세요",
+    "phonePlaceholder": "전화번호",
+    "locationPlaceholder": "위치",
+    "noPhone": "전화번호가 없습니다",
+    "noLocation": "위치가 설정되지 않았습니다"
   }
 }

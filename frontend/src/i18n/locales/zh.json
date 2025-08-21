@@ -251,5 +251,30 @@
     "whatIsDeFi": "什么是DeFi？",
     "securityTips": "安全提示",
     "marketAnalysis": "市场分析"
+  },
+  "profile": {
+    "title": "个人资料",
+    "security": "安全",
+    "preferences": "偏好设置",
+    "payment": "支付",
+    "changePassword": "更改密码",
+    "twoFactor": "双因素认证",
+    "loginHistory": "登录历史",
+    "notifications": "通知",
+    "language": "语言",
+    "timezone": "时区",
+    "paymentMethods": "支付方式",
+    "billingHistory": "账单历史",
+    "dangerZone": "危险区域",
+    "deleteAccount": "删除账户",
+    "bio": "个人简介",
+    "bioPlaceholder": "告诉我们关于您自己...",
+    "noBio": "暂无个人简介。",
+    "namePlaceholder": "输入您的姓名",
+    "emailPlaceholder": "输入您的邮箱",
+    "phonePlaceholder": "电话号码",
+    "locationPlaceholder": "位置",
+    "noPhone": "暂无电话号码",
+    "noLocation": "未设置位置"
   }
 }

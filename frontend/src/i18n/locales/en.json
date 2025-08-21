@@ -251,5 +251,30 @@
     "whatIsDeFi": "What is DeFi?",
     "securityTips": "Security tips",
     "marketAnalysis": "Market analysis"
+  },
+  "profile": {
+    "title": "Profile",
+    "security": "Security",
+    "preferences": "Preferences",
+    "payment": "Payment",
+    "changePassword": "Change Password",
+    "twoFactor": "Two-Factor Authentication",
+    "loginHistory": "Login History",
+    "notifications": "Notifications",
+    "language": "Language",
+    "timezone": "Timezone",
+    "paymentMethods": "Payment Methods",
+    "billingHistory": "Billing History",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "noBio": "No bio added yet.",
+    "namePlaceholder": "Enter your name",
+    "emailPlaceholder": "Enter your email",
+    "phonePlaceholder": "Phone number",
+    "locationPlaceholder": "Location",
+    "noPhone": "No phone number",
+    "noLocation": "No location set"
   }
 }

@@ -11,6 +11,7 @@ import Activity from '@/pages/Activity'
 import Insights from '@/pages/Insights'
 import Assistant from '@/pages/Assistant'
 import Settings from '@/pages/Settings'
+import Profile from '@/pages/Profile'
 
 function App() {
   const { isAuthenticated } = useAuthStore()
@@ -35,6 +36,7 @@ function App() {
         <Route path="/insights" element={<Insights />} />
         <Route path="/assistant" element={<Assistant />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

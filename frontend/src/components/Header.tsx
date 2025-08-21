@@ -49,6 +49,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notificationCount, setNotificationCount] = useState(3); // Mock notification count
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const links = useMemo(() => ([
     { path: '/', label: t('navigation.home', 'Home'), icon: Home },
@@ -223,6 +224,23 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
     setShowUserMenu(false);
   };
 
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -295,7 +313,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
               </button>
 
                               {/* Enhanced User Menu */}
-                <div className="relative">
+                <div className="relative" ref={userMenuRef}>
                   <button 
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center p-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 hover:border-white/20 group"
@@ -311,30 +329,63 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
 
                 {/* User Dropdown Menu */}
                 {showUserMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+                  <div className="absolute right-0 top-full mt-3 w-64 rounded-2xl border border-white/20 bg-slate-900/95 backdrop-blur-2xl shadow-2xl z-50" style={{minWidth: '256px', maxWidth: '256px', width: '256px'}}>
+                    {/* User Info Header */}
+                    <div className="p-4 border-b border-white/10 bg-gradient-to-r from-red-500/10 to-yellow-500/10">
+                      <div className="flex items-center gap-3">
+                        {user?.avatar ? (
+                          <img src={user.avatar} alt={user.name} className="h-12 w-12 rounded-full object-cover ring-2 ring-white/20 flex-shrink-0" />
+                        ) : (
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-lg font-semibold shadow-lg flex items-center justify-center flex-shrink-0">
+                            {(user?.name?.[0] || 'U').toUpperCase()}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-semibold text-sm truncate">{user?.name || 'User'}</p>
+                          <p className="text-white/60 text-xs truncate">{user?.email || 'user@example.com'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Menu Items */}
                     <div className="p-2">
                       <button 
                         onClick={() => go('/settings')}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200 group"
                       >
-                        <Settings className="h-4 w-4" />
-                        <span>{t('navigation.settings', 'Settings')}</span>
+                        <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors flex-shrink-0">
+                          <Settings className="h-4 w-4" />
+                        </div>
+                        <span className="font-medium">{t('navigation.settings', 'Settings')}</span>
                       </button>
+                      
                       <button 
                         onClick={() => go('/profile')}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200 group"
                       >
-                        <User className="h-4 w-4" />
-                        <span>{t('navigation.profile', 'Profile')}</span>
-              </button>
-                      <hr className="my-1 border-white/10" />
-              <button 
+                        <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
+                          <User className="h-4 w-4" />
+                        </div>
+                        <span className="font-medium">{t('navigation.profile', 'Profile')}</span>
+                      </button>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="px-2">
+                      <hr className="border-white/10" />
+                    </div>
+
+                    {/* Logout Button */}
+                    <div className="p-2">
+                      <button 
                         onClick={handleLogout}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 group"
                       >
-                        <LogOut className="h-4 w-4" />
-                        <span>{t('navigation.logout', 'Logout')}</span>
-              </button>
+                        <div className="p-1.5 rounded-lg bg-red-500/10 group-hover:bg-red-500/20 transition-colors flex-shrink-0">
+                          <LogOut className="h-4 w-4" />
+                        </div>
+                        <span className="font-medium">{t('navigation.logout', 'Logout')}</span>
+                      </button>
                     </div>
                   </div>
                 )}

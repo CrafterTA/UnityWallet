@@ -251,5 +251,30 @@
     "whatIsDeFi": "DeFiとは？",
     "securityTips": "セキュリティのヒント",
     "marketAnalysis": "市場分析"
+  },
+  "profile": {
+    "title": "プロフィール",
+    "security": "セキュリティ",
+    "preferences": "設定",
+    "payment": "支払い",
+    "changePassword": "パスワードを変更",
+    "twoFactor": "二要素認証",
+    "loginHistory": "ログイン履歴",
+    "notifications": "通知",
+    "language": "言語",
+    "timezone": "タイムゾーン",
+    "paymentMethods": "支払い方法",
+    "billingHistory": "請求履歴",
+    "dangerZone": "危険区域",
+    "deleteAccount": "アカウントを削除",
+    "bio": "自己紹介",
+    "bioPlaceholder": "あなた自身について教えてください...",
+    "noBio": "自己紹介がありません。",
+    "namePlaceholder": "お名前を入力",
+    "emailPlaceholder": "メールアドレスを入力",
+    "phonePlaceholder": "電話番号",
+    "locationPlaceholder": "場所",
+    "noPhone": "電話番号がありません",
+    "noLocation": "場所が設定されていません"
   }
 }
