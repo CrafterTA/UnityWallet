@@ -1,5 +1,5 @@
 // Header.tsx — Enhanced Neon Glass header matching UnityWallet style
-// - Center segmented nav with sliding indicator
+// - Center segmented nav with sliding indicator (desktop only)
 // - Glass/gradient background that intensifies on scroll
 // - SPA navigation with useNavigate (requires <BrowserRouter>)
 // - Mobile drawer with blurred radial gradient
@@ -252,20 +252,27 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
       <nav ref={navRef} className="fixed inset-x-0 top-0 z-[100] border-b border-transparent" style={{willChange:'backdrop-filter, background'}}>
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex h-16 items-center justify-between gap-3">
-            {/* Enhanced Logo */}
-            <button onClick={() => go('/')} className="flex items-center gap-2 group">
-              <div className="relative">
-                <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 shadow-lg">
-                  <Wallet className="h-4 w-4 text-white" />
+            {/* Enhanced Logo and Mobile Language Switcher */}
+            <div className="flex items-center gap-2">
+              <button onClick={() => go('/')} className="flex items-center gap-2 group">
+                <div className="relative">
+                  <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 shadow-lg">
+                    <Wallet className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="absolute inset-0 rounded-xl bg-red-400/60 blur-lg opacity-0 transition-opacity duration-300 group-hover:opacity-20" />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-red-500/20 to-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
-                <div className="absolute inset-0 rounded-xl bg-red-400/60 blur-lg opacity-0 transition-opacity duration-300 group-hover:opacity-20" />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-red-500/20 to-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              <span className="hidden sm:block text-white font-bold text-lg group-hover:text-red-200 transition-colors">UnityWallet</span>
-              <span className="hidden sm:inline-block ml-2 rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-white/70 bg-white/5 backdrop-blur-sm">beta</span>
-            </button>
+                <span className="hidden sm:block text-white font-bold text-lg group-hover:text-red-200 transition-colors">UnityWallet</span>
+                <span className="hidden sm:inline-block ml-2 rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-white/70 bg-white/5 backdrop-blur-sm">beta</span>
+              </button>
 
-            {/* Enhanced Center segmented nav */}
+              {/* Mobile Language Switcher - Right next to logo */}
+              <div className="lg:hidden">
+                <LanguageSwitcher compact={true} />
+              </div>
+            </div>
+
+            {/* Enhanced Center segmented nav - Desktop only */}
             <div className="hidden md:flex items-center">
               <div ref={listRef} className="relative flex items-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-1 shadow-lg">
                 {/* Enhanced sliding indicator */}
@@ -291,8 +298,11 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
             </div>
 
             {/* Enhanced Right utilities */}
-            <div className="hidden lg:flex items-center gap-3">
-              <LanguageSwitcher />
+            <div className="flex items-center gap-3">
+              {/* Language Switcher - Desktop only */}
+              <div className="hidden lg:block">
+                <LanguageSwitcher />
+              </div>
               
               {/* Enhanced Wallet Button */}
                 <button 
@@ -301,7 +311,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
                 className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 hover:border-white/20 group"
               >
                 <Wallet className="h-4 w-4 text-white/70 group-hover:text-red-400 transition-colors duration-200" />
-                <span className="text-white group-hover:text-red-200 transition-colors duration-200">{t('navigation.wallet','Wallet')}</span>
+                <span className="hidden sm:block text-white group-hover:text-red-200 transition-colors duration-200">{t('navigation.wallet','Wallet')}</span>
                 </button>
 
               {/* Enhanced Notifications */}
@@ -391,90 +401,9 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
                 )}
               </div>
             </div>
-
-            {/* Enhanced Mobile toggler */}
-            <button 
-              onClick={() => setIsMobileOpen(v=>!v)} 
-              className="md:hidden rounded-xl border border-white/20 bg-white/10 p-2 text-white/80 hover:bg-white/20 transition-all duration-200"
-            >
-              {isMobileOpen ? <X className="h-5 w-5"/> : <Menu className="h-5 w-5"/>}
-            </button>
           </div>
         </div>
       </nav>
-
-      {/* Enhanced Mobile drawer */}
-      <div 
-        ref={mobileRef} 
-                 className="fixed inset-0 z-[90] md:hidden hidden" 
-        style={{ 
-          background: 'linear-gradient(135deg, rgba(2,6,23,.95) 0%, rgba(15,23,42,.95) 50%, rgba(239,68,68,.12) 100%)', 
-          backdropFilter: 'blur(20px)' 
-        }}
-      >
-        <div className="flex h-full flex-col pt-20 px-6 pb-[max(32px,env(safe-area-inset-bottom))]">
-          {/* Mobile Navigation Links */}
-          <div className="flex flex-col gap-3">
-            {links.map(l => (
-            <button 
-                key={l.path} 
-                onClick={() => go(l.path)} 
-                className="flex items-center gap-4 rounded-2xl px-4 py-3 text-left text-lg text-white/85 hover:bg-white/10 transition-all duration-200"
-            >
-                <l.icon className="h-5 w-5" />
-                <span>{l.label}</span>
-            </button>
-            ))}
-            
-            {/* Mobile Wallet Button */}
-            <button 
-              onClick={() => go('/wallet')} 
-              className="flex items-center gap-4 rounded-2xl px-4 py-3 text-left text-lg text-white/85 hover:bg-white/10 transition-all duration-200 border border-white/10"
-            >
-              <Wallet className="h-5 w-5" />
-              <span>{t('navigation.wallet', 'Wallet')}</span>
-            </button>
-          </div>
-
-          {/* Mobile Language Switcher */}
-          <div className="mt-8 flex justify-center">
-            <LanguageSwitcher />
-          </div>
-
-          {/* Mobile User Info */}
-          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-            {user?.avatar ? (
-              <img src={user.avatar} alt={user.name} className="h-12 w-12 rounded-full object-cover ring-1 ring-white/10" />
-            ) : (
-              <div className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-lg font-semibold">
-                {(user?.name?.[0] || 'U').toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1">
-              <p className="text-white font-medium">{user?.name || 'User'}</p>
-              <p className="text-white/60 text-sm">{user?.email || 'user@example.com'}</p>
-              </div>
-              <button 
-              onClick={() => go('/settings')}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
-            >
-              <Settings className="h-5 w-5 text-white/70" />
-              </button>
-            </div>
-
-          {/* Mobile Footer */}
-          <div className="mt-auto text-center">
-            <div className="mx-auto mb-3 flex w-max items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2">
-              <div className="grid h-6 w-6 place-items-center rounded-lg bg-gradient-to-br from-red-500 to-yellow-500">
-                <Wallet className="h-3 w-3 text-white"/>
-              </div>
-              <span className="text-white font-semibold">UnityWallet</span>
-              <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-xs text-white/70">beta</span>
-            </div>
-            <p className="text-white/50 text-sm">{t('home.footer.description', 'Secure, fast, and delightful digital wallet experience.')}</p>
-          </div>
-        </div>
-      </div>
 
       {/* Enhanced styles for perf & aesthetics */}
       <style>{`

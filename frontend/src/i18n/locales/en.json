@@ -276,5 +276,24 @@
     "locationPlaceholder": "Location",
     "noPhone": "No phone number",
     "noLocation": "No location set"
+  },
+  "qr": {
+    "paymentRequest": "Payment Request",
+    "amount": "Amount",
+    "enterAmount": "Enter amount",
+    "asset": "Asset",
+    "available": "available",
+    "memo": "Memo (Optional)",
+    "paymentDescription": "Payment description",
+    "generateQRCode": "Generate QR Code",
+    "paymentQRCode": "Payment QR Code",
+    "copy": "Copy",
+    "download": "Download",
+    "share": "Share",
+    "invalidAmount": "Please enter a valid amount",
+    "generated": "QR code generated!",
+    "copied": "QR data copied to clipboard!",
+    "downloaded": "QR code downloaded!",
+    "paymentRequestFor": "Payment request for {amount} {asset}"
   }
 }

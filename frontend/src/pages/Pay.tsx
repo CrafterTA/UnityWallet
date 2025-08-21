@@ -173,16 +173,14 @@ function Pay() {
         
         {activeTab === 'receive' && (
           <div className="space-y-6">
-                         {/* QR Code Section */}
-             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl text-center">
-               <h3 className="font-bold text-white mb-6 flex items-center justify-center space-x-2">
-                 <QrCode className="w-5 h-5 text-green-400" />
-                 <span>{t('pay.receive', 'Receive')} {t('pay.title', 'Payments')}</span>
-               </h3>
+            {/* QR Code Section */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl">
+              <h3 className="font-bold text-white mb-6 flex items-center justify-center space-x-2">
+                <QrCode className="w-5 h-5 text-green-400" />
+                <span>{t('pay.receive', 'Receive')} {t('pay.title', 'Payments')}</span>
+              </h3>
               
-              <div className="inline-block p-6 bg-white rounded-2xl">
-                <QRCodeGenerator />
-              </div>
+              <QRCodeGenerator />
             </div>
 
                          {/* Address Display */}

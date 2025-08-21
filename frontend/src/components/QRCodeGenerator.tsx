@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import QRCode from 'qrcode.react'
-import { Copy, Download, Share } from 'lucide-react'
+import { Copy, Download, Share, QrCode } from 'lucide-react'
 import { walletApi } from '@/api/wallet'
 import toast from 'react-hot-toast'
 
 function QRCodeGenerator() {
+  const { t } = useTranslation()
   const [amount, setAmount] = useState('100')
   const [selectedAsset, setSelectedAsset] = useState('SYP')
   const [memo, setMemo] = useState('')
@@ -18,7 +20,7 @@ function QRCodeGenerator() {
 
   const handleGenerateQR = () => {
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error('Please enter a valid amount')
+      toast.error(t('qr.invalidAmount', 'Please enter a valid amount'))
       return
     }
 
@@ -33,12 +35,12 @@ function QRCodeGenerator() {
 
     const qrData = JSON.stringify(paymentRequest)
     setGeneratedQR(qrData)
-    toast.success('QR code generated!')
+    toast.success(t('qr.generated', 'QR code generated!'))
   }
 
   const handleCopyQR = () => {
     navigator.clipboard.writeText(generatedQR)
-    toast.success('QR data copied to clipboard!')
+    toast.success(t('qr.copied', 'QR data copied to clipboard!'))
   }
 
   const handleDownloadQR = () => {
@@ -49,80 +51,91 @@ function QRCodeGenerator() {
       a.href = url
       a.download = `payment-qr-${amount}-${selectedAsset}.png`
       a.click()
-      toast.success('QR code downloaded!')
+      toast.success(t('qr.downloaded', 'QR code downloaded!'))
     }
   }
 
   return (
     <div className="space-y-6">
       {/* Form */}
-      <div className="bg-white rounded-xl p-6 border border-navy-200 space-y-4">
-        <h3 className="font-semibold text-navy-900 mb-4">Payment Request</h3>
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl">
+        <h3 className="font-bold text-white mb-6 flex items-center space-x-2">
+          <QrCode className="w-5 h-5 text-green-400" />
+          <span>{t('qr.paymentRequest', 'Payment Request')}</span>
+        </h3>
         
-        {/* Amount Input */}
-        <div>
-          <label className="block text-sm font-medium text-navy-700 mb-2">
-            Amount
-          </label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-4 py-3 border border-navy-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="Enter amount"
-            min="0"
-            step="0.01"
-          />
-        </div>
+        <div className="space-y-4">
+          {/* Amount Input */}
+          <div>
+            <label className="block text-sm font-medium text-white/80 mb-2">
+              {t('qr.amount', 'Amount')}
+            </label>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/50 backdrop-blur-sm"
+              placeholder={t('qr.enterAmount', 'Enter amount')}
+              min="0"
+              step="0.01"
+            />
+          </div>
 
-        {/* Asset Selection */}
-        <div>
-          <label className="block text-sm font-medium text-navy-700 mb-2">
-            Asset
-          </label>
-          <select
-            value={selectedAsset}
-            onChange={(e) => setSelectedAsset(e.target.value)}
-            className="w-full px-4 py-3 border border-navy-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          {/* Asset Selection */}
+          <div>
+            <label className="block text-sm font-medium text-white/80 mb-2">
+              {t('qr.asset', 'Asset')}
+            </label>
+            <select
+              value={selectedAsset}
+              onChange={(e) => setSelectedAsset(e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white backdrop-blur-sm"
+            >
+              {balances?.map((balance) => (
+                <option key={balance.asset_code} value={balance.asset_code} className="bg-slate-800 text-white">
+                  {balance.asset_code} ({parseFloat(balance.balance).toFixed(2)} {t('qr.available', 'available')})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Memo Input */}
+          <div>
+            <label className="block text-sm font-medium text-white/80 mb-2">
+              {t('qr.memo', 'Memo (Optional)')}
+            </label>
+            <input
+              type="text"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/50 backdrop-blur-sm"
+              placeholder={t('qr.paymentDescription', 'Payment description')}
+              maxLength={28}
+            />
+          </div>
+
+          <button
+            onClick={handleGenerateQR}
+            className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
           >
-            {balances?.map((balance) => (
-              <option key={balance.asset_code} value={balance.asset_code}>
-                {balance.asset_code} ({parseFloat(balance.balance).toFixed(2)} available)
-              </option>
-            ))}
-          </select>
+            <div className="flex items-center justify-center space-x-2">
+              <QrCode className="w-5 h-5" />
+              <span>{t('qr.generateQRCode', 'Generate QR Code')}</span>
+            </div>
+          </button>
         </div>
-
-        {/* Memo Input */}
-        <div>
-          <label className="block text-sm font-medium text-navy-700 mb-2">
-            Memo (Optional)
-          </label>
-          <input
-            type="text"
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-            className="w-full px-4 py-3 border border-navy-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="Payment description"
-            maxLength={28}
-          />
-        </div>
-
-        <button
-          onClick={handleGenerateQR}
-          className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-        >
-          Generate QR Code
-        </button>
       </div>
 
       {/* Generated QR Code */}
       {generatedQR && (
-        <div className="bg-white rounded-xl p-6 border border-navy-200 text-center space-y-4">
-          <h3 className="font-semibold text-navy-900">Payment QR Code</h3>
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl text-center space-y-6">
+          <h3 className="font-bold text-white flex items-center justify-center space-x-2">
+            <QrCode className="w-5 h-5 text-green-400" />
+            <span>{t('qr.paymentQRCode', 'Payment QR Code')}</span>
+          </h3>
           
           <div className="flex justify-center">
-            <div className="p-4 bg-white rounded-xl border-2 border-navy-200">
+            <div className="p-6 bg-white rounded-2xl border-2 border-white/30 shadow-xl">
               <QRCode
                 value={generatedQR}
                 size={200}
@@ -134,44 +147,44 @@ function QRCodeGenerator() {
             </div>
           </div>
 
-          <div className="text-sm text-navy-600">
-            <p>Amount: <span className="font-medium">{amount} {selectedAsset}</span></p>
-            {memo && <p>Memo: <span className="font-medium">{memo}</span></p>}
+          <div className="text-sm text-white/80 bg-white/5 rounded-xl p-4 border border-white/10">
+            <p className="mb-1">{t('qr.amount', 'Amount')}: <span className="font-medium text-white">{amount} {selectedAsset}</span></p>
+            {memo && <p>{t('qr.memo', 'Memo')}: <span className="font-medium text-white">{memo}</span></p>}
           </div>
 
           {/* Action Buttons */}
           <div className="flex space-x-3">
             <button
               onClick={handleCopyQR}
-              className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-navy-100 hover:bg-navy-200 text-navy-700 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors border border-white/20 backdrop-blur-sm"
             >
               <Copy className="w-4 h-4" />
-              <span>Copy</span>
+              <span className="text-sm font-medium">{t('qr.copy', 'Copy')}</span>
             </button>
             
             <button
               onClick={handleDownloadQR}
-              className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-navy-100 hover:bg-navy-200 text-navy-700 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors border border-white/20 backdrop-blur-sm"
             >
               <Download className="w-4 h-4" />
-              <span>Download</span>
+              <span className="text-sm font-medium">{t('qr.download', 'Download')}</span>
             </button>
             
             <button
               onClick={() => {
                 if (navigator.share) {
                   navigator.share({
-                    title: 'Payment Request',
-                    text: `Payment request for ${amount} ${selectedAsset}`,
+                    title: t('qr.paymentRequest', 'Payment Request'),
+                    text: t('qr.paymentRequestFor', 'Payment request for {amount} {asset}', { amount, asset: selectedAsset }),
                   })
                 } else {
                   handleCopyQR()
                 }
               }}
-              className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-navy-100 hover:bg-navy-200 text-navy-700 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors border border-white/20 backdrop-blur-sm"
             >
               <Share className="w-4 h-4" />
-              <span>Share</span>
+              <span className="text-sm font-medium">{t('qr.share', 'Share')}</span>
             </button>
           </div>
         </div>

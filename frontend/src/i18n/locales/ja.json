@@ -276,5 +276,24 @@
     "locationPlaceholder": "場所",
     "noPhone": "電話番号がありません",
     "noLocation": "場所が設定されていません"
+  },
+  "qr": {
+    "paymentRequest": "支払いリクエスト",
+    "amount": "金額",
+    "enterAmount": "金額を入力",
+    "asset": "資産",
+    "available": "利用可能",
+    "memo": "メモ（オプション）",
+    "paymentDescription": "支払いの説明",
+    "generateQRCode": "QRコードを生成",
+    "paymentQRCode": "支払いQRコード",
+    "copy": "コピー",
+    "download": "ダウンロード",
+    "share": "共有",
+    "invalidAmount": "有効な金額を入力してください",
+    "generated": "QRコードが生成されました！",
+    "copied": "QRデータがクリップボードにコピーされました！",
+    "downloaded": "QRコードがダウンロードされました！",
+    "paymentRequestFor": "{amount} {asset}の支払いリクエスト"
   }
 }

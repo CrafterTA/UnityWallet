@@ -276,5 +276,24 @@
     "locationPlaceholder": "위치",
     "noPhone": "전화번호가 없습니다",
     "noLocation": "위치가 설정되지 않았습니다"
+  },
+  "qr": {
+    "paymentRequest": "결제 요청",
+    "amount": "금액",
+    "enterAmount": "금액 입력",
+    "asset": "자산",
+    "available": "사용 가능",
+    "memo": "메모 (선택사항)",
+    "paymentDescription": "결제 설명",
+    "generateQRCode": "QR 코드 생성",
+    "paymentQRCode": "결제 QR 코드",
+    "copy": "복사",
+    "download": "다운로드",
+    "share": "공유",
+    "invalidAmount": "유효한 금액을 입력하세요",
+    "generated": "QR 코드가 생성되었습니다!",
+    "copied": "QR 데이터가 클립보드에 복사되었습니다!",
+    "downloaded": "QR 코드가 다운로드되었습니다!",
+    "paymentRequestFor": "{amount} {asset} 결제 요청"
   }
 }

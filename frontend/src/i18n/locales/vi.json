@@ -286,5 +286,24 @@
     "locationPlaceholder": "Vị trí",
     "noPhone": "Chưa có số điện thoại",
     "noLocation": "Chưa đặt vị trí"
+  },
+  "qr": {
+    "paymentRequest": "Yêu cầu thanh toán",
+    "amount": "Số tiền",
+    "enterAmount": "Nhập số tiền",
+    "asset": "Tài sản",
+    "available": "có sẵn",
+    "memo": "Ghi chú (Tùy chọn)",
+    "paymentDescription": "Mô tả thanh toán",
+    "generateQRCode": "Tạo mã QR",
+    "paymentQRCode": "Mã QR thanh toán",
+    "copy": "Sao chép",
+    "download": "Tải xuống",
+    "share": "Chia sẻ",
+    "invalidAmount": "Vui lòng nhập số tiền hợp lệ",
+    "generated": "Đã tạo mã QR!",
+    "copied": "Đã sao chép dữ liệu QR vào bộ nhớ tạm!",
+    "downloaded": "Đã tải xuống mã QR!",
+    "paymentRequestFor": "Yêu cầu thanh toán cho {amount} {asset}"
   }
 }

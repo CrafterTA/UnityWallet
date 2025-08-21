@@ -276,5 +276,24 @@
     "locationPlaceholder": "位置",
     "noPhone": "暂无电话号码",
     "noLocation": "未设置位置"
+  },
+  "qr": {
+    "paymentRequest": "支付请求",
+    "amount": "金额",
+    "enterAmount": "输入金额",
+    "asset": "资产",
+    "available": "可用",
+    "memo": "备注（可选）",
+    "paymentDescription": "支付描述",
+    "generateQRCode": "生成二维码",
+    "paymentQRCode": "支付二维码",
+    "copy": "复制",
+    "download": "下载",
+    "share": "分享",
+    "invalidAmount": "请输入有效金额",
+    "generated": "二维码已生成！",
+    "copied": "二维码数据已复制到剪贴板！",
+    "downloaded": "二维码已下载！",
+    "paymentRequestFor": "支付请求 {amount} {asset}"
   }
 }

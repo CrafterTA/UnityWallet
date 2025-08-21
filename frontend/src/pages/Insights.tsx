@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { PieChart, Pie, Cell, Sector, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, DollarSign, PiggyBank, CreditCard, Star, BarChart3, Target, Zap, TrendingDown, Wallet } from 'lucide-react'
 import { analyticsApi } from '@/api/analytics'
 
@@ -168,6 +168,23 @@ function Insights() {
                       outerRadius={120}
                       fill="#8884d8"
                       dataKey="amount"
+                      activeShape={(props: any) => {
+                        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props
+                        return (
+                          <g>
+                            <Sector
+                              cx={cx}
+                              cy={cy}
+                              innerRadius={innerRadius}
+                              outerRadius={outerRadius + 4}  
+                              startAngle={startAngle}
+                              endAngle={endAngle}
+                              fill={fill}
+                              className="transition duration-300 hover:opacity-80"
+                            />
+                          </g>
+                        )
+                      }}
                     >
                       {spendingSummary.categories.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -176,11 +193,12 @@ function Insights() {
                     <Tooltip 
                       formatter={(value) => [`$${value}`, 'Amount']}
                       contentStyle={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        backgroundColor: 'rgba(149, 191, 90, 0.95)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '12px',
-                        color: 'white'
                       }}
+                      itemStyle={{ color: 'white' }}
+                      labelStyle={{ color: 'white' }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -212,18 +230,34 @@ function Insights() {
                       fontSize={12}
                     />
                     <Tooltip 
+                      cursor={false}
                       formatter={(value) => [`$${value}`, 'Spent']}
                       contentStyle={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        backgroundColor: 'rgba(124, 167, 83, 0.95)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '12px',
                         color: 'white'
                       }}
                     />
-                    <Bar 
-                      dataKey="amount" 
+                    <Bar
+                      dataKey="amount"
                       fill="url(#gradient)"
                       radius={[4, 4, 0, 0]}
+                      shape={(props: any) => {
+                        const { x, y, width, height, fill } = props
+                        return (
+                          <rect
+                            x={x}
+                            y={y}
+                            width={width}
+                            height={height}
+                            fill={fill}
+                            rx={4}
+                            ry={4}
+                            className="transition duration-300 hover:opacity-80"
+                            />
+                        )
+                      }}
                     />
                     <defs>
                       <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
