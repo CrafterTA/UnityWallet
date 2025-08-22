@@ -55,26 +55,26 @@ function ActivityPage() {
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'sent':
-        return <ArrowUpRight className="w-5 h-5 text-red-600" />
+        return <ArrowUpRight className="w-5 h-5 text-red-400" />
       case 'received':
-        return <ArrowDownLeft className="w-5 h-5 text-green-600" />
+        return <ArrowDownLeft className="w-5 h-5 text-green-400" />
       case 'swapped':
-        return <RefreshCw className="w-5 h-5 text-blue-600" />
+        return <RefreshCw className="w-5 h-5 text-blue-400" />
       default:
-        return <Activity className="w-5 h-5 text-gray-600" />
+        return <Activity className="w-5 h-5 text-gray-400" />
     }
   }
 
-  const getTransactionColor = (type: string) => {
+  const getTransactionBgColor = (type: string) => {
     switch (type) {
       case 'sent':
-        return 'bg-red-50'
+        return 'bg-red-500/10 border-red-500/20'
       case 'received':
-        return 'bg-green-50'
+        return 'bg-green-500/10 border-green-500/20'
       case 'swapped':
-        return 'bg-blue-50'
+        return 'bg-blue-500/10 border-blue-500/20'
       default:
-        return 'bg-gray-50'
+        return 'bg-gray-500/10 border-gray-500/20'
     }
   }
 
@@ -105,24 +105,24 @@ function ActivityPage() {
           <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Activity className="w-8 h-8 text-white" />
           </div>
-                     <h1 className="text-3xl font-bold text-white mb-2">{t('activity.title', 'Activity')}</h1>
-           <p className="text-white/70">{t('activity.subtitle', 'Track your transaction history')}</p>
+          <h1 className="text-3xl font-bold text-white mb-2">{t('activity.title', 'Activity')}</h1>
+          <p className="text-white/70">{t('activity.subtitle', 'Track your transaction history')}</p>
         </div>
       </div>
 
       {/* Search and Filter */}
       <div className="space-y-4 mb-6">
-                 {/* Search Bar */}
-         <div className="relative">
-           <input
-             type="text"
-             placeholder={t('common.search', 'Search by address or transaction ID...')}
-             value={searchQuery}
-             onChange={(e) => setSearchQuery(e.target.value)}
-             className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/50 backdrop-blur-sm"
-           />
-           <Search className="absolute left-3 top-3.5 w-5 h-5 text-white/60" />
-         </div>
+        {/* Search Bar */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={t('common.search', 'Search by address or transaction ID...')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/50 backdrop-blur-sm"
+          />
+          <Search className="absolute left-3 top-3.5 w-5 h-5 text-white/60" />
+        </div>
 
         {/* Filter Tabs */}
         <div className="bg-white/10 p-1.5 rounded-2xl flex overflow-x-auto border border-white/20 backdrop-blur-sm">
@@ -150,50 +150,50 @@ function ActivityPage() {
       <div className="space-y-4">
         {filteredTransactions.length > 0 ? (
           <>
-                         {/* Export Button */}
-             <div className="flex justify-between items-center">
-               <h2 className="text-lg font-semibold text-white">
-                 {t('activity.recentActivity', 'Recent Transactions')} ({filteredTransactions.length})
-               </h2>
-               <button className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white/80 rounded-xl transition-colors border border-white/20">
-                 <Download className="w-4 h-4" />
-                 <span className="text-sm font-medium">{t('common.export', 'Export')}</span>
-               </button>
-             </div>
+            {/* Export Button */}
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">
+                {t('activity.recentActivity', 'Recent Transactions')} ({filteredTransactions.length})
+              </h2>
+              <button className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white/80 rounded-xl transition-colors border border-white/20 backdrop-blur-sm">
+                <Download className="w-4 h-4" />
+                <span className="text-sm font-medium">{t('common.export', 'Export')}</span>
+              </button>
+            </div>
 
             {/* Transaction Cards */}
             <div className="space-y-3">
               {filteredTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-red-300 transition-all duration-200 hover:shadow-md cursor-pointer"
+                  className={`bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/30 transition-all duration-200 hover:shadow-lg cursor-pointer ${getTransactionBgColor(transaction.type)}`}
                 >
                   <div className="flex items-center justify-between">
                     {/* Left: Icon and Details */}
                     <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getTransactionColor(transaction.type)}`}>
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-sm border border-white/20">
                         {getTransactionIcon(transaction.type)}
                       </div>
                       
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold text-gray-800 capitalize">
+                          <h3 className="font-semibold text-white capitalize">
                             {transaction.type}
                           </h3>
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
                             {transaction.status}
                           </span>
                         </div>
                         
                         <div className="flex items-center space-x-2 mt-1">
-                          <Calendar className="w-3 h-3 text-gray-400" />
-                          <p className="text-sm text-gray-500">
+                          <Calendar className="w-3 h-3 text-white/50" />
+                          <p className="text-sm text-white/70">
                             {formatDate(transaction.date)}
                           </p>
                         </div>
                         
                         {transaction.type !== 'swapped' && (
-                          <p className="text-xs text-gray-400 font-mono mt-1">
+                          <p className="text-xs text-white/50 font-mono mt-1">
                             {transaction.type === 'sent' ? transaction.address : 
                              transaction.type === 'received' ? transaction.address : ''}
                           </p>
@@ -204,21 +204,21 @@ function ActivityPage() {
                     {/* Right: Amount */}
                     <div className="text-right">
                       <p className={`font-bold text-lg ${
-                        transaction.type === 'sent' ? 'text-red-600' : 
-                        transaction.type === 'received' ? 'text-green-600' : 
-                        'text-blue-600'
+                        transaction.type === 'sent' ? 'text-red-400' : 
+                        transaction.type === 'received' ? 'text-green-400' : 
+                        'text-blue-400'
                       }`}>
                         {transaction.type === 'sent' ? '-' : transaction.type === 'received' ? '+' : ''}
                         {transaction.amount} {transaction.currency}
                       </p>
                       
                       {transaction.type === 'swapped' && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-white/70">
                           → {transaction.toAmount} {transaction.toCurrency}
                         </p>
                       )}
                       
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-white/50 mt-1">
                         Fee: {transaction.fee} USD
                       </p>
                     </div>
@@ -229,12 +229,12 @@ function ActivityPage() {
           </>
         ) : (
           // Empty State
-          <div className="bg-white rounded-2xl p-12 border border-gray-200 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Activity className="w-8 h-8 text-gray-400" />
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-12 border border-white/20 text-center">
+            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
+              <Activity className="w-8 h-8 text-white/60" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">No transactions found</h3>
-            <p className="text-gray-500 mb-6">
+            <h3 className="text-lg font-semibold text-white mb-2">No transactions found</h3>
+            <p className="text-white/70 mb-6">
               {searchQuery 
                 ? 'Try adjusting your search criteria'
                 : activeFilter !== 'all' 
@@ -250,26 +250,26 @@ function ActivityPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-200">
-        <h3 className="font-bold text-gray-800 mb-4">This Month Summary</h3>
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mt-6">
+        <h3 className="font-bold text-white mb-4">This Month Summary</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-red-50 rounded-xl">
-            <ArrowUpRight className="w-6 h-6 text-red-600 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Total Sent</p>
-            <p className="text-xl font-bold text-red-600">$1,250.00</p>
+          <div className="text-center p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+            <ArrowUpRight className="w-6 h-6 text-red-400 mx-auto mb-2" />
+            <p className="text-sm text-white/70">Total Sent</p>
+            <p className="text-xl font-bold text-red-400">$1,250.00</p>
           </div>
           
-          <div className="text-center p-4 bg-green-50 rounded-xl">
-            <ArrowDownLeft className="w-6 h-6 text-green-600 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Total Received</p>
-            <p className="text-xl font-bold text-green-600">$2,100.00</p>
+          <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/20">
+            <ArrowDownLeft className="w-6 h-6 text-green-400 mx-auto mb-2" />
+            <p className="text-sm text-white/70">Total Received</p>
+            <p className="text-xl font-bold text-green-400">$2,100.00</p>
           </div>
           
-          <div className="text-center p-4 bg-blue-50 rounded-xl">
-            <RefreshCw className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Total Swapped</p>
-            <p className="text-xl font-bold text-blue-600">$800.00</p>
+          <div className="text-center p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+            <RefreshCw className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+            <p className="text-sm text-white/70">Total Swapped</p>
+            <p className="text-xl font-bold text-blue-400">$800.00</p>
           </div>
         </div>
       </div>
