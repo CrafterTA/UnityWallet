@@ -1,0 +1,16 @@
+.vscode/
+__pycache__/
+# Virtual Environment
+env/
+bin/
+include/
+lib/
+lib64/
+pyvenv.cfg
+
+# Environment variables
+.env
+.env.*
+
+# Docker
+docker-compose.yml
