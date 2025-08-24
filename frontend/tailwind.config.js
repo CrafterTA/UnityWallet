@@ -33,8 +33,18 @@ export default {
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "#E31E24",
+          50: "#FEF2F2",
+          100: "#FEE2E2", 
+          200: "#FECACA",
+          300: "#FCA5A5",
+          400: "#F87171",
+          500: "#E31E24",
+          600: "#C81A20",
+          700: "#B91C1C",
+          800: "#991B1B",
+          900: "#7F1D1D",
           foreground: "#FFFFFF",
-          hover: "#C11A20",
+          hover: "#C81A20",
         },
         secondary: {
           DEFAULT: "#F8FAFC",
@@ -42,7 +52,21 @@ export default {
         },
         accent: {
           DEFAULT: "#FFC107",
+          50: "#FFFBEB",
+          100: "#FEF3C7",
+          200: "#FDE68A",
+          300: "#FCD34D",
+          400: "#FBBF24",
+          500: "#FFC107",
+          600: "#D97706",
+          700: "#B45309",
+          800: "#92400E",
+          900: "#78350F",
           foreground: "#0F172A",
+        },
+        hero: {
+          from: "#E31E24",
+          to: "#FFB300",
         },
         success: {
           DEFAULT: "#16A34A",
@@ -84,6 +108,31 @@ export default {
         popover: {
           DEFAULT: "#FFFFFF",
           foreground: "#0F172A",
+        },
+        // Light mode specific colors
+        light: {
+          bg: {
+            primary: "#FEFEFE",
+            secondary: "#F9FAFB",
+            card: "#FFFFFF",
+            elevated: "#FFFFFF",
+          },
+          surface: {
+            primary: "#FFFFFF",
+            secondary: "#F8FAFC",
+            elevated: "#FFFFFF",
+          },
+          border: {
+            subtle: "#F3F4F6",
+            default: "#E5E7EB",
+            strong: "#D1D5DB",
+          },
+          text: {
+            primary: "#111827",
+            secondary: "#374151",
+            tertiary: "#6B7280",
+            muted: "#9CA3AF",
+          }
         },
       },
       borderRadius: {

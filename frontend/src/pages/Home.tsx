@@ -5,6 +5,7 @@ import { useThemeStore } from "@/store/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import LightModeBackground from "@/components/LightModeBackground";
 import {
   Wallet,
   LineChart,
@@ -39,61 +40,34 @@ const StatCard = ({ icon: Icon, label, value, sub }: any) => {
       card,
       { 
         opacity: 0, 
-        y: 50, 
-        scale: 0.8,
-        rotationY: -15
+        x: -50,
+        rotationY: -20
       },
       {
         opacity: 1,
-        y: 0,
-        scale: 1,
+        x: 0,
         rotationY: 0,
         duration: 0.8,
-        ease: "back.out(1.7)",
+        ease: "power2.out",
         scrollTrigger: {
           trigger: card,
-          start: "top bottom-=100",
-          end: "bottom top+=100",
+          start: "top bottom-=50",
+          end: "bottom top+=50",
           toggleActions: "play none none reverse"
         }
       }
     );
 
-    // Hover animation
-    const handleMouseEnter = () => {
-      gsap.to(card, {
-        y: -10,
-        scale: 1.05,
-        duration: 0.3,
-        ease: "power2.out"
-      });
-    };
 
-    const handleMouseLeave = () => {
-      gsap.to(card, {
-        y: 0,
-        scale: 1,
-        duration: 0.3,
-        ease: "power2.out"
-      });
-    };
-
-    card.addEventListener("mouseenter", handleMouseEnter);
-    card.addEventListener("mouseleave", handleMouseLeave);
-
-    return () => {
-      card.removeEventListener("mouseenter", handleMouseEnter);
-      card.removeEventListener("mouseleave", handleMouseLeave);
-    };
   }, []);
 
   return (
     <div
       ref={cardRef}
-      className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.4)] ring-1 ring-inset ring-white/5 group"
+      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all hover:bg-white/7.5 hover:border-white/20"
   >
     <div className="flex items-center gap-3">
-      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200">
+      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-400/20 text-primary-600 group-hover:from-primary-500/30 group-hover:to-accent-400/30 transition-all duration-300">
         <Icon className="h-5 w-5" />
       </div>
       <div>
@@ -102,9 +76,12 @@ const StatCard = ({ icon: Icon, label, value, sub }: any) => {
       </div>
     </div>
     {sub && <p className="mt-3 text-xs text-white/60">{sub}</p>}
-      
-      {/* Animated background glow */}
-      <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-yellow-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    
+    {/* Enhanced glow effect */}
+    <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-primary-300/10 via-accent-300/15 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
+    
+    {/* Subtle shine effect */}
+    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
     </div>
   );
 };
@@ -138,12 +115,12 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
       }
     );
 
-    // Hover animation
+    // Enhanced hover animation
     const handleMouseEnter = () => {
       gsap.to(feature, {
-        y: -8,
-        scale: 1.02,
-        duration: 0.3,
+        y: -10,
+        scale: 1.03,
+        duration: 0.4,
         ease: "power2.out"
       });
     };
@@ -152,7 +129,7 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
       gsap.to(feature, {
         y: 0,
         scale: 1,
-        duration: 0.3,
+        duration: 0.4,
         ease: "power2.out"
       });
     };
@@ -169,16 +146,21 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
   return (
     <div
       ref={featureRef}
-      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all hover:bg-white/7.5"
+      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all hover:bg-white/7.5 hover:border-white/20"
   >
     <div className="mb-3 flex items-center gap-3">
-      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200">
+      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-400/20 text-primary-600 group-hover:from-primary-500/30 group-hover:to-accent-400/30 group-hover:scale-110 transition-all duration-300">
         <Icon className="h-5 w-5" />
       </div>
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-semibold text-white group-hover:text-primary-600 transition-colors duration-300">{title}</h3>
     </div>
-    <p className="text-sm leading-6 text-white/70">{desc}</p>
-    <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
+    <p className="text-sm leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">{desc}</p>
+    
+    {/* Enhanced glow effect */}
+    <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-primary-300/10 via-accent-300/15 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
+    
+    {/* Subtle shine effect */}
+    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
     </div>
 );
 };
@@ -466,7 +448,9 @@ export default function Web3ModernLayout() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
+      {/* Conditional Background Rendering */}
       {isDark && <AnimatedBackground />}
+      {!isDark && <LightModeBackground />}
       
       {/* HERO */}
       <section ref={heroRef} className="relative mx-auto max-w-7xl px-4 pb-8 sm:pb-12 pt-16 sm:pt-20 lg:pt-24 z-10">
@@ -508,7 +492,7 @@ export default function Web3ModernLayout() {
               <div className="flex items-center gap-1"><Users className="h-3.5 w-3.5"/> 50k+ users</div>
             </div>
           </div>
-                      <div ref={dashboardRef} className="relative mt-12 sm:mt-20 lg:mt-28">
+                      <div ref={dashboardRef} className="relative mt-20 sm:mt-28 lg:mt-36">
             {/* dashboard preview card */}
               <div className="dashboard-card relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-white/5 p-3 sm:p-4 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/5 transition-all duration-300 hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] hover:border-white/20 group">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl bg-white/5 px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/20 gap-2">

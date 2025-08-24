@@ -59,7 +59,8 @@ function Swap() {
   const isValidAmount = fromAmount && parseFloat(fromAmount) > 0 && parseFloat(fromAmount) <= getAssetBalance(fromAsset)
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen text-white">
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
       {/* Header */}
       <div className="text-center">
         <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -212,6 +213,7 @@ function Swap() {
             Convert SkyPoints to USDC for easier spending, or to XLM for lower transaction fees.
           </p>
         </div>
+      </div>
       </div>
     </div>
   )

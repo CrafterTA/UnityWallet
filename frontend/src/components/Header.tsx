@@ -25,7 +25,9 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/session';
+import { useThemeStore } from '@/store/theme';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeSwitcher from './ThemeSwitcher';
 
 // Register plugin once (safe in CSR)
 if (typeof window !== 'undefined') {
@@ -39,6 +41,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
   const location = useLocation();
   const { t } = useTranslation();
   const { user, logout } = useAuthStore();
+  const { isDark } = useThemeStore();
 
   const navRef = useRef<HTMLElement>(null);
   const pillRef = useRef<HTMLDivElement>(null);
@@ -299,6 +302,9 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
 
             {/* Enhanced Right utilities */}
             <div className="flex items-center gap-3">
+              {/* Theme Switcher */}
+              <ThemeSwitcher />
+              
               {/* Language Switcher - Desktop only */}
               <div className="hidden lg:block">
                 <LanguageSwitcher />
@@ -308,14 +314,18 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
                 <button 
                 ref={walletButtonRef}
                 onClick={() => go('/wallet')} 
-                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 hover:border-white/20 group"
+                className={`flex items-center gap-2 rounded-xl border bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group ${
+                  isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
+                }`}
               >
                 <Wallet className="h-4 w-4 text-white/70 group-hover:text-red-400 transition-colors duration-200" />
                 <span className="hidden sm:block text-white group-hover:text-red-200 transition-colors duration-200">{t('navigation.wallet','Wallet')}</span>
                 </button>
 
               {/* Enhanced Notifications */}
-              <button className="relative p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 hover:border-white/20 group">
+              <button className={`relative p-2 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group ${
+                isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
+              }`}>
                 <Bell className="h-4 w-4 text-white/70 group-hover:text-yellow-400 transition-colors duration-200" />
                 {notificationCount > 0 && (
                   <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900 animate-pulse" />
@@ -326,7 +336,9 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
                 <div className="relative" ref={userMenuRef}>
                   <button 
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center p-1 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 hover:border-white/20 group"
+                    className={`flex items-center p-1 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group ${
+                      isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
+                    }`}
                   >
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10" />
