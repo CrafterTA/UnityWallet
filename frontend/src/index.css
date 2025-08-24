@@ -126,6 +126,244 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Wallet button active styles */
+.wallet-button-active {
+  background: linear-gradient(135deg, #E31E24 0%, #FFB300 100%) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    0 8px 32px rgba(227, 30, 36, 0.3),
+    0 4px 16px rgba(255, 179, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px) scale(1.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 10;
+}
+
+.wallet-button-active .wallet-icon {
+  color: white !important;
+  transform: scale(1.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wallet-button-active .wallet-text {
+  color: white !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Wallet button hover effect when active */
+.wallet-button-active:hover {
+  background: linear-gradient(135deg, #D91A1F 0%, #E6A600 100%) !important;
+  box-shadow: 
+    0 12px 40px rgba(227, 30, 36, 0.4),
+    0 6px 20px rgba(255, 179, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Light mode wallet button active styles */
+.light .wallet-button-active {
+  background: linear-gradient(135deg, #E31E24 0%, #FFB300 100%) !important;
+  border-color: rgba(227, 30, 36, 0.3) !important;
+  box-shadow: 
+    0 8px 32px rgba(227, 30, 36, 0.25),
+    0 4px 16px rgba(255, 179, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+.light .wallet-button-active:hover {
+  background: linear-gradient(135deg, #D91A1F 0%, #E6A600 100%) !important;
+  box-shadow: 
+    0 12px 40px rgba(227, 30, 36, 0.35),
+    0 6px 20px rgba(255, 179, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Wallet button pulse animation when active */
+@keyframes wallet-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 8px 32px rgba(227, 30, 36, 0.3),
+      0 4px 16px rgba(255, 179, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 12px 40px rgba(227, 30, 36, 0.4),
+      0 6px 20px rgba(255, 179, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+.wallet-button-active {
+  animation: wallet-pulse 3s ease-in-out infinite;
+}
+
+/* Light mode wallet pulse */
+.light .wallet-button-active {
+  animation: light-wallet-pulse 3s ease-in-out infinite;
+}
+
+@keyframes light-wallet-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 8px 32px rgba(227, 30, 36, 0.25),
+      0 4px 16px rgba(255, 179, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  50% {
+    box-shadow: 
+      0 12px 40px rgba(227, 30, 36, 0.35),
+      0 6px 20px rgba(255, 179, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* Disable pulse animation on hover to avoid conflicts */
+.wallet-button-active:hover {
+  animation: none;
+}
+
+/* Glow effect for active wallet button */
+.wallet-button-active::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, #E31E24, #FFB300, #E31E24);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.6;
+  filter: blur(8px);
+  animation: wallet-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes wallet-glow {
+  0% {
+    opacity: 0.4;
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 0.8;
+    filter: blur(10px);
+  }
+}
+
+/* Light mode glow effect */
+.light .wallet-button-active::before {
+  opacity: 0.4;
+  filter: blur(6px);
+}
+
+.light .wallet-button-active::before {
+  animation: light-wallet-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes light-wallet-glow {
+  0% {
+    opacity: 0.3;
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 0.6;
+    filter: blur(8px);
+  }
+}
+
+/* Light theme specific styles for better contrast */
+.light .glass-effect {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.light .bg-white\/20 {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.light .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.light .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.light .text-white\/60 {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light .text-white\/70 {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light .text-white\/80 {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.light .placeholder-white\/50::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.light .hover\:bg-white\/5:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.light .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.light .hover\:bg-white\/20:hover {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.light .hover\:border-white\/20:hover {
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.light .hover\:border-white\/30:hover {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Additional light theme text colors */
+.light .text-white {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.light .text-white\/50 {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.light .text-white\/40 {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Light theme backdrop blur adjustments */
+.light .backdrop-blur-sm {
+  backdrop-filter: blur(8px);
+}
+
+.light .backdrop-blur-xl {
+  backdrop-filter: blur(16px);
+}
+
+/* Light theme shadow adjustments */
+.light .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.light .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
 .card-hover {
   transition: all 0.3s ease;
 }
@@ -423,27 +661,7 @@ html {
   box-shadow: 0 4px 20px rgba(239, 30, 36, 0.15);
 }
 
-/* Subtle shine effect for cards */
-.light .bg-white\/5:hover::before,
-.light .bg-white\/10:hover::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: shine 0.8s ease-out;
-  pointer-events: none;
-}
 
-@keyframes shine {
-  to {
-    left: 100%;
-  }
-}
-
-/* Enhanced animations for light mode */
 .light .pulse-ring {
   animation: light-pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
 }

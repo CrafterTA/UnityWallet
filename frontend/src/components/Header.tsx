@@ -63,7 +63,13 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
   ]), [t]);
 
   const activeIndex = useMemo(() => {
-    const idx = links.findIndex(l => (l.path === '/' ? location.pathname === '/' : location.pathname.startsWith(l.path)));
+    const idx = links.findIndex(l => {
+      if (l.path === '/') {
+        // Only match exact '/' for home, not '/wallet' or other paths
+        return location.pathname === '/';
+      }
+      return location.pathname.startsWith(l.path);
+    });
     return idx === -1 ? 0 : idx;
   }, [location.pathname, links]);
 
@@ -191,25 +197,31 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
     }
   }, [isMobileOpen]);
 
-  // Wallet button hover effect
+  // Wallet button hover effect - only when not active
   useEffect(() => {
     const walletBtn = walletButtonRef.current;
     if (!walletBtn) return;
 
     const handleMouseEnter = () => {
-      gsap.to(walletBtn, {
-        scale: 1.05,
-        duration: 0.2,
-        ease: 'power2.out'
-      });
+      // Only apply hover effect if not on wallet page
+      if (location.pathname !== '/wallet') {
+        gsap.to(walletBtn, {
+          scale: 1.05,
+          duration: 0.2,
+          ease: 'power2.out'
+        });
+      }
     };
 
     const handleMouseLeave = () => {
-      gsap.to(walletBtn, {
-        scale: 1,
-        duration: 0.2,
-        ease: 'power2.out'
-      });
+      // Only reset scale if not on wallet page
+      if (location.pathname !== '/wallet') {
+        gsap.to(walletBtn, {
+          scale: 1,
+          duration: 0.2,
+          ease: 'power2.out'
+        });
+      }
     };
 
     walletBtn.addEventListener('mouseenter', handleMouseEnter);
@@ -219,7 +231,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
       walletBtn.removeEventListener('mouseenter', handleMouseEnter);
       walletBtn.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, []);
+  }, [location.pathname]);
 
   const go = (path: string) => { 
     navigate(path); 
@@ -316,10 +328,18 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
                 onClick={() => go('/wallet')} 
                 className={`flex items-center gap-2 rounded-xl border bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group ${
                   isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
-                }`}
+                } ${location.pathname === '/wallet' ? 'wallet-button-active' : ''}`}
               >
-                <Wallet className="h-4 w-4 text-white/70 group-hover:text-red-400 transition-colors duration-200" />
-                <span className="hidden sm:block text-white group-hover:text-red-200 transition-colors duration-200">{t('navigation.wallet','Wallet')}</span>
+                <Wallet className={`h-4 w-4 transition-colors duration-200 wallet-icon ${
+                  location.pathname === '/wallet' 
+                    ? 'text-white' 
+                    : 'text-white/70 group-hover:text-red-400'
+                }`} />
+                <span className={`hidden sm:block transition-colors duration-200 wallet-text ${
+                  location.pathname === '/wallet' 
+                    ? 'text-white' 
+                    : 'text-white group-hover:text-red-200'
+                }`}>{t('navigation.wallet','Wallet')}</span>
                 </button>
 
               {/* Enhanced Notifications */}
