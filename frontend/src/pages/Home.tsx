@@ -474,14 +474,26 @@ export default function Web3ModernLayout() {
             <div ref={ctaRef} className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
               <button
                 onClick={() => navigate('/pay')}
-                className="w-full sm:w-auto group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
+                className={`w-full sm:w-auto group relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40' 
+                    : 'bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/25 hover:shadow-red-500/35'
+                }`}
               >
                 <span className="relative z-10">{t('home.hero.startTrading')}</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-red-600 to-yellow-600' 
+                    : 'bg-gradient-to-r from-red-600 to-yellow-600'
+                }`} />
               </button>
               <button
                 onClick={() => navigate('/activity')}
-                className="w-full sm:w-auto rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                className={`w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                  isDark 
+                    ? 'border-white/10 bg-white/5 text-white/90 hover:bg-white/10' 
+                    : 'border-gray-300 bg-white/80 text-gray-700 hover:bg-gray-100 hover:border-gray-400'
+                }`}
               >
                 {t('home.hero.viewActivity')}
               </button>
@@ -676,14 +688,26 @@ export default function Web3ModernLayout() {
               <div className="mt-4 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <button 
                   onClick={() => navigate('/pay')}
-                  className="w-full sm:w-auto group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 px-6 py-3 text-sm font-semibold shadow-lg shadow-red-500/20 transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
+                  className={`w-full sm:w-auto group relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${
+                    isDark 
+                      ? 'bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40' 
+                      : 'bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-red-500/25 hover:shadow-red-500/35'
+                  }`}
                 >
                   <span className="relative z-10">{t('home.cta.getStarted', 'Get Started')}</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                    isDark 
+                      ? 'bg-gradient-to-r from-red-600 to-yellow-600' 
+                      : 'bg-gradient-to-r from-red-700 to-orange-600'
+                  }`} />
                 </button>
                 <button 
                   onClick={() => navigate('/activity')}
-                  className="w-full sm:w-auto rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                  className={`w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    isDark 
+                      ? 'border-white/10 bg-white/5 text-white/90 hover:bg-white/10' 
+                      : 'border-gray-300 bg-white/80 text-gray-700 hover:bg-gray-100 hover:border-gray-400'
+                  }`}
                 >
                   {t('home.cta.learnMore', 'Learn More')}
                 </button>
@@ -739,10 +763,18 @@ export default function Web3ModernLayout() {
           <div className="text-reveal pt-8">
             <button 
               onClick={() => navigate('/pay')}
-              className="group relative overflow-hidden bg-gradient-to-r from-red-500 to-yellow-400 hover:from-red-600 hover:to-yellow-500 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className={`group relative overflow-hidden font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                isDark 
+                  ? 'bg-gradient-to-r from-red-500 to-yellow-400 hover:from-red-600 hover:to-yellow-500 text-white' 
+                  : 'bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white'
+              }`}
             >
               <span className="relative z-10">Start Your Journey Today</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                isDark 
+                  ? 'bg-gradient-to-r from-red-600 to-yellow-600' 
+                  : 'bg-gradient-to-r from-red-700 to-orange-600'
+              }`} />
             </button>
           </div>
         </div>
