@@ -9,7 +9,6 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   Wallet,
   Send,
@@ -28,11 +27,6 @@ import { useAuthStore } from '@/store/session';
 import { useThemeStore } from '@/store/theme';
 import LanguageSwitcher from './LanguageSwitcher';
 import ThemeSwitcher from './ThemeSwitcher';
-
-// Register plugin once (safe in CSR)
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 interface HeaderProps { variant?: 'landing' | 'app' }
 
@@ -73,72 +67,21 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
     return idx === -1 ? 0 : idx;
   }, [location.pathname, links]);
 
-  // Enhanced scroll background intensity
-  useEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return;
+// Thay cả khối useEffect dài bằng khối rút gọn này
+useEffect(() => {
+  const nav = navRef.current;
+  if (!nav) return;
 
-    // Kill existing ScrollTriggers to avoid conflicts
-    ScrollTrigger.getAll().forEach(trigger => {
-      if (trigger.vars.trigger === document.body) {
-        trigger.kill();
-      }
-    });
+  const update = () => {
+    const p = Math.min(window.scrollY / 300, 1); // 0 → 1
+    nav.style.setProperty('--scroll-progress', String(p));
+  };
 
-    // Create new scroll trigger
-    const scrollTrigger = ScrollTrigger.create({
-      trigger: document.body,
-      start: 'top top',
-      end: '300px',
-      scrub: 1,
-      onUpdate: (self) => {
-        const progress = self.progress;
-        nav.style.setProperty('--scroll-progress', progress.toString());
-        
-        // Apply background changes directly
-        const bgOpacity = progress * 0.25;
-        const shadowOpacity = progress * 0.25;
-        const blurAmount = progress * 20;
-        const borderOpacity = progress * 0.18;
-        
-        nav.style.background = `linear-gradient(135deg, rgba(239,68,68,${bgOpacity}) 0%, rgba(245,158,11,${bgOpacity * 0.9}) 40%, rgba(251,191,36,${bgOpacity * 0.7}) 100%)`;
-        nav.style.boxShadow = `0 12px 48px rgba(239,68,68,${shadowOpacity})`;
-        nav.style.backdropFilter = `blur(${blurAmount}px)`;
-        nav.style.borderBottomColor = `rgba(255,255,255,${borderOpacity})`;
-      }
-    });
+  window.addEventListener('scroll', update, { passive: true });
+  update(); // sync lần đầu
 
-    // Fallback scroll listener for immediate response
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const progress = Math.min(scrollY / 300, 1);
-      
-      if (nav) {
-        nav.style.setProperty('--scroll-progress', progress.toString());
-        
-        const bgOpacity = progress * 0.25;
-        const shadowOpacity = progress * 0.25;
-        const blurAmount = progress * 20;
-        const borderOpacity = progress * 0.18;
-        
-        nav.style.background = `linear-gradient(135deg, rgba(239,68,68,${bgOpacity}) 0%, rgba(245,158,11,${bgOpacity * 0.9}) 40%, rgba(251,191,36,${bgOpacity * 0.7}) 100%)`;
-        nav.style.boxShadow = `0 12px 48px rgba(239,68,68,${shadowOpacity})`;
-        nav.style.backdropFilter = `blur(${blurAmount}px)`;
-        nav.style.borderBottomColor = `rgba(255,255,255,${borderOpacity})`;
-      }
-    };
-
-    // Add scroll listener
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial call
-    handleScroll();
-
-    return () => {
-      scrollTrigger.kill();
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [location.pathname]); // Re-run when route changes
+  return () => window.removeEventListener('scroll', update);
+}, [location.pathname]);
 
   // Enhanced sliding indicator with bounce effect
   const placeIndicator = () => {
@@ -440,8 +383,12 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
       {/* Enhanced styles for perf & aesthetics */}
       <style>{`
         nav { 
-          transition: none; /* Remove transition to avoid conflicts with scroll effects */
-          will-change: background, backdrop-filter, box-shadow, border-bottom-color;
+          --scroll-progress: 0; /* 0..1 */
+          will-change: backdrop-filter, border-bottom-color, opacity, filter;
+          backdrop-filter: blur(calc(var(--scroll-progress) * 20px));
+          border-bottom: 1px solid rgba(255,255,255, calc(var(--scroll-progress) * 0.18));
+          /* Dùng drop-shadow nhẹ cho hiệu suất tốt hơn box-shadow per-frame */
+          filter: drop-shadow(0 12px 24px rgba(239,68,68, calc(var(--scroll-progress) * 0.25)));
         }
         nav > * {
           position: relative;
@@ -451,18 +398,24 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, rgba(239,68,68,0.05) 0%, rgba(245,158,11,0.03) 40%, rgba(251,191,36,0.02) 100%);
+          background: linear-gradient(
+            135deg,
+            rgba(239,68,68,0.25) 0%,
+            rgba(245,158,11,0.225) 40%,
+            rgba(251,191,36,0.175) 100%
+          );
           pointer-events: none;
-          opacity: calc(var(--scroll-progress, 0) * 1.2);
+          opacity: calc(var(--scroll-progress) * 1.0);
           z-index: 1;
         }
+
         nav::after {
           content: '';
           position: absolute;
           inset: 0;
-          background: rgba(15,23,42,0.3);
+          background: rgba(15,23,42,0.30);
           pointer-events: none;
-          opacity: calc(var(--scroll-progress, 0) * 0.8);
+          opacity: calc(var(--scroll-progress) * 0.6);
           z-index: 2;
         }
       `}</style>

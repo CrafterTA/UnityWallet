@@ -478,7 +478,6 @@ html {
 /* Enhanced Light Mode Styles */
 .light body {
   background: linear-gradient(135deg, #FEFEFE 0%, #F8FAFC 30%, #FFFFFF 100%);
-  background-attachment: fixed;
   position: relative;
 }
 
