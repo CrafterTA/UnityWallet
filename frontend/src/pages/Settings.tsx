@@ -11,7 +11,7 @@ function Settings() {
   const [notifications, setNotifications] = useState(true)
   const [language, setLanguage] = useState('en')
   const { user, logout } = useAuthStore()
-  const { theme, setTheme } = useThemeStore()
+  const { theme, setTheme, isDark } = useThemeStore()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -81,15 +81,17 @@ function Settings() {
          },
          {
            label: t('settings.appearance', 'Appearance'),
-           value: theme === 'dark' ? t('settings.darkMode', 'Dark Mode') : 
-                  t('settings.systemDefault', 'System Default'),
+                       value: theme === 'dark' ? t('settings.darkMode', 'Dark Mode') : 
+                   theme === 'light' ? t('settings.lightMode', 'Light Mode') : 
+                   t('settings.systemDefault', 'System Default'),
            action: () => {
-             const themes: Array<'dark' | 'system'> = ['dark', 'system']
+             const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
              const currentIndex = themes.indexOf(theme)
              const nextTheme = themes[(currentIndex + 1) % themes.length]
              setTheme(nextTheme)
              
              const themeNames = {
+               light: t('settings.lightMode', 'Light Mode'),
                dark: t('settings.darkMode', 'Dark Mode'),
                system: t('settings.systemDefault', 'System Default')
              }
@@ -101,9 +103,9 @@ function Settings() {
    ]
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center">
+         <div className={`space-y-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+       {/* Header */}
+       <div className="text-center">
         <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Shield className="w-8 h-8 text-white" />
         </div>
@@ -111,8 +113,8 @@ function Settings() {
          <p className="text-white/70">{t('settings.subtitle', 'Manage your account preferences')}</p>
       </div>
 
-      {/* Profile Card */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl">
+             {/* Profile Card */}
+       <div className={`backdrop-blur-sm rounded-2xl p-6 border shadow-xl ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'}`}>
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-xl flex items-center justify-center">
             {user?.avatar ? (
@@ -125,43 +127,43 @@ function Settings() {
               <User className="w-8 h-8 text-white" />
             )}
           </div>
-          <div>
-            <h3 className="font-semibold text-white">{user?.name}</h3>
-            <p className="text-white/70">{user?.email}</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <div className={`w-2 h-2 rounded-full ${
-                user?.kycStatus === 'verified' ? 'bg-green-400' : 'bg-yellow-400'
-              }`} />
-              <span className="text-sm text-white/70">
-                {user?.kycStatus === 'verified' ? 'Verified Account' : 'Pending Verification'}
-              </span>
-            </div>
-          </div>
+                     <div>
+             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{user?.name}</h3>
+             <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>{user?.email}</p>
+             <div className="flex items-center space-x-2 mt-1">
+               <div className={`w-2 h-2 rounded-full ${
+                 user?.kycStatus === 'verified' ? 'bg-green-400' : 'bg-yellow-400'
+               }`} />
+               <span className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                 {user?.kycStatus === 'verified' ? 'Verified Account' : 'Pending Verification'}
+               </span>
+             </div>
+           </div>
         </div>
       </div>
 
       {/* Settings Sections */}
       {settingSections.map((section) => (
-        <div key={section.title} className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden shadow-xl">
-          <div className="p-4 border-b border-white/20 flex items-center space-x-3">
+                 <div key={section.title} className={`backdrop-blur-sm rounded-2xl border overflow-hidden shadow-xl ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`p-4 border-b flex items-center space-x-3 ${isDark ? 'border-white/20' : 'border-slate-200'}`}>
             <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
               <section.icon className="w-4 h-4 text-red-400" />
             </div>
-            <h3 className="font-semibold text-white">{section.title}</h3>
+            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{section.title}</h3>
           </div>
           
-          <div className="divide-y divide-white/20">
+          <div className={`divide-y ${isDark ? 'divide-white/20' : 'divide-slate-200'}`}>
             {section.items.map((item, index) => (
               <button
                 key={index}
                 onClick={item.action}
-                className="w-full p-4 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
+                className={`w-full p-4 flex items-center justify-between transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100/80'}`}
               >
                 <div>
-                  <p className="font-medium text-white">{item.label}</p>
-                  <p className="text-sm text-white/70">{item.value}</p>
+                  <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.label}</p>
+                  <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{item.value}</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-white/60" />
+                <ChevronRight className={`w-5 h-5 ${isDark ? 'text-white/60' : 'text-slate-500'}`} />
               </button>
             ))}
           </div>
@@ -169,34 +171,34 @@ function Settings() {
       ))}
 
       {/* Demo Actions */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-white/20 flex items-center space-x-3">
+      <div className={`backdrop-blur-sm rounded-2xl border overflow-hidden shadow-xl ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'}`}>
+        <div className={`p-4 border-b flex items-center space-x-3 ${isDark ? 'border-white/20' : 'border-slate-200'}`}>
           <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
             <RefreshCw className="w-4 h-4 text-yellow-400" />
           </div>
-          <h3 className="font-semibold text-white">Demo</h3>
+          <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Demo</h3>
         </div>
         
         <button
           onClick={handleReplayDemo}
-          className="w-full p-4 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
+          className={`w-full p-4 flex items-center justify-between transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100/80'}`}
         >
           <div>
-            <p className="font-medium text-white">Replay Demo</p>
-            <p className="text-sm text-white/70">Reset demo state for another walkthrough</p>
+            <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Replay Demo</p>
+            <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>Reset demo state for another walkthrough</p>
           </div>
-          <ChevronRight className="w-5 h-5 text-white/60" />
+          <ChevronRight className={`w-5 h-5 ${isDark ? 'text-white/60' : 'text-slate-500'}`} />
         </button>
       </div>
 
       {/* About */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 text-center shadow-xl">
+      <div className={`backdrop-blur-sm rounded-2xl p-6 border text-center shadow-xl ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'}`}>
         <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-yellow-500 rounded-xl flex items-center justify-center mx-auto mb-3">
           <span className="text-white font-bold">UW</span>
         </div>
-        <h3 className="font-semibold text-white mb-1">UnityWallet</h3>
-        <p className="text-sm text-white/70 mb-3">Version 1.0.0</p>
-        <p className="text-xs text-white/60">
+        <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>UnityWallet</h3>
+        <p className={`text-sm mb-3 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>Version 1.0.0</p>
+        <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
           Powered by Stellar Blockchain • Built for Hackathon Demo
         </p>
       </div>

@@ -17,6 +17,7 @@ interface LanguageSwitcherProps {
 
 const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ compact = false }) => {
   const { i18n, t } = useTranslation();
+  const { isDark } = useThemeStore();
 
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -44,12 +45,12 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ compact = false }) 
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 rounded-xl border bg-white/5 text-white/80 hover:bg-white/10 transition-all duration-200 group ${
-          compact ? 'p-2' : 'px-3 py-2'
-        } border-white/10`}
-      >
+            <button
+               onClick={() => setIsOpen(!isOpen)}
+               className={`flex h-10 items-center gap-2 rounded-xl border px-3 transition-all duration-200 group ${
+                 compact ? 'pr-2' : 'pr-3'
+               } ${isDark ? 'bg-white/5 text-white/80 hover:bg-white/10 border-white/10' : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/80 border-slate-200'}`}
+             >
         <Globe className="h-4 w-4 group-hover:text-red-400 transition-colors duration-200" />
         <span className="text-sm font-medium">{currentLanguage.flag}</span>
         {!compact && (
@@ -62,24 +63,24 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ compact = false }) 
         )}
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-lg ring-1 ring-inset ring-white/5 z-50">
+             {isOpen && (
+         <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl border backdrop-blur-xl shadow-lg ring-1 ring-inset z-50 ${isDark ? 'border-white/10 bg-white/5 ring-white/5' : 'border-slate-200 bg-white/95 ring-slate-200'}`}>
           <div className="p-2">
             {languages.map((language) => (
               <button
                 key={language.code}
                 onClick={() => changeLanguage(language.code)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 hover:bg-white/10 ${
-                  i18n.language === language.code
-                    ? 'bg-red-500/20 text-red-300'
-                    : 'text-white/80 hover:text-white'
-                }`}
+                                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                   i18n.language === language.code
+                     ? `${isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700'}`
+                     : `${isDark ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`
+                 }`}
               >
                 <span className="text-lg">{language.flag}</span>
                 <span className="flex-1 text-left font-medium">{language.name}</span>
-                {i18n.language === language.code && (
-                  <Check className="h-4 w-4 text-red-400" />
-                )}
+                                 {i18n.language === language.code && (
+                   <Check className={`h-4 w-4 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
+                 )}
               </button>
             ))}
           </div>

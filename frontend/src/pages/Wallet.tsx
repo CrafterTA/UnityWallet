@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useThemeStore } from '@/store/theme';
 import { 
   Wallet, 
   TrendingUp, 
@@ -28,6 +29,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function WalletPage() {
   const { t } = useTranslation();
+  const { isDark } = useThemeStore();
   const walletRef = useRef<HTMLDivElement>(null);
   const balanceRef = useRef<HTMLDivElement>(null);
   const assetsRef = useRef<HTMLDivElement>(null);
@@ -185,30 +187,30 @@ export default function WalletPage() {
         <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Wallet className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
           {t('wallet.title', 'My Wallet')}
         </h1>
-        <p className="text-white/70">
+        <p className={isDark ? 'text-white/70' : 'text-slate-600'}>
           {t('wallet.subtitle', 'Manage your digital assets securely')}
         </p>
       </div>
 
       {/* Wallet Card */}
-      <div ref={walletRef} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl">
+      <div ref={walletRef} className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border shadow-xl`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
           <div className="flex items-center gap-3 mb-4 sm:mb-0">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
               <Wallet className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {t('wallet.mainWallet', 'Main Wallet')}
               </h2>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-white/60 font-mono">{walletData.address}</span>
+                <span className={`text-sm font-mono ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{walletData.address}</span>
                 <button
                   onClick={copyAddress}
-                  className="text-white/40 hover:text-white/60 transition-colors"
+                  className={`transition-colors ${isDark ? 'text-white/40 hover:text-white/60' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   <Copy className="h-3 w-3" />
                 </button>
@@ -216,11 +218,11 @@ export default function WalletPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
-              <Settings className="h-4 w-4 text-white/60" />
+            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-200 hover:bg-slate-300'}`}>
+              <Settings className={`h-4 w-4 ${isDark ? 'text-white/60' : 'text-slate-600'}`} />
             </button>
-            <button className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
-              <Shield className="h-4 w-4 text-white/60" />
+            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-200 hover:bg-slate-300'}`}>
+              <Shield className={`h-4 w-4 ${isDark ? 'text-white/60' : 'text-slate-600'}`} />
             </button>
           </div>
         </div>
@@ -228,17 +230,17 @@ export default function WalletPage() {
         {/* Balance Section */}
         <div ref={balanceRef} className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="text-sm text-white/60">
+            <span className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
               {t('wallet.totalBalance', 'Total Balance')}
             </span>
             <button
               onClick={() => setShowBalance(!showBalance)}
-              className="text-white/40 hover:text-white/60 transition-colors"
+              className={`transition-colors ${isDark ? 'text-white/40 hover:text-white/60' : 'text-slate-500 hover:text-slate-700'}`}
             >
               {showBalance ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
             </button>
           </div>
-          <div className="text-4xl sm:text-5xl font-bold text-white mb-2">
+          <div className={`text-4xl sm:text-5xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {showBalance ? `$${walletData.totalBalance.toLocaleString()}` : '****'}
           </div>
           <div className={`flex items-center justify-center gap-1 text-sm ${
@@ -250,42 +252,42 @@ export default function WalletPage() {
               <TrendingDown className="h-4 w-4" />
             )}
             <span>{walletData.isPositive ? '+' : ''}{walletData.change24h}%</span>
-            <span className="text-white/60">24h</span>
+            <span className={isDark ? 'text-white/60' : 'text-slate-600'}>24h</span>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200 group">
+        <button className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-200 group ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-slate-100/80 border-slate-200 hover:bg-slate-200/80'}`}>
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center group-hover:scale-110 transition-transform">
             <Send className="h-5 w-5 text-white" />
           </div>
-          <span className="text-sm font-medium text-white/80">
+          <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
             {t('wallet.send', 'Send')}
           </span>
         </button>
-        <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200 group">
+        <button className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-200 group ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-slate-100/80 border-slate-200 hover:bg-slate-200/80'}`}>
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
             <ArrowDownToLine className="h-5 w-5 text-white" />
           </div>
-          <span className="text-sm font-medium text-white/80">
+          <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
             {t('wallet.receive', 'Receive')}
           </span>
         </button>
-        <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200 group">
+        <button className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-200 group ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-slate-100/80 border-slate-200 hover:bg-slate-200/80'}`}>
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center group-hover:scale-110 transition-transform">
             <ArrowLeftRight className="h-5 w-5 text-white" />
           </div>
-          <span className="text-sm font-medium text-white/80">
+          <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
             {t('wallet.swap', 'Swap')}
           </span>
         </button>
-        <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200 group">
+        <button className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-200 group ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-slate-100/80 border-slate-200 hover:bg-slate-200/80'}`}>
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center group-hover:scale-110 transition-transform">
             <History className="h-5 w-5 text-white" />
           </div>
-          <span className="text-sm font-medium text-white/80">
+          <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
             {t('wallet.history', 'History')}
           </span>
         </button>
@@ -294,10 +296,10 @@ export default function WalletPage() {
       {/* Assets Section */}
       <div ref={assetsRef}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('wallet.assets', 'Assets')}
           </h2>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-500 to-yellow-500 text-white text-sm font-medium hover:from-red-600 hover:to-yellow-600 transition-all duration-200">
+          <button className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-yellow-400 text-slate-900 hover:bg-yellow-500'}`}>
             <Plus className="h-4 w-4" />
             {t('wallet.addAsset', 'Add Asset')}
           </button>
@@ -305,19 +307,19 @@ export default function WalletPage() {
 
         <div className="space-y-4">
           {assets.map((asset) => (
-            <div key={asset.id} className="asset-card bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-4 sm:p-6 hover:bg-white/20 transition-all duration-200">
+            <div key={asset.id} className={`asset-card backdrop-blur-sm rounded-2xl border p-4 sm:p-6 transition-all duration-200 ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-white/80 border-slate-200 hover:bg-slate-200/80'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
                     <asset.icon className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">{asset.name}</h3>
-                    <p className="text-sm text-white/60">{asset.balance} {asset.symbol}</p>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{asset.name}</h3>
+                    <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{asset.balance} {asset.symbol}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-semibold text-white">
+                  <div className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     ${asset.value.toLocaleString()}
                   </div>
                   <div className={`flex items-center gap-1 text-sm ${
@@ -340,7 +342,7 @@ export default function WalletPage() {
       {/* Recent Transactions */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('wallet.recentTransactions', 'Recent Transactions')}
           </h2>
           <button className="text-sm text-white/60 hover:text-white transition-colors">
@@ -350,17 +352,17 @@ export default function WalletPage() {
 
         <div className="space-y-3">
           {recentTransactions.map((tx) => (
-            <div key={tx.id} className="transaction-item bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-4 hover:bg-white/20 transition-all duration-200">
+            <div key={tx.id} className={`transaction-item backdrop-blur-sm rounded-xl border p-4 transition-all duration-200 ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-white/80 border-slate-200 hover:bg-slate-200/80'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-white/10 flex items-center justify-center">
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
                     {getTransactionIcon(tx.type)}
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-white capitalize">
+                    <h3 className={`text-sm font-medium capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {tx.type}
                     </h3>
-                    <p className="text-xs text-white/60">
+                    <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
                       {tx.type === 'send' ? `To: ${tx.to}` : 
                        tx.type === 'receive' ? `From: ${tx.from}` : 
                        `${tx.symbol} → ${tx.to}`}
@@ -373,7 +375,7 @@ export default function WalletPage() {
                   }`}>
                     {tx.type === 'send' ? '-' : '+'}{tx.amount} {tx.symbol}
                   </div>
-                  <p className="text-xs text-white/60">{tx.time}</p>
+                  <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
                 </div>
               </div>
             </div>

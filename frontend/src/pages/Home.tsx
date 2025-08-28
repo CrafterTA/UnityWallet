@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useThemeStore } from "@/store/theme";
+import LightModeBackground from "@/components/LightModeBackground";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
@@ -31,6 +32,7 @@ gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
 const StatCard = ({ icon: Icon, label, value, sub }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const { isDark } = useThemeStore();
 
   useEffect(() => {
     const card = cardRef.current;
@@ -62,20 +64,20 @@ const StatCard = ({ icon: Icon, label, value, sub }: any) => {
   }, []);
 
   return (
-    <div
-      ref={cardRef}
-      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all hover:bg-white/7.5 hover:border-white/20"
-  >
-    <div className="flex items-center gap-3">
-      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-400/20 text-primary-600 group-hover:from-primary-500/30 group-hover:to-accent-400/30 transition-all duration-300">
-        <Icon className="h-5 w-5" />
-      </div>
-      <div>
-        <p className="text-sm text-white/70">{label}</p>
-        <p className="mt-0.5 text-xl font-semibold tracking-tight text-white">{value}</p>
-      </div>
-    </div>
-    {sub && <p className="mt-3 text-xs text-white/60">{sub}</p>}
+         <div
+       ref={cardRef}
+       className={`group relative overflow-hidden rounded-2xl border p-6 backdrop-blur-xl transition-all ${isDark ? 'border-white/10 bg-white/5 hover:bg-white/7.5 hover:border-white/20' : 'border-slate-200 bg-slate-100/80 hover:bg-slate-200/80 hover:border-slate-300'}`}
+   >
+     <div className="flex items-center gap-3">
+       <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-400/20 text-primary-600 group-hover:from-primary-500/30 group-hover:to-accent-400/30 transition-all duration-300">
+         <Icon className="h-5 w-5" />
+       </div>
+       <div>
+         <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{label}</p>
+         <p className={`mt-0.5 text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+       </div>
+     </div>
+     {sub && <p className={`mt-3 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>{sub}</p>}
     
     {/* Enhanced glow effect */}
     <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-primary-300/10 via-accent-300/15 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
@@ -88,6 +90,7 @@ const StatCard = ({ icon: Icon, label, value, sub }: any) => {
 
 const Feature = ({ icon: Icon, title, desc }: any) => {
   const featureRef = useRef<HTMLDivElement>(null);
+  const { isDark } = useThemeStore();
 
   useEffect(() => {
     const feature = featureRef.current;
@@ -144,17 +147,17 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
   }, []);
 
   return (
-    <div
-      ref={featureRef}
-      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all hover:bg-white/7.5 hover:border-white/20"
-  >
-    <div className="mb-3 flex items-center gap-3">
-      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-400/20 text-primary-600 group-hover:from-primary-500/30 group-hover:to-accent-400/30 group-hover:scale-110 transition-all duration-300">
-        <Icon className="h-5 w-5" />
-      </div>
-      <h3 className="text-lg font-semibold text-white group-hover:text-primary-600 transition-colors duration-300">{title}</h3>
-    </div>
-    <p className="text-sm leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">{desc}</p>
+         <div
+       ref={featureRef}
+       className={`group relative overflow-hidden rounded-2xl border p-6 backdrop-blur-xl transition-all ${isDark ? 'border-white/10 bg-white/5 hover:bg-white/7.5 hover:border-white/20' : 'border-slate-200 bg-slate-100/80 hover:bg-slate-200/80 hover:border-slate-300'}`}
+   >
+     <div className="mb-3 flex items-center gap-3">
+       <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-400/20 text-primary-600 group-hover:from-primary-500/30 group-hover:to-accent-400/30 group-hover:scale-110 transition-all duration-300">
+         <Icon className="h-5 w-5" />
+       </div>
+       <h3 className={`text-lg font-semibold transition-colors duration-300 ${isDark ? 'text-white group-hover:text-primary-600' : 'text-slate-900 group-hover:text-primary-600'}`}>{title}</h3>
+     </div>
+     <p className={`text-sm leading-6 transition-colors duration-300 ${isDark ? 'text-white/70 group-hover:text-white/80' : 'text-slate-600 group-hover:text-slate-700'}`}>{desc}</p>
     
     {/* Enhanced glow effect */}
     <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-primary-300/10 via-accent-300/15 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
@@ -165,20 +168,38 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
 );
 };
 
-const TokenRow = ({ name, symbol, price, change, mcap }: any) => (
-  <div className="grid grid-cols-12 items-center gap-3 rounded-xl px-3 py-2 hover:bg-white/5 transition-colors duration-200">
+const TokenRow = ({ name, symbol, price, change, mcap }: any) => {
+  const { isDark } = useThemeStore();
+  
+  // Icon mapping for cryptocurrencies
+  const getCryptoIcon = (symbol: string) => {
+    switch (symbol.toUpperCase()) {
+      case 'BTC':
+        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center text-white font-bold text-sm">₿</div>;
+      case 'ETH':
+        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">Ξ</div>;
+      case 'USDC':
+        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-xs">$</div>;
+      default:
+        return <div className={`h-8 w-8 rounded-lg ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />;
+    }
+  };
+
+  return (
+  <div className={`grid grid-cols-12 items-center gap-3 rounded-xl px-3 py-2 transition-colors duration-200 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-100/80'}`}>
     <div className="col-span-5 flex items-center gap-3">
-      <div className="h-8 w-8 rounded-lg bg-white/10" />
+      {getCryptoIcon(symbol)}
       <div>
-        <p className="text-sm font-medium text-white">{name}</p>
-        <p className="text-xs text-white/60">{symbol}</p>
+        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{name}</p>
+        <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{symbol}</p>
       </div>
     </div>
-    <div className="col-span-2 text-sm text-white">${price}</div>
+    <div className={`col-span-2 text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>${price}</div>
     <div className={`col-span-2 text-sm ${change.startsWith("-") ? "text-red-400" : "text-emerald-400"}`}>{change}</div>
-    <div className="col-span-3 text-right text-sm text-white/80">${mcap}</div>
+    <div className={`col-span-3 text-right text-sm ${isDark ? 'text-white/80' : 'text-slate-600'}`}>${mcap}</div>
   </div>
-);
+  );
+};
 
 
 
@@ -323,6 +344,7 @@ const AnimatedBackground = () => {
 export default function Web3ModernLayout() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isDark } = useThemeStore();
 
   const heroRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -439,13 +461,13 @@ export default function Web3ModernLayout() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Background Rendering */}
-      <AnimatedBackground />
+      {isDark ? <AnimatedBackground /> : <LightModeBackground />}
       
       {/* HERO */}
       <section ref={heroRef} className="relative mx-auto max-w-7xl px-4 pb-8 sm:pb-12 pt-16 sm:pt-20 lg:pt-24 z-10">
         <div className="grid grid-cols-1 items-center gap-8 sm:gap-10 lg:grid-cols-2">
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 text-reveal">
+                         <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-reveal ${isDark ? 'border-white/10 bg-white/5 text-white/70' : 'border-slate-200 bg-slate-100/80 text-slate-600'}`}>
               <Sparkles className="h-3.5 w-3.5" />
               {t('home.hero.badge')}
             </div>
@@ -453,29 +475,38 @@ export default function Web3ModernLayout() {
               {t('home.hero.title').split('digital wallet').map((part, index) => (
                 <React.Fragment key={index}>
                   {part}
-                  {index === 0 && <span className="bg-gradient-to-r from-red-300 via-yellow-300 to-red-300 bg-clip-text text-transparent">digital wallet</span>}
+                  {index === 0 && (
+                    <span className="relative inline-block">
+                      <span className="bg-gradient-to-r from-red-500 via-red-400 to-red-600 bg-clip-text text-transparent font-black tracking-wider drop-shadow-lg">
+                        digital wallet
+                      </span>
+                      {/* Glow effect */}
+                      <span className="absolute inset-0 bg-gradient-to-r from-red-500/20 via-red-400/20 to-red-600/20 blur-xl -z-10 animate-pulse"></span>
+                      {/* Text shadow for depth */}
+                      <span className="absolute inset-0 bg-gradient-to-r from-red-500 via-red-400 to-red-600 bg-clip-text text-transparent font-black tracking-wider opacity-30 blur-sm -z-20"></span>
+                    </span>
+                  )}
                 </React.Fragment>
               ))}
             </h1>
-            <p ref={subtitleRef} className="mt-4 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-7 text-white/70">
+                         <p ref={subtitleRef} className={`mt-4 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base leading-7 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
               {t('home.hero.subtitle')}
             </p>
             <div ref={ctaRef} className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
               <button
                 onClick={() => navigate('/pay')}
-                className="w-full sm:w-auto group relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40"
+                className="w-full sm:w-auto rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 bg-red-600 text-white hover:bg-red-700 shadow-red-500/20 hover:shadow-red-500/40"
               >
-                <span className="relative z-10">{t('home.hero.startTrading')}</span>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-red-600 to-yellow-600" />
+                {t('home.hero.startTrading')}
               </button>
               <button
                 onClick={() => navigate('/activity')}
-                className="w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 border-white/10 bg-white/5 text-white/90 hover:bg-white/10"
+                className={`w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 ${isDark ? 'border-white/10 bg-white/5 text-white/90 hover:bg-white/10' : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:border-slate-400'}`}
               >
                 {t('home.hero.viewActivity')}
               </button>
             </div>
-            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs text-white/60 text-reveal">
+                         <div className={`mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs text-reveal ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
               <div className="flex items-center gap-1"><Shield className="h-3.5 w-3.5"/> Bank Grade Security</div>
               <div className="flex items-center gap-1"><Lock className="h-3.5 w-3.5"/> Multi-Sig Protection</div>
               <div className="flex items-center gap-1"><Users className="h-3.5 w-3.5"/> 50k+ users</div>
@@ -483,24 +514,24 @@ export default function Web3ModernLayout() {
           </div>
                       <div ref={dashboardRef} className="relative mt-20 sm:mt-28 lg:mt-36">
             {/* dashboard preview card */}
-              <div className="dashboard-card relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-white/5 p-3 sm:p-4 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/5 transition-all duration-300 hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] hover:border-white/20 group">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl bg-white/5 px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border border-white/10 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/20 gap-2">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-white/80">
+                             <div className={`dashboard-card relative overflow-hidden rounded-2xl sm:rounded-3xl border p-3 sm:p-4 backdrop-blur-xl ring-1 ring-inset transition-all duration-300 group ${isDark ? 'border-white/10 bg-white/5 ring-white/5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] hover:border-white/20' : 'border-slate-200 bg-white/80 ring-slate-200 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.15)] hover:border-slate-300'}`}>
+                                                                 <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10 group-hover:bg-white/10 group-hover:border-white/20' : 'bg-slate-100/80 border-slate-200 group-hover:bg-slate-200/80 group-hover:border-slate-300'}`}>
+                                     <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                     <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/> Portfolio Overview
                 </div>
-                <div className="flex items-center gap-2 text-xs text-white/60">
+                                 <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
                     <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300 animate-pulse group-hover:bg-emerald-400/25 transition-colors duration-300">Net +12.8%</span>
-                    <span className="rounded-full bg-white/10 px-2 py-0.5 group-hover:bg-white/15 transition-colors duration-300">30d</span>
+                                         <span className={`rounded-full px-2 py-0.5 transition-colors duration-300 ${isDark ? 'bg-white/10 group-hover:bg-white/15' : 'bg-slate-200 group-hover:bg-slate-300'}`}>30d</span>
                 </div>
               </div>
               <div className="grid gap-3 sm:gap-4 p-3 sm:p-4 lg:grid-cols-3">
                 <div className="lg:col-span-2">
-                  <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
-                    <div className="mb-3 flex items-center justify-between text-xs sm:text-sm text-white/70">
+                  <div className={`rounded-xl sm:rounded-2xl border p-3 sm:p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
+                    <div className={`mb-3 flex items-center justify-between text-xs sm:text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                       <span>Total Balance</span>
                       <span className="flex items-center gap-1 text-emerald-300"><TrendingUp className="h-3 w-3 sm:h-4 sm:w-4"/> +8.2%</span>
                     </div>
-                    <p className="text-2xl sm:text-3xl font-bold tracking-tight text-white">$24,856.42</p>
+                    <p className={`text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>$24,856.42</p>
                     {/* Animated sparkline */}
                     <svg viewBox="0 0 200 60" className="mt-3 sm:mt-4 h-12 sm:h-16 w-full">
                       <polyline 
@@ -524,50 +555,50 @@ export default function Web3ModernLayout() {
                       </defs>
                     </svg>
                   </div>
-                  <div className="mt-3 sm:mt-4 rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 p-2 sm:p-3">
-                    <div className="hidden sm:grid grid-cols-12 px-3 pb-2 pt-1 text-xs text-white/50">
+                  <div className={`mt-3 sm:mt-4 rounded-xl sm:rounded-2xl border p-2 sm:p-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
+                    <div className={`hidden sm:grid grid-cols-12 px-3 pb-2 pt-1 text-xs ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
                       <div className="col-span-5">Asset</div>
                       <div className="col-span-2">Price</div>
                       <div className="col-span-2">24h</div>
                       <div className="col-span-3 text-right">Holdings</div>
                     </div>
                     <div className="space-y-2 sm:hidden">
-                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                      <div className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
                         <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded bg-white/10"></div>
+                          <div className="h-6 w-6 rounded bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center text-white font-bold text-xs">₿</div>
                           <div>
-                            <p className="text-sm font-medium text-white">Bitcoin</p>
-                            <p className="text-xs text-white/60">BTC</p>
+                            <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Bitcoin</p>
+                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>BTC</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-white">$64,230</p>
+                          <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>$64,230</p>
                           <p className="text-xs text-emerald-400">+1.8%</p>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                      <div className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
                         <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded bg-white/10"></div>
+                          <div className="h-6 w-6 rounded bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs">Ξ</div>
                           <div>
-                            <p className="text-sm font-medium text-white">Ethereum</p>
-                            <p className="text-xs text-white/60">ETH</p>
+                            <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Ethereum</p>
+                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>ETH</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-white">$3,210</p>
+                          <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>$3,210</p>
                           <p className="text-xs text-emerald-400">+0.7%</p>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                      <div className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
                         <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded bg-white/10"></div>
+                          <div className="h-6 w-6 rounded bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-xs">$</div>
                           <div>
-                            <p className="text-sm font-medium text-white">USDC</p>
-                            <p className="text-xs text-white/60">USDC</p>
+                            <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>USDC</p>
+                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>USDC</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-white">$1.00</p>
+                          <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>$1.00</p>
                           <p className="text-xs text-emerald-400">+0.1%</p>
                         </div>
                       </div>
@@ -619,34 +650,34 @@ export default function Web3ModernLayout() {
             <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.features.title', 'What you can do')}</h2>
           </div>
           <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
-            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+            <div className={`feature-card backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border transition-all duration-300 group hover:-translate-y-2 ${isDark ? 'bg-white/5 border-white/10 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]' : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)]'}`}>
               <div className="mb-3 flex items-center gap-3">
-                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/60 to-yellow-400/60 text-white group-hover:scale-110 transition-transform duration-300">
                   <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">{t('home.features.sendReceive.title', 'Send & Receive')}</h3>
+                <h3 className={`text-base sm:text-lg font-semibold transition-colors duration-300 ${isDark ? 'text-white group-hover:text-red-300' : 'text-slate-900 group-hover:text-red-600'}`}>{t('home.features.sendReceive.title', 'Send & Receive')}</h3>
               </div>
-              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">{t('home.features.sendReceive.description', 'Transfer digital assets instantly across multiple networks with low fees and real-time confirmations.')}</p>
+              <p className={`text-xs sm:text-sm leading-5 sm:leading-6 transition-colors duration-300 ${isDark ? 'text-white/70 group-hover:text-white/80' : 'text-slate-600 group-hover:text-slate-700'}`}>{t('home.features.sendReceive.description', 'Transfer digital assets instantly across multiple networks with low fees and real-time confirmations.')}</p>
               <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
-            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+            <div className={`feature-card backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border transition-all duration-300 group hover:-translate-y-2 ${isDark ? 'bg-white/5 border-white/10 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]' : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)]'}`}>
               <div className="mb-3 flex items-center gap-3">
-                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/60 to-yellow-400/60 text-white group-hover:scale-110 transition-transform duration-300">
                   <LineChart className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">{t('home.features.swapTrade.title', 'Swap & Trade')}</h3>
+                <h3 className={`text-base sm:text-lg font-semibold transition-colors duration-300 ${isDark ? 'text-white group-hover:text-red-300' : 'text-slate-900 group-hover:text-red-600'}`}>{t('home.features.swapTrade.title', 'Swap & Trade')}</h3>
               </div>
-              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">{t('home.features.swapTrade.description', 'Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools.')}</p>
+              <p className={`text-xs sm:text-sm leading-5 sm:leading-6 transition-colors duration-300 ${isDark ? 'text-white/70 group-hover:text-white/80' : 'text-slate-600 group-hover:text-slate-700'}`}>{t('home.features.swapTrade.description', 'Exchange cryptocurrencies at the best rates with our integrated DEX aggregator and liquidity pools.')}</p>
               <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
-            <div className="feature-card bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+            <div className={`feature-card backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border transition-all duration-300 group hover:-translate-y-2 ${isDark ? 'bg-white/5 border-white/10 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]' : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)]'}`}>
               <div className="mb-3 flex items-center gap-3">
-                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/30 to-yellow-400/30 text-red-200 group-hover:scale-110 transition-transform duration-300">
+                <div className="grid h-9 w-9 sm:h-11 sm:w-11 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500/60 to-yellow-400/60 text-white group-hover:scale-110 transition-transform duration-300">
                   <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-red-300 transition-colors duration-300">{t('home.features.secureStorage.title', 'Secure Storage')}</h3>
+                <h3 className={`text-base sm:text-lg font-semibold transition-colors duration-300 ${isDark ? 'text-white group-hover:text-red-300' : 'text-slate-900 group-hover:text-red-600'}`}>{t('home.features.secureStorage.title', 'Secure Storage')}</h3>
               </div>
-              <p className="text-xs sm:text-sm leading-5 sm:leading-6 text-white/70 group-hover:text-white/80 transition-colors duration-300">{t('home.features.secureStorage.description', 'Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management.')}</p>
+              <p className={`text-xs sm:text-sm leading-5 sm:leading-6 transition-colors duration-300 ${isDark ? 'text-white/70 group-hover:text-white/80' : 'text-slate-600 group-hover:text-slate-700'}`}>{t('home.features.secureStorage.description', 'Bank-grade security with multi-signature protection, biometric authentication, and encrypted key management.')}</p>
               <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 sm:h-28 sm:w-28 -translate-y-6 sm:-translate-y-8 translate-x-4 sm:translate-x-6 rounded-full bg-gradient-to-tr from-white/10 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
             </div>
           </div>
@@ -655,35 +686,34 @@ export default function Web3ModernLayout() {
 
       {/* ENHANCED CTA */}
       <section id="app" className="relative mx-auto max-w-7xl px-4 py-8 sm:py-12 z-10">
-        <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-4 sm:p-6 backdrop-blur-xl text-reveal">
+        <div className={`overflow-hidden rounded-2xl sm:rounded-3xl border p-4 sm:p-6 backdrop-blur-xl text-reveal ${isDark ? 'border-white/10 bg-gradient-to-br from-white/10 to-white/5' : 'border-slate-200 bg-gradient-to-br from-slate-100/80 to-slate-50/80'}`}>
           <div className="grid items-center gap-6 md:grid-cols-2">
             <div className="text-center md:text-left">
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.cta.title', 'Ready to start your digital journey?')}</h3>
-              <p className="mt-2 text-sm text-white/70">
+              <p className={`mt-2 text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                 {t('home.cta.subtitle', 'Join thousands of users managing their digital assets with UnityWallet. Secure, fast, and user-friendly.')}
               </p>
               <div className="mt-4 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <button 
                   onClick={() => navigate('/pay')}
-                  className="w-full sm:w-auto group relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40"
+                  className="w-full sm:w-auto rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 bg-red-600 hover:bg-red-700 text-white shadow-red-500/20 hover:shadow-red-500/40"
                 >
-                  <span className="relative z-10">{t('home.cta.getStarted', 'Get Started')}</span>
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-red-600 to-yellow-600" />
+                  {t('home.cta.getStarted', 'Get Started')}
                 </button>
                 <button 
                   onClick={() => navigate('/activity')}
-                  className="w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 border-white/10 bg-white/5 text-white/90 hover:bg-white/10"
+                  className={`w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 ${isDark ? 'border-white/10 bg-white/5 text-white/90 hover:bg-white/10' : 'border-slate-200 bg-slate-100/80 text-slate-700 hover:bg-slate-200/80'}`}
                 >
                   {t('home.cta.learnMore', 'Learn More')}
                 </button>
               </div>
             </div>
-            <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
+            <div className={`rounded-xl sm:rounded-2xl border p-3 sm:p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {["Wallet", "DeFi", "Staking", "NFTs", "Swap", "Bridge", "Security", "Analytics", "Mobile"].map((t, index) => (
                   <div 
                     key={t} 
-                    className="rounded-lg sm:rounded-xl border border-white/10 bg-white/5 px-2 sm:px-3 py-2 text-center text-xs text-white/80 hover:bg-white/10 transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className={`rounded-lg sm:rounded-xl border px-2 sm:px-3 py-2 text-center text-xs transition-all duration-300 hover:scale-105 cursor-pointer ${isDark ? 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10' : 'border-slate-200 bg-slate-100/80 text-slate-700 hover:bg-slate-200/80'}`}
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     {t}
@@ -699,10 +729,10 @@ export default function Web3ModernLayout() {
       <section className="relative mx-auto max-w-7xl px-4 py-12 sm:py-20 z-10">
         <div className="text-center space-y-8 sm:space-y-12">
           <div className="text-reveal">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+            <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
               {t('home.whyChoose.title', 'Why Choose')} <span className="bg-gradient-to-r from-red-400 to-yellow-400 bg-clip-text text-transparent">UnityWallet?</span>
             </h2>
-            <p className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto px-4">
+            <p className={`text-base sm:text-lg max-w-2xl mx-auto px-4 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
               {t('home.whyChoose.subtitle', 'Experience the next generation of digital finance with cutting-edge security and seamless user experience.')}
             </p>
           </div>
@@ -714,24 +744,23 @@ export default function Web3ModernLayout() {
               { icon: Lock, title: t('home.whyChoose.fullControl.title', 'Full Control'), desc: t('home.whyChoose.fullControl.description', 'Your keys, your crypto, your choice') },
               { icon: Users, title: t('home.whyChoose.support.title', '24/7 Support'), desc: t('home.whyChoose.support.description', 'Expert help whenever you need it') }
             ].map((feature, index) => (
-              <div
-                key={index}
-                className="feature-card bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
-              >
-                <feature.icon className="w-12 h-12 text-red-400 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <h3 className="text-white font-semibold mb-2 group-hover:text-red-300 transition-colors duration-300">{feature.title}</h3>
-                <p className="text-white/60 text-sm group-hover:text-white/80 transition-colors duration-300">{feature.desc}</p>
-              </div>
+                             <div
+                 key={index}
+                 className={`feature-card backdrop-blur-sm rounded-2xl p-6 border transition-all duration-300 group hover:-translate-y-2 ${isDark ? 'bg-white/5 border-white/10 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]' : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)]'}`}
+               >
+                 <feature.icon className="w-12 h-12 text-red-400 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
+                 <h3 className={`font-semibold mb-2 transition-colors duration-300 ${isDark ? 'text-white group-hover:text-red-300' : 'text-slate-900 group-hover:text-red-600'}`}>{feature.title}</h3>
+                 <p className={`text-sm transition-colors duration-300 ${isDark ? 'text-white/60 group-hover:text-white/80' : 'text-slate-600 group-hover:text-slate-700'}`}>{feature.desc}</p>
+               </div>
             ))}
           </div>
 
           <div className="text-reveal pt-8">
             <button 
               onClick={() => navigate('/pay')}
-              className="group relative overflow-hidden font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg bg-gradient-to-r from-red-500 to-yellow-400 hover:from-red-600 hover:to-yellow-500 text-white"
+              className="font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg bg-red-600 hover:bg-red-700 text-white"
             >
-              <span className="relative z-10">Start Your Journey Today</span>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-red-600 to-yellow-600" />
+              Start Your Journey Today
             </button>
           </div>
         </div>
@@ -740,45 +769,45 @@ export default function Web3ModernLayout() {
       {/* ENHANCED FOOTER */}
       <footer className="mx-auto max-w-7xl px-4 pb-16 sm:pb-20 md:pb-12 pt-8 z-10 relative">
         <div className="grid gap-6 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 text-reveal">
-          <div className="col-span-1 sm:col-span-2 md:col-span-1 text-center sm:text-left">
-            <div className="mb-3 flex items-center justify-center sm:justify-start gap-2 text-white/80">
-              <Wallet className="h-4 w-4" /> UnityWallet
-            </div>
-            <p className="text-sm text-white/60">{t('home.footer.description', 'Secure, fast, and delightful digital wallet experience.')}</p>
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="mb-2 text-sm font-semibold text-white/80">{t('home.footer.features', 'Features')}</p>
-            <ul className="space-y-1 text-sm text-white/60">
-              <li><button onClick={() => navigate('/pay')} className="hover:text-white transition-colors">{t('home.footer.sendReceive', 'Send & Receive')}</button></li>
-              <li><button onClick={() => navigate('/swap')} className="hover:text-white transition-colors">{t('home.footer.swapAssets', 'Swap Assets')}</button></li>
-              <li><button onClick={() => navigate('/activity')} className="hover:text-white transition-colors">{t('home.footer.transactionHistory', 'Transaction History')}</button></li>
-              <li><button onClick={() => navigate('/insights')} className="hover:text-white transition-colors">{t('home.footer.analytics', 'Analytics')}</button></li>
-            </ul>
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="mb-2 text-sm font-semibold text-white/80">{t('home.footer.security', 'Security')}</p>
-            <ul className="space-y-1 text-sm text-white/60">
-              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.multiSig', 'Multi-Sig')}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.encryption', 'Encryption')}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.auditReports', 'Audit Reports')}</a></li>
-            </ul>
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="mb-2 text-sm font-semibold text-white/80">{t('home.footer.support', 'Support')}</p>
-            <ul className="space-y-1 text-sm text-white/60">
-              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.helpCenter', 'Help Center')}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.contactUs', 'Contact Us')}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">{t('home.footer.community', 'Community')}</a></li>
-            </ul>
-          </div>
+                     <div className="col-span-1 sm:col-span-2 md:col-span-1 text-center sm:text-left">
+             <div className={`mb-3 flex items-center justify-center sm:justify-start gap-2 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+               <Wallet className="h-4 w-4" /> UnityWallet
+             </div>
+             <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>{t('home.footer.description', 'Secure, fast, and delightful digital wallet experience.')}</p>
+           </div>
+                     <div className="text-center sm:text-left">
+             <p className={`mb-2 text-sm font-semibold ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{t('home.footer.features', 'Features')}</p>
+             <ul className={`space-y-1 text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+               <li><button onClick={() => navigate('/pay')} className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.sendReceive', 'Send & Receive')}</button></li>
+               <li><button onClick={() => navigate('/swap')} className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.swapAssets', 'Swap Assets')}</button></li>
+               <li><button onClick={() => navigate('/activity')} className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.transactionHistory', 'Transaction History')}</button></li>
+               <li><button onClick={() => navigate('/insights')} className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.analytics', 'Analytics')}</button></li>
+             </ul>
+           </div>
+                     <div className="text-center sm:text-left">
+             <p className={`mb-2 text-sm font-semibold ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{t('home.footer.security', 'Security')}</p>
+             <ul className={`space-y-1 text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+               <li><a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.multiSig', 'Multi-Sig')}</a></li>
+               <li><a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.encryption', 'Encryption')}</a></li>
+               <li><a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.auditReports', 'Audit Reports')}</a></li>
+             </ul>
+           </div>
+           <div className="text-center sm:text-left">
+             <p className={`mb-2 text-sm font-semibold ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{t('home.footer.support', 'Support')}</p>
+             <ul className={`space-y-1 text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+               <li><a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.helpCenter', 'Help Center')}</a></li>
+               <li><a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.contactUs', 'Contact Us')}</a></li>
+               <li><a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.community', 'Community')}</a></li>
+             </ul>
+           </div>
         </div>
-        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-white/10 pt-4 text-xs text-white/50 gap-2 text-center sm:text-left">
-          <span>© {new Date().getFullYear()} UnityWallet Labs</span>
-          <div className="flex items-center justify-center sm:justify-start gap-3">
-            <a href="#" className="hover:text-white transition-colors">{t('home.footer.privacy', 'Privacy')}</a>
-            <a href="#" className="hover:text-white transition-colors">{t('home.footer.terms', 'Terms')}</a>
-          </div>
-        </div>
+                 <div className={`mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t pt-4 text-xs gap-2 text-center sm:text-left ${isDark ? 'border-white/10 text-white/50' : 'border-slate-200 text-slate-500'}`}>
+           <span>© {new Date().getFullYear()} UnityWallet Labs</span>
+           <div className="flex items-center justify-center sm:justify-start gap-3">
+             <a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.privacy', 'Privacy')}</a>
+             <a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.terms', 'Terms')}</a>
+           </div>
+         </div>
       </footer>
 
       {/* Enhanced styles for animations and effects */}

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useThemeStore } from '@/store/theme';
-import { Moon, Monitor } from 'lucide-react';
+import { Moon, Sun, Monitor } from 'lucide-react';
 import { gsap } from 'gsap';
 
 const ThemeSwitcher: React.FC = () => {
@@ -9,6 +9,7 @@ const ThemeSwitcher: React.FC = () => {
   const indicatorRef = useRef<HTMLDivElement>(null);
 
   const themes = [
+    { key: 'light', icon: Sun, label: 'Light' },
     { key: 'dark', icon: Moon, label: 'Dark' },
     { key: 'system', icon: Monitor, label: 'System' },
   ] as const;
@@ -20,9 +21,9 @@ const ThemeSwitcher: React.FC = () => {
     
     if (indicator && currentIndex !== -1) {
       gsap.to(indicator, {
-        x: currentIndex * 32, 
+        xPercent: currentIndex * 100,
         duration: 0.3,
-        ease: "power2.out"
+        ease: 'power2.out'
       });
     }
   }, [theme]);
@@ -39,6 +40,8 @@ const ThemeSwitcher: React.FC = () => {
   }, []);
 
   const handleThemeChange = (newTheme: typeof theme) => {
+    if (newTheme === theme) return; // Don't animate if same theme
+    
     setTheme(newTheme);
     
     // Add a subtle bounce animation
@@ -52,46 +55,43 @@ const ThemeSwitcher: React.FC = () => {
         ease: "power2.inOut"
       });
     }
+    
+    // Animate the indicator smoothly
+    const currentIndex = themes.findIndex(t => t.key === newTheme);
+    const indicator = indicatorRef.current;
+    
+    if (indicator && currentIndex !== -1) {
+      gsap.to(indicator, {
+        xPercent: currentIndex * 100,
+        duration: 0.3,
+        ease: 'power2.out'
+      });
+    }
   };
 
   return (
-    <div 
-      ref={switcherRef}
-      className="relative inline-flex items-center rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-0.5 shadow-lg"
-    >
-      {/* Animated indicator */}
+    <div ref={switcherRef} className={`relative flex h-10 items-center rounded-xl border p-1 backdrop-blur-sm shadow-lg ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
+      {/* Sliding indicator */}
       <div
         ref={indicatorRef}
-        className="absolute h-8 w-8 rounded-lg bg-gradient-to-br from-primary-500/80 to-accent-400/80 transition-all duration-300 ease-out shadow-lg"
-        style={{
-          boxShadow: '0 4px 20px rgba(239, 30, 36, 0.3)',
-        }}
+        className="absolute left-1 top-1 h-[calc(100%-8px)] w-[calc((100%-8px)/3)] rounded-lg bg-gradient-to-r from-red-500/20 to-yellow-500/20 ring-1 ring-inset ring-white/20 shadow-sm backdrop-blur-sm"
+        style={{ transform: `translateX(${themes.findIndex(t => t.key === theme) * 100}%)` }}
       />
       
-      {/* Theme buttons */}
-      {themes.map((themeOption, index) => {
-        const Icon = themeOption.icon;
-        const isActive = theme === themeOption.key;
-        
-        return (
-          <button
-            key={themeOption.key}
-            onClick={() => handleThemeChange(themeOption.key)}
-            className={`
-              relative z-10 flex h-8 w-8 items-center justify-center rounded-lg 
-              transition-all duration-300 ease-out
-              ${isActive 
-                ? 'text-white' 
-                : 'text-white/60 hover:text-white/80'
-              }
-              hover:scale-110 active:scale-95
-            `}
-            title={`Switch to ${themeOption.label} mode`}
-          >
-            <Icon className="h-4 w-4" />
-          </button>
-        );
-      })}
+      {themes.map((themeOption) => (
+        <button
+          key={themeOption.key}
+          onClick={() => handleThemeChange(themeOption.key)}
+          title={themeOption.label}
+          className={`relative z-10 flex h-8 w-[calc((100%-8px)/3)] items-center justify-center rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 ${
+            theme === themeOption.key
+              ? `${isDark ? 'text-white' : 'text-slate-900'}`
+              : `${isDark ? 'text-white/70 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`
+          }`}
+        >
+          <themeOption.icon className="h-4 w-4 transition-transform duration-200" />
+        </button>
+      ))}
     </div>
   );
 };

@@ -116,7 +116,7 @@ function QRCodeGenerator() {
 
           <button
             onClick={handleGenerateQR}
-            className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
           >
             <div className="flex items-center justify-center space-x-2">
               <QrCode className="w-5 h-5" />

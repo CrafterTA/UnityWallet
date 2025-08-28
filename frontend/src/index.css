@@ -25,6 +25,28 @@
   --radius: 0.5rem;
 }
 
+.light {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+}
+
 .dark {
   --background: 222.2 84% 4.9%;
   --foreground: 210 40% 98%;
@@ -49,7 +71,75 @@
 
 * {
   border-color: hsl(var(--border));
-  box-sizing: border-box;
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+}
+
+/* Light theme specific text colors */
+.light {
+  color: #0F172A; /* HDBank dark blue text */
+}
+
+.light .text-white {
+  color: #0F172A;
+}
+
+.light .text-white\/70 {
+  color: #374151;
+}
+
+.light .text-white\/60 {
+  color: #6B7280;
+}
+
+.light .text-white\/50 {
+  color: #9CA3AF;
+}
+
+/* Light theme specific backgrounds */
+.light .bg-white\/5 {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+
+.light .bg-white\/10 {
+  background-color: rgba(241, 245, 249, 0.9);
+}
+
+.light .bg-white\/7\.5 {
+  background-color: rgba(241, 245, 249, 0.85);
+}
+
+.light .border-white\/10 {
+  border-color: rgba(226, 232, 240, 0.8);
+}
+
+.light .border-white\/20 {
+  border-color: rgba(203, 213, 225, 0.9);
+}
+
+/* Light theme specific hover states */
+.light .hover\:bg-white\/10:hover {
+  background-color: rgba(241, 245, 249, 0.9);
+}
+
+.light .hover\:border-white\/20:hover {
+  border-color: rgba(203, 213, 225, 0.9);
+}
+
+/* Light theme specific shadows */
+.light .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.light .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.light .shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 /* Prevent horizontal overflow */
@@ -66,15 +156,6 @@
   margin-right: auto;
   padding-left: 1rem;
   padding-right: 1rem;
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
 }
 
 html {

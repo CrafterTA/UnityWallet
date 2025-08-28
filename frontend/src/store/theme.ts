@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type Theme = 'dark' | 'system'
+type Theme = 'light' | 'dark' | 'system'
 
 interface ThemeStore {
   theme: Theme
@@ -12,8 +12,8 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
-      theme: 'dark',
-      isDark: true,
+      theme: 'light', // Default to light theme
+      isDark: false, // Default to light mode
       setTheme: (theme: Theme) => {
         set({ theme })
         
@@ -28,10 +28,28 @@ export const useThemeStore = create<ThemeStore>()(
           root.classList.add('dark')
           root.classList.remove('light')
         } else {
+          root.classList.add('light')
           root.classList.remove('dark')
-          root.classList.remove('light')
         }
       },
+      
+      // Initialize theme on mount
+      init: () => {
+        const { theme } = get()
+        const root = document.documentElement
+        const isDark = theme === 'dark' || 
+          (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        
+        set({ isDark })
+        
+        if (isDark) {
+          root.classList.add('dark')
+          root.classList.remove('light')
+        } else {
+          root.classList.add('light')
+          root.classList.remove('dark')
+        }
+      }
     }),
     {
       name: 'theme-storage',
