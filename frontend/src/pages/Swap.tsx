@@ -106,19 +106,19 @@ function Swap() {
            </div>
           
           <div className="flex space-x-3">
-                         <input
-               type="number"
-               value={fromAmount}
-               onChange={(e) => setFromAmount(e.target.value)}
-               className={`flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent backdrop-blur-sm ${
-                 isDark 
-                   ? 'bg-white/10 border-white/20 text-white placeholder-white/50' 
-                   : 'bg-slate-100/80 border-slate-300 text-slate-900 placeholder-slate-500'
-               }`}
-               placeholder={t('swap.enterAmount', '0.00')}
-               min="0"
-               step="0.01"
-             />
+                                     <input
+              type="number"
+              value={fromAmount}
+              onChange={(e) => setFromAmount(e.target.value)}
+              className={`flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 border backdrop-blur-sm ${
+                isDark 
+                  ? 'bg-white/10 border-white/20 text-white placeholder-white/50' 
+                  : 'bg-slate-100/80 border-slate-300 text-slate-900 placeholder-slate-500'
+              }`}
+              placeholder={t('swap.enterAmount', '0.00')}
+              min="0"
+              step="0.01"
+            />
             
             <div className="relative min-w-[120px]" ref={fromAssetRef}>
               <button
@@ -190,12 +190,11 @@ function Swap() {
                 type="text"
                 value={quote?.destination_amount || ''}
                 readOnly
-                className={`flex-1 px-4 py-3 rounded-xl backdrop-blur-sm ${
+                className={`flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 border backdrop-blur-sm ${
                   isDark 
                     ? 'bg-white/10 border-white/20 text-white/70' 
                     : 'bg-slate-100/80 border-slate-300 text-slate-600'
                 }`}
-                placeholder={t('swap.enterAmount', '0.00')}
               />
              
              <div className="relative min-w-[120px]" ref={toAssetRef}>
