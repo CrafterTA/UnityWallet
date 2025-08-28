@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff, LogIn } from 'lucide-react'
+import { Eye, EyeOff, LogIn, UserPlus, Home } from 'lucide-react'
 import { useAuthStore } from '@/store/session'
 import { authApi } from '@/api/auth'
 import { useNavigate } from 'react-router-dom'
@@ -63,7 +63,7 @@ function Login() {
         {/* Right Side - Login Form */}
         <div className="flex-1 flex items-center justify-center px-12">
           <div className="w-full max-w-md">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)]">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
                 <p className="text-navy-300">Sign in to your account</p>
@@ -79,7 +79,7 @@ function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-navy-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-navy-300 focus:outline-none focus:ring-2 focus:ring-accent/80 focus:border-transparent"
                     placeholder="Enter your email"
                     required
                   />
@@ -95,7 +95,7 @@ function Login() {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-navy-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                      className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-navy-300 focus:outline-none focus:ring-2 focus:ring-accent/80 focus:border-transparent"
                       placeholder="Enter your password"
                       required
                     />
@@ -112,7 +112,7 @@ function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-accent hover:bg-accent/90 text-navy-900 font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full bg-accent hover:bg-accent/90 text-navy-900 font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-navy-900 border-t-transparent rounded-full animate-spin" />
@@ -125,12 +125,26 @@ function Login() {
                 </button>
               </form>
 
-              {/* Demo Note */}
-              <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
-                <p className="text-sm text-accent font-medium mb-2">Demo Account</p>
-                <p className="text-xs text-navy-300">
-                  Use the pre-filled credentials to explore UnityWallet's features
+              {/* Actions */}
+              <div className="mt-6 space-y-3">
+                <p className="text-sm text-navy-300 text-center">
+                  Don't have an account?
+                  <button
+                    type="button"
+                    onClick={() => navigate('/register')}
+                    className="ml-1 text-accent hover:underline font-semibold"
+                  >
+                    Create one
+                  </button>
                 </p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white/80 hover:bg-white/10 transition-colors inline-flex items-center justify-center gap-2"
+                >
+                  <Home className="w-4 h-4" />
+                  <span>Back to Home</span>
+                </button>
               </div>
             </div>
           </div>
@@ -206,12 +220,26 @@ function Login() {
             </button>
           </form>
 
-          {/* Demo Note */}
-          <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
-            <p className="text-sm text-accent font-medium mb-2">Demo Account</p>
-            <p className="text-xs text-navy-300">
-              Use the pre-filled credentials to explore UnityWallet's features
+          {/* Actions */}
+          <div className="mt-6 space-y-3">
+            <p className="text-sm text-navy-300 text-center">
+              Don't have an account?
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                className="ml-1 text-accent hover:underline font-semibold"
+              >
+                Create one
+              </button>
             </p>
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white/80 hover:bg-white/10 transition-colors inline-flex items-center justify-center gap-2"
+            >
+              <Home className="w-4 h-4" />
+              <span>Back to Home</span>
+            </button>
           </div>
         </div>
 

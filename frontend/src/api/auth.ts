@@ -62,4 +62,23 @@ export const authApi = {
       console.warn('[authApi] logout error (ignored):', err)
     }
   },
+
+  // Simple mock register for demo; backend call if available
+  async register(payload: { name: string; email: string; password: string }): Promise<{ ok: true }> {
+    const useMock = import.meta.env.VITE_USE_MOCK === 'true'
+    if (useMock) {
+      return { ok: true }
+    }
+    try {
+      await apiClient.post('/auth/register', payload)
+      return { ok: true }
+    } catch (err: any) {
+      const isNetworkIssue = (err?.message && /fetch|network|failed/i.test(err.message)) || err?.status === 'error'
+      if (isNetworkIssue) {
+        console.warn('[authApi] Backend unavailable, falling back to mock register:', err)
+        return { ok: true }
+      }
+      throw err
+    }
+  },
 }

@@ -22,6 +22,7 @@ import {
   Settings,
   User,
   LogOut,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/session';
 import { useThemeStore } from '@/store/theme';
@@ -34,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
   const { isDark } = useThemeStore();
 
   const navRef = useRef<HTMLElement>(null);
@@ -201,7 +202,7 @@ useEffect(() => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
     setShowUserMenu(false);
   };
 
@@ -264,117 +265,130 @@ useEffect(() => {
               <div className="hidden lg:block">
                 <LanguageSwitcher />
               </div>
-              
-              {/* Enhanced Wallet Button */}
-                <button 
-                ref={walletButtonRef}
-                onClick={() => go('/wallet')} 
-                className={`flex items-center gap-2 rounded-xl border bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group ${
-                  isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
-                } ${location.pathname === '/wallet' ? 'wallet-button-active' : ''}`}
-              >
-                <Wallet className={`h-4 w-4 transition-colors duration-200 wallet-icon ${
-                  location.pathname === '/wallet' 
-                    ? 'text-white' 
-                    : 'text-white/70 group-hover:text-red-400'
-                }`} />
-                <span className={`hidden sm:block transition-colors duration-200 wallet-text ${
-                  location.pathname === '/wallet' 
-                    ? 'text-white' 
-                    : 'text-white group-hover:text-red-200'
-                }`}>{t('navigation.wallet','Wallet')}</span>
-                </button>
-
-              {/* Enhanced Notifications */}
-              <button className={`relative p-2 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group ${
-                isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
-              }`}>
-                <Bell className="h-4 w-4 text-white/70 group-hover:text-yellow-400 transition-colors duration-200" />
-                {notificationCount > 0 && (
-                  <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900 animate-pulse" />
-                )}
-              </button>
-
-                              {/* Enhanced User Menu */}
-                <div className="relative" ref={userMenuRef}>
+              {isAuthenticated ? (
+                <>
+                  {/* Enhanced Wallet Button */}
                   <button 
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className={`flex items-center p-1 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group ${
+                    ref={walletButtonRef}
+                    onClick={() => go('/wallet')} 
+                    className={`flex items-center gap-2 rounded-xl border bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group ${
                       isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
-                    }`}
+                    } ${location.pathname === '/wallet' ? 'wallet-button-active' : ''}`}
                   >
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10" />
-                    ) : (
-                      <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-sm font-semibold shadow-lg">
-                        {(user?.name?.[0] || 'U').toUpperCase()}
-                      </div>
+                    <Wallet className={`h-4 w-4 transition-colors duration-200 wallet-icon ${
+                      location.pathname === '/wallet' 
+                        ? 'text-white' 
+                        : 'text-white/70 group-hover:text-red-400'
+                    }`} />
+                    <span className={`hidden sm:block transition-colors duration-200 wallet-text ${
+                      location.pathname === '/wallet' 
+                        ? 'text-white' 
+                        : 'text-white group-hover:text-red-200'
+                    }`}>{t('navigation.wallet','Wallet')}</span>
+                  </button>
+
+                  {/* Enhanced Notifications */}
+                  <button className={`relative p-2 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group ${
+                    isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
+                  }`}>
+                    <Bell className="h-4 w-4 text-white/70 group-hover:text-yellow-400 transition-colors duration-200" />
+                    {notificationCount > 0 && (
+                      <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900 animate-pulse" />
                     )}
                   </button>
 
-                {/* User Dropdown Menu */}
-                {showUserMenu && (
-                  <div className="absolute right-0 top-full mt-3 w-64 rounded-2xl border border-white/20 bg-slate-900/95 backdrop-blur-2xl shadow-2xl z-50" style={{minWidth: '256px', maxWidth: '256px', width: '256px'}}>
-                    {/* User Info Header */}
-                    <div className="p-4 border-b border-white/10 bg-gradient-to-r from-red-500/10 to-yellow-500/10">
-                      <div className="flex items-center gap-3">
-                        {user?.avatar ? (
-                          <img src={user.avatar} alt={user.name} className="h-12 w-12 rounded-full object-cover ring-2 ring-white/20 flex-shrink-0" />
-                        ) : (
-                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-lg font-semibold shadow-lg flex items-center justify-center flex-shrink-0">
-                            {(user?.name?.[0] || 'U').toUpperCase()}
+                  {/* Enhanced User Menu */}
+                  <div className="relative" ref={userMenuRef}>
+                    <button 
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      className={`flex items-center p-1 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group ${
+                        isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
+                      }`}
+                    >
+                      {user?.avatar ? (
+                        <img src={user.avatar} alt={user?.name || 'User'} className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10" />
+                      ) : (
+                        <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-sm font-semibold shadow-lg">
+                          {(user?.name?.[0] || 'U').toUpperCase()}
+                        </div>
+                      )}
+                    </button>
+
+                    {/* User Dropdown Menu */}
+                    {showUserMenu && (
+                      <div className="absolute right-0 top-full mt-3 w-64 rounded-2xl border border-white/20 bg-slate-900/95 backdrop-blur-2xl shadow-2xl z-50" style={{minWidth: '256px', maxWidth: '256px', width: '256px'}}>
+                        {/* User Info Header */}
+                        <div className="p-4 border-b border-white/10 bg-gradient-to-r from-red-500/10 to-yellow-500/10">
+                          <div className="flex items-center gap-3">
+                            {user?.avatar ? (
+                              <img src={user.avatar} alt={user?.name || 'User'} className="h-12 w-12 rounded-full object-cover ring-2 ring-white/20 flex-shrink-0" />
+                            ) : (
+                              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-lg font-semibold shadow-lg flex items-center justify-center flex-shrink-0">
+                                {(user?.name?.[0] || 'U').toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-semibold text-sm truncate">{user?.name || 'User'}</p>
+                              <p className="text-white/60 text-xs truncate">{user?.email || 'user@example.com'}</p>
+                            </div>
                           </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-semibold text-sm truncate">{user?.name || 'User'}</p>
-                          <p className="text-white/60 text-xs truncate">{user?.email || 'user@example.com'}</p>
+                        </div>
+
+                        {/* Menu Items */}
+                        <div className="p-2">
+                          <button 
+                            onClick={() => go('/settings')}
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200 group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors flex-shrink-0">
+                              <Settings className="h-4 w-4" />
+                            </div>
+                            <span className="font-medium">{t('navigation.settings', 'Settings')}</span>
+                          </button>
+                          
+                          <button 
+                            onClick={() => go('/profile')}
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200 group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
+                              <User className="h-4 w-4" />
+                            </div>
+                            <span className="font-medium">{t('navigation.profile', 'Profile')}</span>
+                          </button>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="px-2">
+                          <hr className="border-white/10" />
+                        </div>
+
+                        {/* Logout Button */}
+                        <div className="p-2">
+                          <button 
+                            onClick={handleLogout}
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 group"
+                          >
+                            <div className="p-1.5 rounded-lg bg-red-500/10 group-hover:bg-red-500/20 transition-colors flex-shrink-0">
+                              <LogOut className="h-4 w-4" />
+                            </div>
+                            <span className="font-medium">{t('navigation.logout', 'Logout')}</span>
+                          </button>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Menu Items */}
-                    <div className="p-2">
-                      <button 
-                        onClick={() => go('/settings')}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200 group"
-                      >
-                        <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors flex-shrink-0">
-                          <Settings className="h-4 w-4" />
-                        </div>
-                        <span className="font-medium">{t('navigation.settings', 'Settings')}</span>
-                      </button>
-                      
-                      <button 
-                        onClick={() => go('/profile')}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200 group"
-                      >
-                        <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
-                          <User className="h-4 w-4" />
-                        </div>
-                        <span className="font-medium">{t('navigation.profile', 'Profile')}</span>
-                      </button>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="px-2">
-                      <hr className="border-white/10" />
-                    </div>
-
-                    {/* Logout Button */}
-                    <div className="p-2">
-                      <button 
-                        onClick={handleLogout}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 group"
-                      >
-                        <div className="p-1.5 rounded-lg bg-red-500/10 group-hover:bg-red-500/20 transition-colors flex-shrink-0">
-                          <LogOut className="h-4 w-4" />
-                        </div>
-                        <span className="font-medium">{t('navigation.logout', 'Logout')}</span>
-                      </button>
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <button
+                  onClick={() => go('/login')}
+                  className={`group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 shadow-lg hover:scale-105 bg-gradient-to-r from-red-500 to-yellow-500 text-white ${
+                    isDark ? 'shadow-red-500/20 hover:shadow-red-500/40' : 'shadow-red-500/25 hover:shadow-red-500/35'
+                  }`}
+                >
+                  <span>{t('navigation.getStarted', 'Get Started')}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
