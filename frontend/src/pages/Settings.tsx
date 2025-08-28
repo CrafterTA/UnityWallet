@@ -82,17 +82,15 @@ function Settings() {
          {
            label: t('settings.appearance', 'Appearance'),
            value: theme === 'dark' ? t('settings.darkMode', 'Dark Mode') : 
-                  theme === 'light' ? t('settings.lightMode', 'Light Mode') : 
                   t('settings.systemDefault', 'System Default'),
            action: () => {
-             const themes: Array<'dark' | 'light' | 'system'> = ['dark', 'light', 'system']
+             const themes: Array<'dark' | 'system'> = ['dark', 'system']
              const currentIndex = themes.indexOf(theme)
              const nextTheme = themes[(currentIndex + 1) % themes.length]
              setTheme(nextTheme)
              
              const themeNames = {
                dark: t('settings.darkMode', 'Dark Mode'),
-               light: t('settings.lightMode', 'Light Mode'),
                system: t('settings.systemDefault', 'System Default')
              }
              toast.success(`${t('settings.appearance', 'Appearance')}: ${themeNames[nextTheme]}`)

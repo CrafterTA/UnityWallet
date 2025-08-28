@@ -5,7 +5,7 @@ import { useThemeStore } from "@/store/theme";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import LightModeBackground from "@/components/LightModeBackground";
+
 import {
   Wallet,
   LineChart,
@@ -185,7 +185,7 @@ const TokenRow = ({ name, symbol, price, change, mcap }: any) => (
 // Animated Background Component
 const AnimatedBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { isDark } = useThemeStore();
+
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -199,7 +199,7 @@ const AnimatedBackground = () => {
 
     // Particle system
     const particles: any[] = [];
-    const particleCount = isDark ? 50 : 30; // Fewer particles for light mode
+    const particleCount = 50;
 
     class Particle {
       x: number;
@@ -217,9 +217,7 @@ const AnimatedBackground = () => {
         this.vy = (Math.random() - 0.5) * 0.5;
         this.size = Math.random() * 3 + 1;
         this.opacity = Math.random() * 0.5 + 0.2;
-        this.color = isDark 
-          ? `hsl(${Math.random() * 60 + 15}, 70%, 60%)` // Warm colors for dark mode
-          : `hsl(${Math.random() * 60 + 15}, 60%, 70%)`; // More saturated warm colors for light mode
+        this.color = `hsl(${Math.random() * 60 + 15}, 70%, 60%)`; // Warm colors for dark mode
       }
 
       update() {
@@ -259,15 +257,9 @@ const AnimatedBackground = () => {
         canvas.width / 2, canvas.height / 2, canvas.width / 2
       );
       
-      if (isDark) {
-        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.1)');
-        gradient.addColorStop(0.5, 'rgba(234, 179, 8, 0.05)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      } else {
-        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.12)');
-        gradient.addColorStop(0.5, 'rgba(234, 179, 8, 0.08)');
-        gradient.addColorStop(1, 'rgba(254, 226, 226, 0)');
-      }
+      gradient.addColorStop(0, 'rgba(239, 68, 68, 0.1)');
+      gradient.addColorStop(0.5, 'rgba(234, 179, 8, 0.05)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
       
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -287,8 +279,8 @@ const AnimatedBackground = () => {
 
           if (distance < 100) {
             ctx.save();
-            ctx.globalAlpha = (100 - distance) / 100 * (isDark ? 0.3 : 0.1);
-            ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            ctx.globalAlpha = (100 - distance) / 100 * 0.3;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
@@ -315,16 +307,14 @@ const AnimatedBackground = () => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [isDark]);
+  }, []);
 
   return (
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
       style={{ 
-        background: isDark 
-          ? 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
-          : 'linear-gradient(135deg, #FEE2E2 0%, #FED7AA 50%, #FDE68A 100%)'
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
       }}
     />
   );
@@ -333,7 +323,7 @@ const AnimatedBackground = () => {
 export default function Web3ModernLayout() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isDark } = useThemeStore();
+
   const heroRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -448,9 +438,8 @@ export default function Web3ModernLayout() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Conditional Background Rendering */}
-      {isDark && <AnimatedBackground />}
-      {!isDark && <LightModeBackground />}
+      {/* Background Rendering */}
+      <AnimatedBackground />
       
       {/* HERO */}
       <section ref={heroRef} className="relative mx-auto max-w-7xl px-4 pb-8 sm:pb-12 pt-16 sm:pt-20 lg:pt-24 z-10">
@@ -474,26 +463,14 @@ export default function Web3ModernLayout() {
             <div ref={ctaRef} className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
               <button
                 onClick={() => navigate('/pay')}
-                className={`w-full sm:w-auto group relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${
-                  isDark 
-                    ? 'bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40' 
-                    : 'bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/25 hover:shadow-red-500/35'
-                }`}
+                className="w-full sm:w-auto group relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40"
               >
                 <span className="relative z-10">{t('home.hero.startTrading')}</span>
-                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-                  isDark 
-                    ? 'bg-gradient-to-r from-red-600 to-yellow-600' 
-                    : 'bg-gradient-to-r from-red-600 to-yellow-600'
-                }`} />
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-red-600 to-yellow-600" />
               </button>
               <button
                 onClick={() => navigate('/activity')}
-                className={`w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                  isDark 
-                    ? 'border-white/10 bg-white/5 text-white/90 hover:bg-white/10' 
-                    : 'border-gray-300 bg-white/80 text-gray-700 hover:bg-gray-100 hover:border-gray-400'
-                }`}
+                className="w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 border-white/10 bg-white/5 text-white/90 hover:bg-white/10"
               >
                 {t('home.hero.viewActivity')}
               </button>
@@ -688,26 +665,14 @@ export default function Web3ModernLayout() {
               <div className="mt-4 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <button 
                   onClick={() => navigate('/pay')}
-                  className={`w-full sm:w-auto group relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${
-                    isDark 
-                      ? 'bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40' 
-                      : 'bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-red-500/25 hover:shadow-red-500/35'
-                  }`}
+                  className="w-full sm:w-auto group relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40"
                 >
                   <span className="relative z-10">{t('home.cta.getStarted', 'Get Started')}</span>
-                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-                    isDark 
-                      ? 'bg-gradient-to-r from-red-600 to-yellow-600' 
-                      : 'bg-gradient-to-r from-red-700 to-orange-600'
-                  }`} />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-red-600 to-yellow-600" />
                 </button>
                 <button 
                   onClick={() => navigate('/activity')}
-                  className={`w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                    isDark 
-                      ? 'border-white/10 bg-white/5 text-white/90 hover:bg-white/10' 
-                      : 'border-gray-300 bg-white/80 text-gray-700 hover:bg-gray-100 hover:border-gray-400'
-                  }`}
+                  className="w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 border-white/10 bg-white/5 text-white/90 hover:bg-white/10"
                 >
                   {t('home.cta.learnMore', 'Learn More')}
                 </button>
@@ -763,18 +728,10 @@ export default function Web3ModernLayout() {
           <div className="text-reveal pt-8">
             <button 
               onClick={() => navigate('/pay')}
-              className={`group relative overflow-hidden font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
-                isDark 
-                  ? 'bg-gradient-to-r from-red-500 to-yellow-400 hover:from-red-600 hover:to-yellow-500 text-white' 
-                  : 'bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white'
-              }`}
+              className="group relative overflow-hidden font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg bg-gradient-to-r from-red-500 to-yellow-400 hover:from-red-600 hover:to-yellow-500 text-white"
             >
               <span className="relative z-10">Start Your Journey Today</span>
-              <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-                isDark 
-                  ? 'bg-gradient-to-r from-red-600 to-yellow-600' 
-                  : 'bg-gradient-to-r from-red-700 to-orange-600'
-              }`} />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-red-600 to-yellow-600" />
             </button>
           </div>
         </div>

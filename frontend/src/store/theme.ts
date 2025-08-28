@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type Theme = 'dark' | 'light' | 'system'
+type Theme = 'dark' | 'system'
 
 interface ThemeStore {
   theme: Theme
@@ -28,8 +28,8 @@ export const useThemeStore = create<ThemeStore>()(
           root.classList.add('dark')
           root.classList.remove('light')
         } else {
-          root.classList.add('light')
           root.classList.remove('dark')
+          root.classList.remove('light')
         }
       },
     }),

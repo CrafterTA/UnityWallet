@@ -109,31 +109,7 @@ export default {
           DEFAULT: "#FFFFFF",
           foreground: "#0F172A",
         },
-        // Light mode specific colors
-        light: {
-          bg: {
-            primary: "#FEFEFE",
-            secondary: "#F9FAFB",
-            card: "#FFFFFF",
-            elevated: "#FFFFFF",
-          },
-          surface: {
-            primary: "#FFFFFF",
-            secondary: "#F8FAFC",
-            elevated: "#FFFFFF",
-          },
-          border: {
-            subtle: "#F3F4F6",
-            default: "#E5E7EB",
-            strong: "#D1D5DB",
-          },
-          text: {
-            primary: "#111827",
-            secondary: "#374151",
-            tertiary: "#6B7280",
-            muted: "#9CA3AF",
-          }
-        },
+
       },
       borderRadius: {
         lg: "var(--radius)",

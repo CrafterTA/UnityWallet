@@ -17,7 +17,7 @@ interface LanguageSwitcherProps {
 
 const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ compact = false }) => {
   const { i18n, t } = useTranslation();
-  const { isDark } = useThemeStore();
+
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,9 +48,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ compact = false }) 
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 rounded-xl border bg-white/5 text-white/80 hover:bg-white/10 transition-all duration-200 group ${
           compact ? 'p-2' : 'px-3 py-2'
-        } ${
-          isDark ? 'border-white/10' : 'border-gray-200/20'
-        }`}
+        } border-white/10`}
       >
         <Globe className="h-4 w-4 group-hover:text-red-400 transition-colors duration-200" />
         <span className="text-sm font-medium">{currentLanguage.flag}</span>

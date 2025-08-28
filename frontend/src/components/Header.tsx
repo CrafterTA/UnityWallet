@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
   const location = useLocation();
   const { t } = useTranslation();
   const { user, logout, isAuthenticated } = useAuthStore();
-  const { isDark } = useThemeStore();
+
 
   const navRef = useRef<HTMLElement>(null);
   const pillRef = useRef<HTMLDivElement>(null);
@@ -271,9 +271,7 @@ useEffect(() => {
                   <button 
                     ref={walletButtonRef}
                     onClick={() => go('/wallet')} 
-                    className={`flex items-center gap-2 rounded-xl border bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group ${
-                      isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
-                    } ${location.pathname === '/wallet' ? 'wallet-button-active' : ''}`}
+                    className={`flex items-center gap-2 rounded-xl border bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-all duration-200 group border-white/10 hover:border-white/20 ${location.pathname === '/wallet' ? 'wallet-button-active' : ''}`}
                   >
                     <Wallet className={`h-4 w-4 transition-colors duration-200 wallet-icon ${
                       location.pathname === '/wallet' 
@@ -288,9 +286,7 @@ useEffect(() => {
                   </button>
 
                   {/* Enhanced Notifications */}
-                  <button className={`relative p-2 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group ${
-                    isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
-                  }`}>
+                  <button className="relative p-2 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group border-white/10 hover:border-white/20">
                     <Bell className="h-4 w-4 text-white/70 group-hover:text-yellow-400 transition-colors duration-200" />
                     {notificationCount > 0 && (
                       <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900 animate-pulse" />
@@ -301,9 +297,7 @@ useEffect(() => {
                   <div className="relative" ref={userMenuRef}>
                     <button 
                       onClick={() => setShowUserMenu(!showUserMenu)}
-                      className={`flex items-center p-1 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group ${
-                        isDark ? 'border-white/10 hover:border-white/20' : 'border-gray-200/20 hover:border-gray-300/30'
-                      }`}
+                      className="flex items-center p-1 rounded-xl border bg-white/5 hover:bg-white/10 transition-all duration-200 group border-white/10 hover:border-white/20"
                     >
                       {user?.avatar ? (
                         <img src={user.avatar} alt={user?.name || 'User'} className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10" />
@@ -381,9 +375,7 @@ useEffect(() => {
               ) : (
                 <button
                   onClick={() => go('/login')}
-                  className={`group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 shadow-lg hover:scale-105 bg-gradient-to-r from-red-500 to-yellow-500 text-white ${
-                    isDark ? 'shadow-red-500/20 hover:shadow-red-500/40' : 'shadow-red-500/25 hover:shadow-red-500/35'
-                  }`}
+                  className="group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 shadow-lg hover:scale-105 bg-gradient-to-r from-red-500 to-yellow-500 text-white shadow-red-500/20 hover:shadow-red-500/40"
                 >
                   <span>{t('navigation.getStarted', 'Get Started')}</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />

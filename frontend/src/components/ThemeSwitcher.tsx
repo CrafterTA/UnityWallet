@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useThemeStore } from '@/store/theme';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Moon, Monitor } from 'lucide-react';
 import { gsap } from 'gsap';
 
 const ThemeSwitcher: React.FC = () => {
@@ -9,7 +9,6 @@ const ThemeSwitcher: React.FC = () => {
   const indicatorRef = useRef<HTMLDivElement>(null);
 
   const themes = [
-    { key: 'light', icon: Sun, label: 'Light' },
     { key: 'dark', icon: Moon, label: 'Dark' },
     { key: 'system', icon: Monitor, label: 'System' },
   ] as const;
@@ -65,9 +64,7 @@ const ThemeSwitcher: React.FC = () => {
         ref={indicatorRef}
         className="absolute h-8 w-8 rounded-lg bg-gradient-to-br from-primary-500/80 to-accent-400/80 transition-all duration-300 ease-out shadow-lg"
         style={{
-          boxShadow: isDark 
-            ? '0 4px 20px rgba(239, 30, 36, 0.3)' 
-            : '0 4px 20px rgba(239, 30, 36, 0.15)',
+          boxShadow: '0 4px 20px rgba(239, 30, 36, 0.3)',
         }}
       />
       
@@ -85,9 +82,7 @@ const ThemeSwitcher: React.FC = () => {
               transition-all duration-300 ease-out
               ${isActive 
                 ? 'text-white' 
-                : isDark 
-                  ? 'text-white/60 hover:text-white/80' 
-                  : 'text-gray-600 hover:text-gray-800'
+                : 'text-white/60 hover:text-white/80'
               }
               hover:scale-110 active:scale-95
             `}
