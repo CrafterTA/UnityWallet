@@ -165,8 +165,8 @@ export default function Pay() {
       </div>
 
       {/* Tabs */}
-      <div className="relative mb-6">
-        <div className={classNames('rounded-xl p-1.5 backdrop-blur-sm', isDark ? 'bg-white/5' : 'bg-slate-100/60')}>
+      <div className="relative mb-6 flex justify-center">
+        <div className={classNames('rounded-xl p-1 backdrop-blur-sm inline-flex', isDark ? 'bg-white/5' : 'bg-slate-100/60')}>
           <div className="grid grid-cols-2 gap-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -175,31 +175,37 @@ export default function Pay() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={classNames(
-                    'relative overflow-hidden rounded-lg px-4 py-3 text-left transition-all duration-300 border',
-                    active ? 'scale-[1.01]' : 'hover:bg-white/5',
-                    active 
-                      ? (isDark ? 'border-red-500' : 'border-yellow-500')
-                      : (isDark ? 'border-white/20' : 'border-slate-300')
-                  )}
+                                      className={classNames(
+                      'relative overflow-hidden rounded-lg px-4 py-2 text-center transition-all duration-300 border w-40',
+                      active ? 'scale-[1.01]' : 'hover:bg-white/5',
+                      active 
+                        ? (activeTab === 'send' ? (isDark ? 'border-red-500' : 'border-red-500') : (isDark ? 'border-green-500' : 'border-green-500'))
+                        : (isDark ? 'border-white/20' : 'border-slate-300')
+                    )}
                   aria-pressed={active}
                 >
                   {active && (
-                    <div className={classNames('absolute inset-0 rounded-lg', isDark
-                      ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-md shadow-red-500/20'
-                      : 'bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-md shadow-yellow-400/20'
+                    <div className={classNames('absolute inset-0 rounded-lg', 
+                      activeTab === 'send' 
+                        ? (isDark ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-md shadow-red-500/20' : 'bg-gradient-to-r from-red-500 to-red-600 shadow-md shadow-red-500/20')
+                        : (isDark ? 'bg-gradient-to-r from-green-500 to-green-600 shadow-md shadow-green-500/20' : 'bg-gradient-to-r from-green-500 to-green-600 shadow-md shadow-green-500/20')
                     )} />
                   )}
-                  <div className="relative z-10 flex items-center gap-3">
+                  <div className="relative z-10 flex flex-col items-center gap-0.5">
                     <div className={classNames(
-                      'grid h-8 w-8 place-items-center rounded-lg transition-all duration-300',
+                      'grid h-5 w-5 place-items-center rounded transition-all duration-300',
                       active ? 'bg-white/20' : isDark ? 'bg-white/10' : 'bg-white/60'
                     )}>
-                      <Icon className={classNames('h-4 w-4', active ? 'text-white' : isDark ? 'text-white/80' : 'text-slate-700')} />
+                      <Icon className={classNames('h-3 w-3', 
+                        active ? 'text-white' : 
+                        tab.id === 'send' ? (isDark ? 'text-red-400' : 'text-red-500') :
+                        tab.id === 'receive' ? (isDark ? 'text-green-400' : 'text-green-500') :
+                        (isDark ? 'text-white/80' : 'text-slate-700')
+                      )} />
                     </div>
-                    <div>
-                      <div className={classNames('text-sm font-semibold', active ? (isDark ? 'text-white' : 'text-slate-900') : (isDark ? 'text-white/80' : 'text-slate-700'))}>{tab.label}</div>
-                      <div className={classNames('text-xs', active ? (isDark ? 'text-white/80' : 'text-slate-700') : (isDark ? 'text-white/60' : 'text-slate-500'))}>{tab.description}</div>
+                    <div className="text-center">
+                      <div className={classNames('text-xs font-semibold', active ? '!text-white' : (isDark ? 'text-white/80' : 'text-slate-700'))}>{tab.label}</div>
+                      <div className={classNames('text-[10px]', active ? '!text-white' : (isDark ? 'text-white/60' : 'text-slate-500'))}>{tab.description}</div>
                     </div>
                   </div>
                 </button>
