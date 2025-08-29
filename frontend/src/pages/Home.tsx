@@ -495,7 +495,11 @@ export default function Web3ModernLayout() {
             <div ref={ctaRef} className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
               <button
                 onClick={() => navigate('/pay')}
-                className="w-full sm:w-auto rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 bg-red-600 text-white hover:bg-red-700 shadow-red-500/20 hover:shadow-red-500/40"
+                className={`w-full sm:w-auto rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${
+                  isDark 
+                    ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20 hover:shadow-red-500/40' 
+                    : 'bg-yellow-500 text-slate-900 hover:bg-yellow-600 shadow-yellow-500/20 hover:shadow-yellow-500/40'
+                }`}
               >
                 {t('home.hero.startTrading')}
               </button>
@@ -512,9 +516,13 @@ export default function Web3ModernLayout() {
               <div className="flex items-center gap-1"><Users className="h-3.5 w-3.5"/> 50k+ users</div>
             </div>
           </div>
-                      <div ref={dashboardRef} className="relative mt-20 sm:mt-28 lg:mt-36">
+                      <div ref={dashboardRef} className="relative mt-20 sm:mt-32 lg:mt-36">
             {/* dashboard preview card */}
-                             <div className={`dashboard-card relative overflow-hidden rounded-2xl sm:rounded-3xl border p-3 sm:p-4 backdrop-blur-xl ring-1 ring-inset transition-all duration-300 group ${isDark ? 'border-white/10 bg-white/5 ring-white/5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] hover:border-white/20' : 'border-slate-200 bg-white/80 ring-slate-200 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.15)] hover:border-slate-300'}`}>
+                             <div className={`dashboard-card relative overflow-hidden rounded-2xl sm:rounded-3xl border p-3 sm:p-4 backdrop-blur-xl ring-1 ring-inset transition-all duration-500 group ${
+                               isDark 
+                                 ? 'border-white/10 bg-white/5 ring-white/5 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)] hover:shadow-[0_35px_80px_-12px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.1)] hover:border-white/20 hover:scale-[1.02]' 
+                                 : 'border-slate-200 bg-white/90 ring-slate-200/50 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.8)] hover:shadow-[0_35px_80px_-12px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] hover:border-slate-300 hover:scale-[1.02]'
+                             }`}>
                                                                  <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10 group-hover:bg-white/10 group-hover:border-white/20' : 'bg-slate-100/80 border-slate-200 group-hover:bg-slate-200/80 group-hover:border-slate-300'}`}>
                                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                     <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/> Portfolio Overview
@@ -618,8 +626,7 @@ export default function Web3ModernLayout() {
               </div>
             </div>
 
-            {/* Enhanced glow effect */}
-            <div className="pointer-events-none absolute -inset-8 -z-10 rounded-[2rem] bg-gradient-to-tr from-red-500/20 via-yellow-500/20 to-red-500/20 blur-2xl animate-pulse" />
+            {/* Removed glow effect - no more yellowish border */}
           </div>
         </div>
       </section>
@@ -696,7 +703,11 @@ export default function Web3ModernLayout() {
               <div className="mt-4 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <button 
                   onClick={() => navigate('/pay')}
-                  className="w-full sm:w-auto rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 bg-red-600 hover:bg-red-700 text-white shadow-red-500/20 hover:shadow-red-500/40"
+                  className={`w-full sm:w-auto rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${
+                    isDark 
+                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20 hover:shadow-red-500/40' 
+                      : 'bg-yellow-500 hover:bg-yellow-600 text-slate-900 shadow-yellow-500/20 hover:shadow-yellow-500/40'
+                  }`}
                 >
                   {t('home.cta.getStarted', 'Get Started')}
                 </button>
@@ -758,7 +769,11 @@ export default function Web3ModernLayout() {
           <div className="text-reveal pt-8">
             <button 
               onClick={() => navigate('/pay')}
-              className="font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg bg-red-600 hover:bg-red-700 text-white"
+              className={`font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                isDark 
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : 'bg-yellow-500 hover:bg-yellow-600 text-slate-900'
+              }`}
             >
               Start Your Journey Today
             </button>
@@ -938,12 +953,27 @@ export default function Web3ModernLayout() {
 
         /* Dashboard card floating animation */
         .dashboard-card {
-          animation: dashboard-float 4s ease-in-out infinite;
+          animation: dashboard-float 6s ease-in-out infinite;
+          transform-style: preserve-3d;
         }
 
         @keyframes dashboard-float {
-          0%, 100% { transform: translateY(0px) rotateX(0deg); }
-          50% { transform: translateY(-10px) rotateX(2deg); }
+          0%, 100% { 
+            transform: translateY(0px) rotateX(0deg) rotateY(0deg); 
+          }
+          25% { 
+            transform: translateY(-8px) rotateX(1deg) rotateY(0.5deg); 
+          }
+          50% { 
+            transform: translateY(-12px) rotateX(2deg) rotateY(0deg); 
+          }
+          75% { 
+            transform: translateY(-8px) rotateX(1deg) rotateY(-0.5deg); 
+          }
+        }
+
+        .dashboard-card:hover {
+          animation-play-state: paused;
         }
       `}</style>
     </div>

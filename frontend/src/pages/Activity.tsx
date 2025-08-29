@@ -121,10 +121,10 @@ function ActivityPage() {
             placeholder={t('common.search', 'Search by address or transaction ID...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent backdrop-blur-sm ${
+            className={`w-full pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent backdrop-blur-sm border-2 ${
               isDark 
                 ? 'bg-white/10 border-white/20 text-white placeholder-white/50' 
-                : 'bg-slate-100/80 border-slate-300 text-slate-900 placeholder-slate-500'
+                : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500 hover:border-slate-400 focus:border-red-500'
             }`}
           />
           <Search className={`absolute left-3 top-3.5 w-5 h-5 ${isDark ? 'text-white/60' : 'text-slate-500'}`} />

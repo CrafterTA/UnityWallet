@@ -4,6 +4,7 @@ import { useThemeStore } from '@/store/theme'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import LightModeBackground from '@/components/LightModeBackground'
+import Assistant from '@/pages/Assistant'
 
 interface LayoutProps {
   children: ReactNode
@@ -52,6 +53,9 @@ function Layout({ children }: LayoutProps) {
 
       {/* Mobile Bottom Navigation */}
       {!shouldHideNav && <BottomNav />}
+
+      {/* AI Assistant Chatbox - Always visible */}
+      <Assistant />
     </div>
   )
 }

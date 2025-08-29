@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Send, MessageCircle, Lightbulb, TrendingUp, DollarSign } from 'lucide-react'
+import { Send, MessageSquare, Bot, Lightbulb, TrendingUp, DollarSign, Sparkles, X, Minimize2, Maximize2, Minimize } from 'lucide-react'
 import { analyticsApi } from '@/api/analytics'
 import toast from 'react-hot-toast'
 
@@ -13,6 +13,9 @@ interface Message {
 
 function Assistant() {
   const { t } = useTranslation()
+  const [isOpen, setIsOpen] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -23,6 +26,7 @@ function Assistant() {
   ])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const quickQuestions = [
     {
@@ -41,6 +45,14 @@ function Assistant() {
       query: 'credit score',
     },
   ]
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const handleSendMessage = async (message?: string) => {
     const messageText = message || inputMessage.trim()
@@ -62,8 +74,8 @@ function Assistant() {
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        type: 'assistant',
         content: response.answer,
+        type: 'assistant',
         timestamp: new Date(),
       }
 
@@ -91,116 +103,177 @@ function Assistant() {
     }
   }
 
+  if (!isOpen) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="group relative w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 flex items-center justify-center"
+        >
+          <Bot className="w-8 h-8 text-white transition-transform duration-300 group-hover:scale-110" />
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+            <Sparkles className="w-3 h-3 text-white" />
+          </div>
+          {/* Pulse ring effect */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-500/30 to-yellow-500/30 animate-ping" />
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <MessageCircle className="w-8 h-8 text-white" />
+    <div className={`fixed transition-all duration-300 ${
+      isFullscreen 
+        ? 'inset-0 w-screen h-screen z-[9999]' 
+        : 'bottom-6 right-6 w-96 max-h-[80vh] md:w-[500px] lg:w-[600px] xl:w-[700px] z-50'
+    }`}>
+      {/* Chatbox Header */}
+      <div className={`bg-gradient-to-r from-red-500 to-yellow-500 p-4 text-white shadow-lg ${
+        isFullscreen ? 'rounded-none' : 'rounded-t-2xl'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <Bot className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm">AI Assistant</h3>
+              <p className="text-xs text-white/80">Financial Helper</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsMinimized(!isMinimized)}
+              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <Minimize2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-                 <h1 className="text-3xl font-bold text-white mb-2">{t('assistant.title', 'Financial Assistant')}</h1>
-         <p className="text-white/70">{t('assistant.subtitle', 'Ask me anything about your finances')}</p>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 space-y-4 overflow-y-auto mb-6">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[80%] rounded-2xl p-4 ${
-                message.type === 'user'
-                  ? 'bg-red-600 text-white ml-4'
-                  : 'bg-white/10 backdrop-blur-sm border border-white/20 mr-4'
-              }`}
-            >
-              {message.type === 'assistant' && (
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-3 h-3 text-white" />
+      {!isMinimized && (
+        <>
+          {/* Messages */}
+          <div className={`bg-white dark:bg-slate-800 overflow-hidden flex flex-col ${
+            isFullscreen ? 'rounded-none' : 'rounded-b-2xl'
+          } shadow-2xl`} style={{
+            maxHeight: isFullscreen ? 'calc(100vh - 80px)' : 'calc(80vh - 120px)',
+            height: isFullscreen ? 'calc(100vh - 80px)' : 'calc(80vh - 180px)',
+            minHeight: isFullscreen ? 'calc(100vh - 80px)' : 'calc(80vh - 180px)'
+          }}>
+            <div className="overflow-y-auto p-4 space-y-3 flex-1" style={{
+              minHeight: isFullscreen ? 'calc(100vh - 200px)' : 'calc(80vh - 240px)',
+              maxHeight: isFullscreen ? 'calc(100vh - 200px)' : 'calc(80vh - 240px)'
+            }}>
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-2xl p-3 text-sm ${
+                      message.type === 'user'
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white'
+                    }`}
+                  >
+                    {message.type === 'assistant' && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-4 h-4 bg-gradient-to-br from-red-500 to-yellow-500 rounded-full flex items-center justify-center">
+                          <Bot className="w-2.5 h-2.5 text-white" />
+                        </div>
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">AI</span>
+                      </div>
+                    )}
+                    
+                    <p className="leading-relaxed">{message.content}</p>
+                    
+                    <p className={`text-xs mt-2 ${
+                      message.type === 'user' ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'
+                    }`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
-                  <span className="text-sm font-medium text-white/80">Assistant</span>
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-slate-100 dark:bg-slate-700 rounded-2xl p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-4 h-4 bg-gradient-to-br from-red-500 to-yellow-500 rounded-full flex items-center justify-center">
+                        <Bot className="w-2.5 h-2.5 text-white" />
+                      </div>
+                      <span className="text-xs font-medium text-slate-600 dark:text-slate-300">AI</span>
+                    </div>
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
+                  </div>
                 </div>
               )}
-              
-              <p className={`text-sm leading-relaxed ${
-                message.type === 'user' ? 'text-white' : 'text-white'
-              }`}>
-                {message.content}
-              </p>
-              
-              <p className={`text-xs mt-2 ${
-                message.type === 'user' ? 'text-white/70' : 'text-white/60'
-              }`}>
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
+
+              {/* Quick Questions */}
+              {messages.length === 1 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 text-center">Quick questions:</p>
+                  {quickQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSendMessage(question.text)}
+                      className="w-full text-left p-2 bg-slate-50 dark:bg-slate-600 hover:bg-slate-100 dark:hover:bg-slate-500 rounded-lg transition-colors text-xs flex items-center gap-2"
+                    >
+                      <div className="w-5 h-5 bg-red-500/20 rounded flex items-center justify-center">
+                        <question.icon className="w-3 h-3 text-red-500" />
+                      </div>
+                      <span className="text-slate-700 dark:text-slate-200">{question.text}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input - Always visible when not minimized */}
+            <div className="p-3 border-t border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 flex-shrink-0 min-h-[80px]">
+              <div className="flex gap-2 h-full items-center">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me anything..."
+                  className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 h-10"
+                  disabled={isLoading}
+                />
+                <button
+                  onClick={() => handleSendMessage()}
+                  disabled={!inputMessage.trim() || isLoading}
+                  className="px-3 py-2 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center h-10 min-w-[40px]"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
-        ))}
-
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 mr-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-3 h-3 text-white" />
-                </div>
-                <span className="text-sm font-medium text-white/80">Assistant</span>
-              </div>
-              <div className="flex space-x-1 mt-2">
-                <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Quick Questions */}
-      {messages.length === 1 && (
-        <div className="mb-6">
-                     <p className="text-sm font-medium text-white/80 mb-3">{t('assistant.suggestions', 'Quick questions')}:</p>
-          <div className="space-y-2">
-            {quickQuestions.map((question, index) => (
-              <button
-                key={index}
-                onClick={() => handleSendMessage(question.text)}
-                className="w-full text-left p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg hover:border-white/30 hover:bg-white/20 transition-all duration-200 flex items-center space-x-3"
-              >
-                <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
-                  <question.icon className="w-4 h-4 text-red-400" />
-                </div>
-                <span className="text-sm text-white/80">{question.text}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        </>
       )}
-
-      {/* Input */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-4">
-        <div className="flex space-x-3">
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-                         placeholder={t('assistant.placeholder', 'Ask me about your finances...')}
-            className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-white/60 backdrop-blur-sm"
-            disabled={isLoading}
-          />
-          <button
-            onClick={() => handleSendMessage()}
-            disabled={!inputMessage.trim() || isLoading}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
     </div>
   )
 }

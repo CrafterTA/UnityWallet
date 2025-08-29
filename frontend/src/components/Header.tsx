@@ -268,7 +268,11 @@ useEffect(() => {
             <div className="hidden md:flex items-center">
                              <div ref={listRef} className={`relative flex items-center rounded-2xl border backdrop-blur-xl p-1 shadow-lg ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
                 {/* Enhanced sliding indicator */}
-                <div ref={pillRef} className="absolute left-0 top-1/2 -translate-y-1/2 h-[34px] rounded-xl bg-gradient-to-r from-red-500/25 to-yellow-400/25 ring-1 ring-inset ring-white/10 shadow-[0_4px_18px_rgba(0,0,0,.25)] backdrop-blur-sm" style={{width:0}} />
+                <div ref={pillRef} className={`absolute left-0 top-1/2 -translate-y-1/2 h-[34px] rounded-xl ring-1 ring-inset backdrop-blur-sm ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-red-600 to-orange-500 ring-white/20 shadow-[0_4px_18px_rgba(239,68,68,0.3)]' 
+                    : 'bg-gradient-to-r from-slate-200 to-slate-300 ring-slate-300/50 shadow-[0_4px_18px_rgba(0,0,0,0.1)]'
+                }`} style={{width:0}} />
                 {links.map((l, i) => (
               <button 
                     key={l.path}
@@ -276,14 +280,14 @@ useEffect(() => {
                     onClick={() => go(l.path)}
                                          className={`relative z-10 flex items-center gap-2 rounded-xl min-w-[80px] px-4 py-2 text-sm transition-all duration-200 whitespace-nowrap font-medium ${
                        i===activeIndex 
-                         ? `${isDark ? 'text-white' : 'text-slate-900'}` 
+                         ? `${isDark ? 'text-white' : 'text-red-600'}` 
                          : `${isDark ? 'text-white/80 hover:text-white hover:bg-white/5' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'}`
                      }`}
                   >
                                          <l.icon className={`h-4 w-4 transition-all duration-200 flex-shrink-0 ${
-                       i===activeIndex ? 'text-red-500 scale-110' : 'opacity-80'
+                       i===activeIndex ? `${isDark ? 'text-white' : 'text-red-600'} scale-110` : 'opacity-80'
                      }`} />
-                     <span className={i===activeIndex ? 'text-red-500 font-semibold' : ''}>{l.label}</span>
+                     <span className={i===activeIndex ? `${isDark ? 'text-white' : 'text-red-600'} font-semibold` : ''}>{l.label}</span>
               </button>
                 ))}
               </div>
@@ -302,16 +306,16 @@ useEffect(() => {
                   <button 
                     ref={walletButtonRef}
                     onClick={() => go('/wallet')} 
-                                         className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all duration-200 group ${location.pathname === '/wallet' ? 'bg-gradient-to-r from-red-500/25 to-yellow-400/25 ring-1 ring-inset ring-white/10 shadow-[0_4px_18px_rgba(0,0,0,.25)] backdrop-blur-sm' : isDark ? 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20' : 'bg-slate-100/80 hover:bg-slate-200/80 border-slate-200 hover:border-slate-300'}`}
+                                         className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all duration-200 group ${location.pathname === '/wallet' ? `${isDark ? 'bg-gradient-to-r from-red-600 to-orange-500 ring-white/20 shadow-[0_4px_18px_rgba(239,68,68,0.3)]' : 'bg-gradient-to-r from-slate-200 to-slate-300 ring-slate-300/50 shadow-[0_4px_18px_rgba(0,0,0,0.1)]'} ring-1 ring-inset backdrop-blur-sm` : isDark ? 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20' : 'bg-slate-100/80 hover:bg-slate-200/80 border-slate-200 hover:border-slate-300'}`}
                   >
                                          <Wallet className={`h-4 w-4 transition-colors duration-200 wallet-icon ${
                        location.pathname === '/wallet' 
-                         ? 'text-red-500' 
+                         ? `${isDark ? 'text-white' : 'text-red-600'}` 
                          : 'text-white/70 group-hover:text-red-400'
                      }`} />
                      <span className={`hidden sm:block transition-colors duration-200 wallet-text ${
                        location.pathname === '/wallet' 
-                         ? 'text-red-500 font-semibold' 
+                         ? `${isDark ? 'text-white' : 'text-red-600'} font-semibold` 
                          : `${isDark ? 'text-white group-hover:text-red-200' : 'text-slate-700 group-hover:text-red-600'}`
                      }`}>{t('navigation.wallet','Wallet')}</span>
                   </button>
