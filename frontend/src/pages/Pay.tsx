@@ -156,11 +156,6 @@ export default function Pay() {
           'mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ring-1',
           isDark ? 'bg-white/5 ring-white/10 text-white/70' : 'bg-slate-100 ring-slate-200 text-slate-700'
         )}>
-          <Shield className="h-3.5 w-3.5" />
-          {t('pay.secureByDesign', 'Secure by design')}
-          <span className="mx-1">·</span>
-          <Sparkles className="h-3.5 w-3.5" />
-          {t('pay.feesInstant', 'Low fees · Near-instant')}
         </div>
       </div>
 

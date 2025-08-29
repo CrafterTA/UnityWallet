@@ -4,6 +4,7 @@ import { useThemeStore } from '@/store/theme'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import LightModeBackground from '@/components/LightModeBackground'
+import UnifiedBackground from '@/components/UnifiedBackground'
 import Assistant from '@/pages/Assistant'
 
 interface LayoutProps {
@@ -40,7 +41,10 @@ function Layout({ children }: LayoutProps) {
           </div>
         </>
       ) : (
-        <LightModeBackground />
+        <>
+          <LightModeBackground />
+          <UnifiedBackground />
+        </>
       )}
 
       {/* Navigation */}
