@@ -1,8 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useThemeStore } from '@/store/theme';
+import { walletApi } from '@/api/wallet';
+import { useAuthStore } from '@/store/session';
+import toast from 'react-hot-toast';
 import { 
   Wallet, 
   TrendingUp, 
@@ -21,7 +25,8 @@ import {
   ArrowDownRight,
   DollarSign,
   Coins,
-  CircleDollarSign
+  CircleDollarSign,
+  AlertCircle
 } from 'lucide-react';
 
 // Register GSAP plugins
@@ -30,72 +35,49 @@ gsap.registerPlugin(ScrollTrigger);
 export default function WalletPage() {
   const { t } = useTranslation();
   const { isDark } = useThemeStore();
+  const { isAuthenticated } = useAuthStore();
   const walletRef = useRef<HTMLDivElement>(null);
   const balanceRef = useRef<HTMLDivElement>(null);
   const assetsRef = useRef<HTMLDivElement>(null);
   const [showBalance, setShowBalance] = React.useState(true);
 
-  // Mock data
+  // Fetch real wallet balances
+  const { data: balances, isLoading, error: balancesError } = useQuery({
+    queryKey: ['wallet-balances'],
+    queryFn: walletApi.getBalances,
+    enabled: isAuthenticated,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+
+  // Mock wallet data - this could come from auth context
   const walletData = {
-    address: '0x1234...5678',
-    totalBalance: 12543.67,
-    currency: 'USD',
-    change24h: 2.34,
-    isPositive: true
+    address: 'GB7TAYRUZGE6TVT7NHP5SMDJQSPJRTCZ5T3ZWSGDN7W7CJFMTZ5HJLQD'
   };
 
-  const assets = [
-    {
-      id: 1,
-      name: 'Bitcoin',
-      symbol: 'BTC',
-      icon: Coins,
-      balance: 0.245,
-      value: 8923.45,
-      change24h: 1.23,
-      isPositive: true
-    },
-    {
-      id: 2,
-      name: 'Ethereum',
-      symbol: 'ETH',
-      icon: CircleDollarSign,
-      balance: 2.34,
-      value: 3620.22,
-      change24h: -0.87,
-      isPositive: false
-    }
-  ];
+  // Calculate total balance from API data
+  const totalBalance = balances?.reduce((sum, balance) => {
+    return sum + parseFloat(balance.amount);
+  }, 0) || 0;
 
-  const recentTransactions = [
-    {
-      id: 1,
-      type: 'send',
-      amount: -0.05,
-      symbol: 'BTC',
-      to: '0xabcd...efgh',
-      time: '2 hours ago',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      type: 'receive',
-      amount: 1.2,
-      symbol: 'ETH',
-      from: '0x1234...5678',
-      time: '1 day ago',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      type: 'swap',
-      amount: 0.1,
-      symbol: 'BTC',
-      to: 'ETH',
-      time: '3 days ago',
-      status: 'completed'
-    }
-  ];
+  // Process real asset data
+  const assets = balances?.map((balance, index) => ({
+    id: index + 1,
+    name: balance.asset_code === 'SYP' ? 'Stellar Yield Points' : 
+          balance.asset_code === 'USDC' ? 'USD Coin' :
+          balance.asset_code === 'XLM' ? 'Stellar Lumens' : balance.asset_code,
+    symbol: balance.asset_code,
+    icon: balance.asset_code === 'SYP' ? Coins : 
+          balance.asset_code === 'USDC' ? CircleDollarSign :
+          balance.asset_code === 'XLM' ? DollarSign : Coins,
+    balance: parseFloat(balance.amount),
+    value: parseFloat(balance.amount), // 1:1 ratio for demo
+    change24h: 0, // No change data available yet
+    isPositive: true
+  })) || [];
+
+  // No real transaction data from backend yet, show empty state
+  const recentTransactions: any[] = [];
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -163,8 +145,8 @@ export default function WalletPage() {
   }, []);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText('0x1234567890abcdef1234567890abcdef12345678');
-    // You can add a toast notification here
+    navigator.clipboard.writeText(walletData.address);
+    toast.success(t('wallet.addressCopied', 'Wallet address copied to clipboard'));
   };
 
   const getTransactionIcon = (type: string) => {
@@ -179,6 +161,22 @@ export default function WalletPage() {
         return <ArrowUpRight className="h-4 w-4 text-gray-400" />;
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <div className="text-center">
+          <Wallet className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-white/60' : 'text-slate-500'}`} />
+          <h2 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {t('wallet.loginRequired', 'Login Required')}
+          </h2>
+          <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+            {t('wallet.loginMessage', 'Please log in to view your wallet')}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -195,67 +193,91 @@ export default function WalletPage() {
         </p>
       </div>
 
+      {/* Error State */}
+      {balancesError && (
+        <div className={`${isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'} backdrop-blur-sm rounded-2xl p-6 border text-center`}>
+          <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
+          <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-red-400' : 'text-red-600'}`}>
+            {t('common.errorLoading', 'Error Loading Data')}
+          </h3>
+          <p className={`mb-4 ${isDark ? 'text-red-300' : 'text-red-600'}`}>
+            {t('wallet.errorMessage', 'Unable to load wallet data. Please refresh and try again.')}
+          </p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            {t('common.refresh', 'Refresh')}
+          </button>
+        </div>
+      )}
+
       {/* Wallet Card */}
-      <div ref={walletRef} className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border shadow-xl`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
-          <div className="flex items-center gap-3 mb-4 sm:mb-0">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {t('wallet.mainWallet', 'Main Wallet')}
-              </h2>
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-mono ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{walletData.address}</span>
-                <button
-                  onClick={copyAddress}
-                  className={`transition-colors ${isDark ? 'text-white/40 hover:text-white/60' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  <Copy className="h-3 w-3" />
-                </button>
+      {!balancesError && (
+        <div ref={walletRef} className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border shadow-xl`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-0">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  {t('wallet.mainWallet', 'Main Wallet')}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-mono ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                    {walletData.address.slice(0, 8)}...{walletData.address.slice(-8)}
+                  </span>
+                  <button
+                    onClick={copyAddress}
+                    className={`transition-colors ${isDark ? 'text-white/40 hover:text-white/60' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <button className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-200 hover:bg-slate-300'}`}>
+                <Settings className={`h-4 w-4 ${isDark ? 'text-white/60' : 'text-slate-600'}`} />
+              </button>
+              <button className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-200 hover:bg-slate-300'}`}>
+                <Shield className={`h-4 w-4 ${isDark ? 'text-white/60' : 'text-slate-600'}`} />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-200 hover:bg-slate-300'}`}>
-              <Settings className={`h-4 w-4 ${isDark ? 'text-white/60' : 'text-slate-600'}`} />
-            </button>
-            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-200 hover:bg-slate-300'}`}>
-              <Shield className={`h-4 w-4 ${isDark ? 'text-white/60' : 'text-slate-600'}`} />
-            </button>
-          </div>
-        </div>
 
-        {/* Balance Section */}
-        <div ref={balanceRef} className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
-              {t('wallet.totalBalance', 'Total Balance')}
-            </span>
-            <button
-              onClick={() => setShowBalance(!showBalance)}
-              className={`transition-colors ${isDark ? 'text-white/40 hover:text-white/60' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              {showBalance ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-            </button>
-          </div>
-          <div className={`text-4xl sm:text-5xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {showBalance ? `$${walletData.totalBalance.toLocaleString()}` : '****'}
-          </div>
-          <div className={`flex items-center justify-center gap-1 text-sm ${
-            walletData.isPositive ? 'text-green-400' : 'text-red-400'
-          }`}>
-            {walletData.isPositive ? (
-              <TrendingUp className="h-4 w-4" />
-            ) : (
-              <TrendingDown className="h-4 w-4" />
+          {/* Balance Section */}
+          <div ref={balanceRef} className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <span className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                {t('wallet.totalBalance', 'Total Balance')}
+              </span>
+              <button
+                onClick={() => setShowBalance(!showBalance)}
+                className={`transition-colors ${isDark ? 'text-white/40 hover:text-white/60' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                {showBalance ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              </button>
+            </div>
+            <div className={`text-4xl sm:text-5xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {showBalance ? `$${totalBalance.toLocaleString()}` : '****'}
+            </div>
+            {isLoading && (
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+              </div>
             )}
-            <span>{walletData.isPositive ? '+' : ''}{walletData.change24h}%</span>
-            <span className={isDark ? 'text-white/60' : 'text-slate-600'}>24h</span>
+            <div className={`flex items-center justify-center gap-1 text-sm text-gray-400`}>
+              <span>
+                {isLoading ? t('common.loading', 'Loading...') : 
+                 balancesError ? t('wallet.errorLoadingData', 'Error loading data') :
+                 t('wallet.realTimeData', 'Real-time data from Stellar network')}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -294,50 +316,74 @@ export default function WalletPage() {
       </div>
 
       {/* Assets Section */}
-      <div ref={assetsRef}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {t('wallet.assets', 'Assets')}
-          </h2>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-yellow-400 text-slate-900 hover:bg-yellow-500'}`}>
-            <Plus className="h-4 w-4" />
-            {t('wallet.addAsset', 'Add Asset')}
-          </button>
-        </div>
+      {!balancesError && (
+        <div ref={assetsRef}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {t('wallet.assets', 'Assets')}
+            </h2>
+            <button className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-yellow-400 text-slate-900 hover:bg-yellow-500'}`}>
+              <Plus className="h-4 w-4" />
+              {t('wallet.addAsset', 'Add Asset')}
+            </button>
+          </div>
 
-        <div className="space-y-4">
-          {assets.map((asset) => (
-            <div key={asset.id} className={`asset-card backdrop-blur-sm rounded-2xl border p-4 sm:p-6 transition-all duration-200 ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-white/80 border-slate-200 hover:bg-slate-200/80'}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
-                    <asset.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{asset.name}</h3>
-                    <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{asset.balance} {asset.symbol}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    ${asset.value.toLocaleString()}
-                  </div>
-                  <div className={`flex items-center gap-1 text-sm ${
-                    asset.isPositive ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    {asset.isPositive ? (
-                      <TrendingUp className="h-3 w-3" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3" />
-                    )}
-                    <span>{asset.isPositive ? '+' : ''}{asset.change24h}%</span>
-                  </div>
-                </div>
+          <div className="space-y-4">
+            {isLoading ? (
+              // Loading state
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className={`h-20 backdrop-blur-sm rounded-2xl border animate-pulse ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100/80 border-slate-200'}`} />
+                ))}
               </div>
-            </div>
-          ))}
+            ) : assets.length > 0 ? (
+              assets.map((asset) => (
+                <div key={asset.id} className={`asset-card backdrop-blur-sm rounded-2xl border p-4 sm:p-6 transition-all duration-200 ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-white/80 border-slate-200 hover:bg-slate-200/80'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+                        <asset.icon className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{asset.name}</h3>
+                        <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{asset.balance.toFixed(2)} {asset.symbol}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        ${asset.value.toLocaleString()}
+                      </div>
+                      <div className={`flex items-center gap-1 text-sm ${
+                        asset.isPositive ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {asset.isPositive ? (
+                          <TrendingUp className="h-3 w-3" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3" />
+                        )}
+                        <span>{asset.isPositive ? '+' : ''}{asset.change24h}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              // Empty state
+              <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-12 border text-center`}>
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border ${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'}`}>
+                  <Coins className={`w-8 h-8 ${isDark ? 'text-white/60' : 'text-slate-500'}`} />
+                </div>
+                <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  {t('wallet.noAssets', 'No assets found')}
+                </h3>
+                <p className={`mb-6 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                  {t('wallet.noAssetsMessage', 'Your wallet appears to be empty. Add some assets to get started.')}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Recent Transactions */}
       <div>
@@ -351,35 +397,50 @@ export default function WalletPage() {
         </div>
 
         <div className="space-y-3">
-          {recentTransactions.map((tx) => (
-            <div key={tx.id} className={`transaction-item backdrop-blur-sm rounded-xl border p-4 transition-all duration-200 ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-white/80 border-slate-200 hover:bg-slate-200/80'}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
-                    {getTransactionIcon(tx.type)}
+          {recentTransactions.length > 0 ? (
+            recentTransactions.map((tx) => (
+              <div key={tx.id} className={`transaction-item backdrop-blur-sm rounded-xl border p-4 transition-all duration-200 ${isDark ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-white/80 border-slate-200 hover:bg-slate-200/80'}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
+                      {getTransactionIcon(tx.type)}
+                    </div>
+                    <div>
+                      <h3 className={`text-sm font-medium capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {tx.type}
+                      </h3>
+                      <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                        {tx.type === 'send' ? `To: ${tx.to}` : 
+                         tx.type === 'receive' ? `From: ${tx.from}` : 
+                         `${tx.symbol} → ${tx.to}`}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className={`text-sm font-medium capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {tx.type}
-                    </h3>
-                    <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
-                      {tx.type === 'send' ? `To: ${tx.to}` : 
-                       tx.type === 'receive' ? `From: ${tx.from}` : 
-                       `${tx.symbol} → ${tx.to}`}
-                    </p>
+                  <div className="text-right">
+                    <div className={`text-sm font-semibold ${
+                      tx.type === 'send' ? 'text-red-400' : 'text-green-400'
+                    }`}>
+                      {tx.type === 'send' ? '-' : '+'}{tx.amount} {tx.symbol}
+                    </div>
+                    <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className={`text-sm font-semibold ${
-                    tx.type === 'send' ? 'text-red-400' : 'text-green-400'
-                  }`}>
-                    {tx.type === 'send' ? '-' : '+'}{tx.amount} {tx.symbol}
-                  </div>
-                  <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
                 </div>
               </div>
+            ))
+          ) : (
+            // Empty transaction state
+            <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-xl p-8 border text-center`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
+                <History className={`w-6 h-6 ${isDark ? 'text-white/60' : 'text-slate-500'}`} />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {t('wallet.noTransactions', 'No transactions yet')}
+              </h3>
+              <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                {t('wallet.noTransactionsMessage', 'Start by sending or receiving some assets')}
+              </p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

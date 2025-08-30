@@ -30,8 +30,8 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
+    name: user?.name || user?.full_name || '',
+    email: user?.email || user?.username || '',
     phone: user?.phone || '',
     location: user?.location || '',
     bio: user?.bio || ''
@@ -52,8 +52,8 @@ const Profile: React.FC = () => {
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name || '',
-      email: user?.email || '',
+      name: user?.name || user?.full_name || '',
+      email: user?.email || user?.username || '',
       phone: user?.phone || '',
       location: user?.location || '',
       bio: user?.bio || ''
@@ -133,12 +133,12 @@ const Profile: React.FC = () => {
                 {user?.avatar ? (
                   <img 
                     src={user.avatar} 
-                    alt={user.name} 
+                    alt={user?.name || user?.full_name || 'User'} 
                     className="h-24 w-24 rounded-full object-cover ring-4 ring-white/10 shadow-2xl"
                   />
                 ) : (
                   <div className="h-24 w-24 rounded-full bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center text-white text-2xl font-bold shadow-2xl">
-                    {(user?.name?.[0] || 'U').toUpperCase()}
+                    {(user?.name?.[0] || user?.full_name?.[0] || 'U').toUpperCase()}
                   </div>
                 )}
                 
@@ -177,7 +177,7 @@ const Profile: React.FC = () => {
                       placeholder={t('profile.namePlaceholder', 'Enter your name')}
                     />
                   ) : (
-                    formData.name || user?.name || 'User'
+                    formData.name || user?.name || user?.full_name || 'User'
                   )}
                 </h2>
                 
@@ -216,7 +216,7 @@ const Profile: React.FC = () => {
                     placeholder={t('profile.emailPlaceholder', 'Enter your email')}
                   />
                 ) : (
-                  formData.email || user?.email || 'user@example.com'
+                  formData.email || user?.email || user?.username || 'user@example.com'
                 )}
               </p>
 

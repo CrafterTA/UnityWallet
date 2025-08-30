@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import { Activity, Filter, Search, ArrowUpRight, ArrowDownLeft, RefreshCw, Download, Calendar, ArrowLeft } from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
 import { useNavigate } from 'react-router-dom'
+import { analyticsApi } from '@/api/analytics'
 
 function ActivityPage() {
   const { t } = useTranslation()
@@ -18,41 +20,34 @@ function ActivityPage() {
     { id: 'swapped', label: t('activity.swapped', 'Swapped'), icon: RefreshCw },
   ]
 
-  const transactions = [
-    {
-      id: '1',
-      type: 'sent',
-      amount: '150.00',
-      currency: 'USD',
-      to: 'Alice Johnson',
-      address: 'GBRP...HNKZ',
-      date: '2025-08-19T10:30:00Z',
-      status: 'completed',
-      fee: '0.50'
-    },
-    {
-      id: '2',
-      type: 'received',
-      amount: '500.00',
-      currency: 'USD',
-      from: 'Bob Smith',
-      address: 'GCXM...PLKJ',
-      date: '2025-08-18T15:45:00Z',
-      status: 'completed',
-      fee: '0.00'
-    },
-    {
-      id: '3',
-      type: 'swapped',
-      amount: '0.025',
-      currency: 'BTC',
-      toAmount: '1000.00',
-      toCurrency: 'USD',
-      date: '2025-08-17T09:15:00Z',
-      status: 'completed',
-      fee: '5.00'
-    }
-  ]
+  // Fetch real spending data for transaction summary
+  const { data: spendingData, isLoading: spendingLoading, error: spendingError } = useQuery({
+    queryKey: ['activity-spending'],
+    queryFn: analyticsApi.getSpendingSummary,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+
+  // Calculate transaction stats from real data
+  const transactionStats = spendingData ? {
+    totalSent: spendingData.total_spent,
+    totalReceived: 0, // Backend doesn't provide received data yet
+    totalTransactions: 0, // Backend doesn't provide transaction count yet
+    totalSwapped: 0, // Backend doesn't provide swap data yet
+    averageAmount: spendingData.total_spent > 0 ? Math.round(spendingData.total_spent / 10) : 0, // Estimate
+  } : {
+    totalSent: 0,
+    totalReceived: 0,
+    totalTransactions: 0,
+    totalSwapped: 0,
+    averageAmount: 0,
+  }
+
+  // No real transaction data from backend yet, show empty state
+  const transactions: any[] = []
+
+  // Check for errors
+  const hasError = spendingError;
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -152,137 +147,178 @@ function ActivityPage() {
         </div>
       </div>
 
-      {/* Transactions List */}
-      <div className="space-y-4">
-        {filteredTransactions.length > 0 ? (
-          <>
-            {/* Export Button */}
-            <div className="flex justify-between items-center">
-              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {t('activity.recentActivity', 'Recent Transactions')} ({filteredTransactions.length})
-              </h2>
-              <button className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-colors border backdrop-blur-sm ${
-                isDark 
-                  ? 'bg-white/10 hover:bg-white/20 text-white/80 border-white/20' 
-                  : 'bg-slate-200 hover:bg-slate-300 text-slate-700 border-slate-300'
-              }`}>
-                <Download className="w-4 h-4" />
-                <span className="text-sm font-medium">{t('common.export', 'Export')}</span>
-              </button>
-            </div>
+      {/* Error State */}
+      {hasError && (
+        <div className={`${isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'} backdrop-blur-sm rounded-2xl p-6 border text-center mb-6`}>
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border ${isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-100 border-red-200'}`}>
+            <Activity className={`w-8 h-8 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
+          </div>
+          <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-red-400' : 'text-red-600'}`}>{t('common.errorLoading', 'Error Loading Data')}</h3>
+          <p className={`mb-6 ${isDark ? 'text-red-300' : 'text-red-600'}`}>
+            {t('activity.errorMessage', 'Unable to load transaction data. Please try again later.')}
+          </p>
+        </div>
+      )}
 
-            {/* Transaction Cards */}
-            <div className="space-y-3">
-              {filteredTransactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border hover:border-white/30 transition-all duration-200 hover:shadow-lg cursor-pointer ${getTransactionBgColor(transaction.type)}`}
-                >
-                  <div className="flex items-center justify-between">
-                    {/* Left: Icon and Details */}
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm border ${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'}`}>
-                        {getTransactionIcon(transaction.type)}
+      {/* Loading State */}
+      {spendingLoading && (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className={`h-24 backdrop-blur-sm rounded-2xl border animate-pulse ${
+              isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100/80 border-slate-200'
+            }`} />
+          ))}
+        </div>
+      )}
+
+      {/* Transactions List */}
+      {!spendingLoading && !hasError && (
+        <div className="space-y-4">
+          {filteredTransactions.length > 0 ? (
+            <>
+              {/* Export Button */}
+              <div className="flex justify-between items-center">
+                <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  {t('activity.recentActivity', 'Recent Transactions')} ({filteredTransactions.length})
+                </h2>
+                <button className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-colors border backdrop-blur-sm ${
+                  isDark 
+                    ? 'bg-white/10 hover:bg-white/20 text-white/80 border-white/20' 
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700 border-slate-300'
+                }`}>
+                  <Download className="w-4 h-4" />
+                  <span className="text-sm font-medium">{t('common.export', 'Export')}</span>
+                </button>
+              </div>
+
+              {/* Transaction Cards */}
+              <div className="space-y-3">
+                {filteredTransactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border hover:border-white/30 transition-all duration-200 hover:shadow-lg cursor-pointer ${getTransactionBgColor(transaction.type)}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      {/* Left: Icon and Details */}
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm border ${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'}`}>
+                          {getTransactionIcon(transaction.type)}
+                        </div>
+                        
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <h3 className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              {transaction.type}
+                            </h3>
+                            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
+                              {transaction.status}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Calendar className={`w-3 h-3 ${isDark ? 'text-white/50' : 'text-slate-500'}`} />
+                            <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                              {formatDate(transaction.date)}
+                            </p>
+                          </div>
+                          
+                          {transaction.type !== 'swapped' && (
+                            <p className={`text-xs font-mono mt-1 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
+                              {transaction.type === 'sent' ? transaction.address : 
+                               transaction.type === 'received' ? transaction.address : ''}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {transaction.type}
-                          </h3>
-                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
-                            {transaction.status}
-                          </span>
-                        </div>
+
+                      {/* Right: Amount */}
+                      <div className="text-right">
+                        <p className={`font-bold text-lg ${
+                          transaction.type === 'sent' ? 'text-red-400' : 
+                          transaction.type === 'received' ? 'text-green-400' : 
+                          'text-blue-400'
+                        }`}>
+                          {transaction.type === 'sent' ? '-' : transaction.type === 'received' ? '+' : ''}
+                          {transaction.amount} {transaction.currency}
+                        </p>
                         
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Calendar className={`w-3 h-3 ${isDark ? 'text-white/50' : 'text-slate-500'}`} />
+                        {transaction.type === 'swapped' && (
                           <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                            {formatDate(transaction.date)}
-                          </p>
-                        </div>
-                        
-                        {transaction.type !== 'swapped' && (
-                          <p className={`text-xs font-mono mt-1 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
-                            {transaction.type === 'sent' ? transaction.address : 
-                             transaction.type === 'received' ? transaction.address : ''}
+                            → {transaction.toAmount} {transaction.toCurrency}
                           </p>
                         )}
+                        
+                        <p className={`text-xs mt-1 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
+                          Fee: {transaction.fee} USD
+                        </p>
                       </div>
                     </div>
-
-                    {/* Right: Amount */}
-                    <div className="text-right">
-                      <p className={`font-bold text-lg ${
-                        transaction.type === 'sent' ? 'text-red-400' : 
-                        transaction.type === 'received' ? 'text-green-400' : 
-                        'text-blue-400'
-                      }`}>
-                        {transaction.type === 'sent' ? '-' : transaction.type === 'received' ? '+' : ''}
-                        {transaction.amount} {transaction.currency}
-                      </p>
-                      
-                      {transaction.type === 'swapped' && (
-                        <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                          → {transaction.toAmount} {transaction.toCurrency}
-                        </p>
-                      )}
-                      
-                      <p className={`text-xs mt-1 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
-                        Fee: {transaction.fee} USD
-                      </p>
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </>
+          ) : (
+            // Empty State
+            <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-12 border text-center`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border ${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'}`}>
+                <Activity className={`w-8 h-8 ${isDark ? 'text-white/60' : 'text-slate-500'}`} />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {t('activity.noTransactions', 'No transactions found')}
+              </h3>
+              <p className={`mb-6 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                {searchQuery 
+                  ? t('activity.adjustSearch', 'Try adjusting your search criteria')
+                  : activeFilter !== 'all' 
+                    ? t('activity.noFilteredTransactions', `No ${activeFilter} transactions yet`)
+                    : t('activity.startTransacting', 'Start making transactions to see your activity here')
+                }
+              </p>
+              <button 
+                onClick={() => navigate('/pay')}
+                className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all"
+              >
+                {t('activity.makeFirstTransaction', 'Make your first transaction')}
+              </button>
             </div>
-          </>
-        ) : (
-          // Empty State
-          <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-12 border text-center`}>
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border ${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'}`}>
-              <Activity className={`w-8 h-8 ${isDark ? 'text-white/60' : 'text-slate-500'}`} />
-            </div>
-            <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No transactions found</h3>
-            <p className={`mb-6 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-              {searchQuery 
-                ? 'Try adjusting your search criteria'
-                : activeFilter !== 'all' 
-                  ? `No ${activeFilter} transactions yet`
-                  : 'Start making transactions to see your activity here'
-              }
-            </p>
-            <button className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all">
-              Make your first transaction
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Summary Stats */}
-      <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border mt-6`}>
-        <h3 className={`font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>This Month Summary</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-red-500/10 rounded-xl border border-red-500/20">
-            <ArrowUpRight className="w-6 h-6 text-red-400 mx-auto mb-2" />
-            <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>Total Sent</p>
-            <p className="text-xl font-bold text-red-400">$1,250.00</p>
-          </div>
+      {!spendingLoading && !hasError && (
+        <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border mt-6`}>
+          <h3 className={`font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {t('activity.monthSummary', 'This Month Summary')}
+          </h3>
           
-          <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-            <ArrowDownLeft className="w-6 h-6 text-green-400 mx-auto mb-2" />
-            <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>Total Received</p>
-            <p className="text-xl font-bold text-green-400">$2,100.00</p>
-          </div>
-          
-          <div className="text-center p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
-            <RefreshCw className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-            <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>Total Swapped</p>
-            <p className="text-xl font-bold text-blue-400">$800.00</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+              <ArrowUpRight className="w-6 h-6 text-red-400 mx-auto mb-2" />
+              <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                {t('activity.totalSent', 'Total Sent')}
+              </p>
+              <p className="text-xl font-bold text-red-400">${transactionStats.totalSent.toLocaleString()}</p>
+            </div>
+            
+            <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/20">
+              <ArrowDownLeft className="w-6 h-6 text-green-400 mx-auto mb-2" />
+              <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                {t('activity.totalReceived', 'Total Received')}
+              </p>
+              <p className="text-xl font-bold text-green-400">${transactionStats.totalReceived.toLocaleString()}</p>
+            </div>
+            
+            <div className="text-center p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+              <RefreshCw className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+              <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                {t('activity.totalSwapped', 'Total Swapped')}
+              </p>
+              <p className="text-xl font-bold text-blue-400">${transactionStats.totalSwapped.toLocaleString()}</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import {
   QrCode,
   Camera,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useThemeStore } from '@/store/theme'
+import { walletApi } from '@/api/wallet'
 import QRCodeGenerator from '@/components/QRCodeGenerator'
 import QRScanner from '@/components/QRScanner'
 import toast from 'react-hot-toast'
@@ -68,6 +70,15 @@ export default function Pay() {
   const [showScanner, setShowScanner] = useState(false)
   const [showQR, setShowQR] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Fetch real wallet balances
+  const { data: balances, isLoading: balancesLoading, error: balancesError } = useQuery({
+    queryKey: ['wallet-balances-pay'],
+    queryFn: walletApi.getBalances,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
 
   // Handlers (useCallback cho gọn)
   const handleRecipientChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setRecipient(e.target.value), [])
@@ -80,12 +91,18 @@ export default function Pay() {
     { id: 'receive', label: t('pay.receive', 'Receive'), icon: ArrowDownLeft, description: t('pay.getQRCode', 'Get QR code') },
   ] as const), [t])
 
+  // Process real contacts from recent transactions (would come from backend in real app)
   const recentContacts = [
     { name: 'Alice Johnson', address: 'GBRP...HNKZ', avatar: 'AJ' },
     { name: 'Bob Smith', address: 'GCXM...PLKJ', avatar: 'BS' },
     { name: 'Carol Davis', address: 'GDTY...QWER', avatar: 'CD' },
   ]
+
   const quickAmounts = ['$10', '$25', '$50', '$100']
+
+  // Get current asset balance
+  const currentAssetBalance = balances?.find(b => b.asset_code === asset)
+  const availableBalance = currentAssetBalance ? parseFloat(currentAssetBalance.amount) : 0
 
   useEffect(() => {
     if (!copied) return
@@ -98,40 +115,59 @@ export default function Pay() {
     setAmount(numericValue)
   }, [])
 
-  const handleSend = () => {
-    // Kiểm tra dữ liệu đầu vào
+  const handleSend = async () => {
     if (!recipient || !amount) {
-      toast.error(t('pay.pleaseFillAllFields', 'Please fill in all required fields'))
+      toast.error(t('pay.fillAllFields', 'Please fill in all fields'))
       return
     }
 
-    // Hiển thị thông báo đang xử lý
+    const amountNum = parseFloat(amount)
+    if (isNaN(amountNum) || amountNum <= 0) {
+      toast.error(t('pay.invalidAmount', 'Please enter a valid amount'))
+      return
+    }
+
+    if (amountNum > availableBalance) {
+      toast.error(t('pay.insufficientBalance', 'Insufficient balance'))
+      return
+    }
+
+    setIsSubmitting(true)
     toast.loading(t('pay.processingPayment', 'Processing payment...'), { id: 'payment' })
 
-    // TODO: Gọi API transfer thực tế ở đây
-    // const result = await walletApi.payment({
-    //   destination: recipient,
-    //   asset_code: asset,
-    //   amount: amount,
-    //   memo: note
-    // })
-
-    // Giả lập xử lý (thay thế bằng API call thực tế)
-    setTimeout(() => {
-      // Thông báo thành công
-      toast.success(t('pay.paymentSent', 'Payment sent successfully!'), { id: 'payment' })
-    
-      setRecipient('')
-      setAmount('')
-      setNote('')
-    }, 1000)
+    try {
+      const result = await walletApi.payment({
+        destination: recipient,
+        asset_code: asset,
+        amount: amount,
+        memo: note
+      })
+      
+      if (result.status === 'success') {
+        toast.success(t('pay.paymentSent', 'Payment sent successfully!'), { id: 'payment' })
+        setRecipient('')
+        setAmount('')
+        setNote('')
+      } else {
+        toast.error(t('pay.paymentFailed', 'Payment failed. Please try again.'), { id: 'payment' })
+      }
+    } catch (error) {
+      console.error('Payment error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Payment failed. Please try again.'
+      toast.error(errorMessage, { id: 'payment' })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const copyAddress = async (addr: string) => {
     try {
       await navigator.clipboard.writeText(addr)
       setCopied(true)
-    } catch {}
+      toast.success(t('pay.addressCopied', 'Address copied to clipboard'))
+    } catch {
+      toast.error(t('pay.copyFailed', 'Failed to copy address'))
+    }
   }
 
   const myAddress = 'GBRP...HNKZ4A2B'
@@ -156,6 +192,9 @@ export default function Pay() {
           'mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ring-1',
           isDark ? 'bg-white/5 ring-white/10 text-white/70' : 'bg-slate-100 ring-slate-200 text-slate-700'
         )}>
+          {balancesLoading && <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />}
+          {balancesError && <span className="text-red-400">{t('common.dataLoadError', 'Unable to load wallet data')}</span>}
+          {balances && <span>{t('pay.walletConnected', 'Wallet connected')}</span>}
         </div>
       </div>
 
@@ -217,6 +256,14 @@ export default function Pay() {
           <div className="grid gap-6 lg:grid-cols-5">
             <div className="lg:col-span-3 space-y-6">
               <SectionCard dark={isDark} title={<span className="flex items-center gap-2"><Wallet className="h-5 w-5 text-red-400" />{t('pay.sendPayment','Send Payment')}</span>}>
+                
+                {/* Error/Loading State */}
+                {balancesError && (
+                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p className="text-red-400 text-sm">{t('pay.walletError', 'Unable to load wallet. Please refresh and try again.')}</p>
+                  </div>
+                )}
+
                 {/* Recipient */}
                 <div>
                   <FieldLabel dark={isDark}>{t('pay.recipientAddress','Recipient Address')}</FieldLabel>
@@ -246,31 +293,46 @@ export default function Pay() {
                 {/* Amount + asset */}
                 <div className="grid gap-4 sm:grid-cols-[1fr,180px]">
                   <div>
-                    <FieldLabel dark={isDark}>{t('pay.amount','Amount')}</FieldLabel>
+                    <FieldLabel dark={isDark}>
+                      {t('pay.amount','Amount')} 
+                      {availableBalance > 0 && (
+                        <span className={`ml-2 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                          ({t('pay.available', 'Available')}: {availableBalance.toFixed(2)} {asset})
+                        </span>
+                      )}
+                    </FieldLabel>
                     <div className="relative">
                       <input
                         type="number"
                         inputMode="decimal"
                         step="any"
+                        max={availableBalance}
                         value={amount}
                         onChange={handleAmountChange}
                         placeholder="0.00"
                         className={classNames(
                           'w-full rounded-xl px-4 py-3 text-xl font-semibold outline-none ring-1 focus:ring-2',
+                          parseFloat(amount) > availableBalance && amount ? 'ring-red-500' : '',
                           isDark ? 'bg-white/10 ring-white/20 text-white placeholder-white/40 focus:ring-red-500'
                                  : 'bg-slate-100/80 ring-slate-300 text-slate-900 placeholder-slate-500 focus:ring-red-500'
                         )}
                       />
-                      <span className={classNames('pointer-events-none absolute right-4 top-3 font-medium', isDark ? 'text-white/70' : 'text-slate-600')}>USD</span>
+                      <span className={classNames('pointer-events-none absolute right-4 top-3 font-medium', isDark ? 'text-white/70' : 'text-slate-600')}>{asset}</span>
                     </div>
+                    
+                    {parseFloat(amount) > availableBalance && amount && (
+                      <p className="text-red-500 text-sm mt-1">{t('pay.insufficientBalance', 'Insufficient balance')}</p>
+                    )}
+                    
                     <div className="mt-3 flex flex-wrap gap-2">
                       {quickAmounts.map((qa) => (
                         <button
                           key={qa}
                           onClick={() => handleQuickAmount(qa)}
                           type="button"
+                          disabled={balancesLoading}
                           className={classNames(
-                            'rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                            'rounded-lg border px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50',
                             isDark ? 'border-white/20 bg-white/10 text-white/80 hover:bg-white/20'
                                    : 'border-slate-300 bg-slate-200 text-slate-700 hover:bg-slate-300'
                           )}
@@ -285,8 +347,9 @@ export default function Pay() {
                     <select
                       value={asset}
                       onChange={handleAssetChange}
+                      disabled={balancesLoading || !balances?.length}
                       className={classNames(
-                        'w-full rounded-xl px-4 py-3 outline-none ring-1 focus:ring-2',
+                        'w-full rounded-xl px-4 py-3 outline-none ring-1 focus:ring-2 disabled:opacity-50',
                         isDark ? 'bg-white/10 ring-white/20 text-white focus:ring-red-500' : 'bg-slate-100/80 ring-slate-300 text-slate-900 focus:ring-red-500'
                       )}
                       style={isDark ? { 
@@ -294,9 +357,19 @@ export default function Pay() {
                         color: 'white'
                       } : {}}
                     >
-                      <option value="USDC" className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>USDC</option>
-                      <option value="XLM" className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>XLM</option>
-                      <option value="SYP" className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>SYP</option>
+                      {balances?.map((balance) => (
+                        <option 
+                          key={balance.asset_code} 
+                          value={balance.asset_code} 
+                          className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
+                        >
+                          {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)})
+                        </option>
+                      )) || (
+                        <option value="" className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>
+                          {balancesLoading ? t('common.loading', 'Loading...') : t('pay.noAssets', 'No assets available')}
+                        </option>
+                      )}
                     </select>
                   </div>
                 </div>
@@ -321,17 +394,21 @@ export default function Pay() {
                 <div className="mt-8 flex justify-end">
                   <button
                     onClick={handleSend}
-                    disabled={!recipient || !amount}
+                    disabled={!recipient || !amount || isSubmitting || !!balancesError || parseFloat(amount) > availableBalance}
                     className={classNames(
                       'inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 shadow-lg',
-                      !recipient || !amount
-                        ? 'opacity-60 cursor-not-allowed '
+                      (!recipient || !amount || isSubmitting || !!balancesError || parseFloat(amount) > availableBalance)
+                        ? 'opacity-60 cursor-not-allowed'
                         : 'hover:scale-[1.02]',
                       isDark ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/30' : 'bg-yellow-400 text-slate-900 hover:bg-yellow-500'
                     )}
                   >
-                    <SendIcon className="h-5 w-5" />
-                    {t('pay.sendButton', 'Send Payment')}
+                    {isSubmitting ? (
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <SendIcon className="h-5 w-5" />
+                    )}
+                    {isSubmitting ? t('pay.sending', 'Sending...') : t('pay.sendButton', 'Send Payment')}
                   </button>
                 </div>
               </SectionCard>

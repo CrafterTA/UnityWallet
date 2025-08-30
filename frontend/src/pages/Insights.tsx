@@ -10,20 +10,31 @@ const COLORS = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'
 function Insights() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
-  const { data: spendingSummary, isLoading } = useQuery({
-    queryKey: ['spending-summary'],
+  // Fetch real data from APIs
+  const { data: spendingData, isLoading: spendingLoading, error: spendingError } = useQuery({
+    queryKey: ['insights-spending'],
     queryFn: analyticsApi.getSpendingSummary,
+    retry: 1,
+    refetchOnWindowFocus: false,
   })
 
-  const { data: insights } = useQuery({
-    queryKey: ['insights'],
+  const { data: insightsData, isLoading: insightsLoading, error: insightsError } = useQuery({
+    queryKey: ['insights-data'],
     queryFn: analyticsApi.getInsights,
+    retry: 1,
+    refetchOnWindowFocus: false,
   })
 
-  const { data: creditScore } = useQuery({
-    queryKey: ['credit-score'],
+  const { data: creditData, isLoading: creditLoading, error: creditError } = useQuery({
+    queryKey: ['insights-credit'],
     queryFn: analyticsApi.getCreditScore,
+    retry: 1,
+    refetchOnWindowFocus: false,
   })
+
+  // Check for any errors
+  const hasError = spendingError || insightsError || creditError;
+  const isLoading = spendingLoading || insightsLoading || creditLoading;
 
   if (isLoading) {
     return (
@@ -55,7 +66,7 @@ function Insights() {
       <div className="max-w-6xl mx-auto space-y-6 px-6">
 
         {/* Credit Score Card */}
-        {creditScore && (
+        {creditData && (
           <div className="bg-gradient-to-r from-red-500/20 via-yellow-500/20 to-orange-500/20 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
             <div className="flex items-center justify-between">
               <div className="space-y-3">
@@ -68,18 +79,18 @@ function Insights() {
                     <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{t('insights.creditScoreDesc', 'Your financial health indicator')}</p>
                   </div>
                 </div>
-                <div className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{creditScore.score}</div>
+                <div className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{creditData.score}</div>
                 <div className="flex items-center gap-2">
                   <span className={isDark ? 'text-white/90' : 'text-slate-700'}>{t('insights.grade', 'Grade')}:</span>
                   <span className="px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-medium border border-green-500/30">
-                    {creditScore.grade}
+                    {creditData.grade}
                   </span>
                 </div>
               </div>
               <div className="text-right space-y-2">
                 <div className={`p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100/80 border-slate-200'}`}>
                   <p className={`text-sm mb-1 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{t('insights.status', 'Status')}</p>
-                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{creditScore.status}</p>
+                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{creditData.status}</p>
                 </div>
               </div>
             </div>
@@ -98,7 +109,7 @@ function Insights() {
             <div>
               <p className={`text-sm mb-1 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{t('insights.thisMonth', 'This Month')}</p>
               <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                ${spendingSummary?.total_spent || '0'}
+                ${spendingData?.total_spent || '0'}
               </p>
             </div>
           </div>
@@ -113,7 +124,7 @@ function Insights() {
             <div>
               <p className="text-white/70 text-sm mb-1">{t('insights.potentialSavings', 'Potential Savings')}</p>
               <p className="text-2xl font-bold text-green-400">
-                ${insights?.potential_savings || '0'}
+                ${insightsData?.potential_savings || '0'}
               </p>
             </div>
           </div>
@@ -128,7 +139,7 @@ function Insights() {
             <div>
               <p className={`text-sm mb-1 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{t('insights.avgSpending', 'Avg. Daily')}</p>
               <p className="text-2xl font-bold text-blue-400">
-                ${Math.round((spendingSummary?.total_spent || 0) / 30)}
+                ${Math.round((spendingData?.total_spent || 0) / 30)}
               </p>
             </div>
           </div>
@@ -143,7 +154,7 @@ function Insights() {
             <div>
               <p className={`text-sm mb-1 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{t('insights.categories', 'Categories')}</p>
               <p className="text-2xl font-bold text-purple-400">
-                {spendingSummary?.categories?.length || 0}
+                {spendingData?.categories?.length || 0}
               </p>
             </div>
           </div>
@@ -152,7 +163,7 @@ function Insights() {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Spending by Category */}
-          {spendingSummary?.categories && (
+          {spendingData?.categories && (
             <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-slate-200'} backdrop-blur-xl rounded-2xl p-6 border`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500">
@@ -165,7 +176,7 @@ function Insights() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={spendingSummary.categories}
+                      data={spendingData.categories}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -191,7 +202,7 @@ function Insights() {
                         )
                       }}
                     >
-                      {spendingSummary.categories.map((entry, index) => (
+                      {spendingData.categories.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -212,7 +223,7 @@ function Insights() {
           )}
 
           {/* Monthly Trend */}
-          {spendingSummary?.monthly_trend && (
+          {spendingData?.monthly_trend && (
             <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-slate-200'} backdrop-blur-xl rounded-2xl p-6 border`}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500">
@@ -223,7 +234,7 @@ function Insights() {
               
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={spendingSummary.monthly_trend}>
+                  <BarChart data={spendingData.monthly_trend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                     <XAxis 
                       dataKey="month" 
@@ -278,7 +289,7 @@ function Insights() {
         </div>
 
         {/* Insights & Recommendations */}
-        {insights?.recommendations && (
+        {insightsData?.recommendations && (
           <div className="space-y-6">
             <div className="text-center">
               <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('insights.recommendations', 'Personalized Recommendations')}</h3>
@@ -286,7 +297,7 @@ function Insights() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {insights.recommendations.map((recommendation, index) => (
+              {insightsData.recommendations.map((recommendation, index) => (
                 <div key={index} className={`${isDark ? 'bg-white/5 border-white/10 hover:border-white/20' : 'bg-white/80 border-slate-200 hover:border-slate-300'} backdrop-blur-xl rounded-2xl p-6 border transition-all duration-300 group`}>
                   <div className="flex items-start gap-4">
                     <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex-shrink-0">

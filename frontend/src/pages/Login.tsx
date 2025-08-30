@@ -7,12 +7,12 @@ import toast from 'react-hot-toast'
 import { useThemeStore } from '@/store/theme'
 
 function Login() {
-  const [email, setEmail] = useState('demo@unitywallet.com')
-  const [password, setPassword] = useState('demo123')
+  const [username, setUsername] = useState('alice')
+  const [password, setPassword] = useState('password123')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   
-  const { login } = useAuthStore()
+  const { loginWithToken, setUserProfile } = useAuthStore()
   const navigate = useNavigate()
   const { isDark } = useThemeStore()
 
@@ -21,8 +21,26 @@ function Login() {
     setIsLoading(true)
 
     try {
-      const response = await authApi.login({ email, password })
-      login(response.user, response.token)
+      const response = await authApi.login({ username, password })
+      loginWithToken(response.access_token)
+      
+      // Fetch user profile after successful login
+      try {
+        const userProfile = await authApi.getProfile()
+        setUserProfile(userProfile)
+      } catch (profileError) {
+        console.warn('Failed to fetch user profile, using default:', profileError)
+        // Set default user info based on username
+        setUserProfile({
+          id: '1',
+          username: username,
+          full_name: username === 'alice' ? 'Alice Johnson' : 
+                     username === 'bob' ? 'Bob Smith' : 
+                     username === 'carol' ? 'Carol Williams' : username,
+          kyc_status: username === 'carol' ? 'PENDING' : 'VERIFIED'
+        })
+      }
+      
       toast.success('Welcome to UnityWallet!')
       navigate('/')
     } catch (error) {
@@ -73,16 +91,16 @@ function Login() {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="email" className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-700'}`}>
-                    Email
+                  <label htmlFor="username" className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-700'}`}>
+                    Username
                   </label>
                   <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/80 focus:border-transparent ${isDark ? 'bg-white/10 border-white/20 text-white placeholder-navy-300' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'}`}
-                    placeholder="Enter your email"
+                    placeholder="Enter your username"
                     required
                   />
                 </div>
@@ -168,16 +186,16 @@ function Login() {
         <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/90 border-slate-200/50'} backdrop-blur-lg rounded-2xl p-6 border`}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email-mobile" className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-700'}`}>
-                Email
+              <label htmlFor="username-mobile" className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-700'}`}>
+                Username
               </label>
               <input
-                id="email-mobile"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username-mobile"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent ${isDark ? 'bg-white/10 border-white/20 text-white placeholder-navy-300' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'}`}
-                placeholder="Enter your email"
+                placeholder="Enter your username"
                 required
               />
             </div>

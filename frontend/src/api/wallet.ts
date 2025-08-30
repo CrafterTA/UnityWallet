@@ -2,26 +2,36 @@ import { apiClient } from './client'
 
 export interface Balance {
   asset_code: string
-  asset_issuer?: string
-  balance: string
-  asset_type: 'native' | 'credit_alphanum4' | 'credit_alphanum12'
-  is_authorized?: boolean
+  amount: string
+}
+
+export interface BalancesResponse {
+  balances: Balance[]
 }
 
 export interface PaymentRequest {
   destination: string
   asset_code: string
-  asset_issuer?: string
   amount: string
   memo?: string
 }
 
+export interface PaymentResponse {
+  ok: boolean
+  tx_id: string
+  stellar: any
+}
+
 export interface SwapRequest {
-  selling_asset_code: string
-  selling_asset_issuer?: string
-  buying_asset_code: string
-  buying_asset_issuer?: string
+  sell_asset: string
+  buy_asset: string
   amount: string
+}
+
+export interface SwapResponse {
+  ok: boolean
+  swapped: string
+  rate: string
 }
 
 export interface QuoteResponse {
@@ -43,58 +53,42 @@ export interface TransactionResult {
 
 export const walletApi = {
   async getBalances(): Promise<Balance[]> {
-    if (import.meta.env.VITE_USE_MOCK === 'true') {
-      return [
-        {
-          asset_code: 'XLM',
-          balance: '1000.0000000',
-          asset_type: 'native',
-        },
-        {
-          asset_code: 'USDC',
-          asset_issuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
-          balance: '500.0000000',
-          asset_type: 'credit_alphanum4',
-          is_authorized: true,
-        },
-        {
-          asset_code: 'SYP',
-          asset_issuer: 'GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP',
-          balance: '15000.0000000',
-          asset_type: 'credit_alphanum4',
-          is_authorized: true,
-        },
-      ]
+    try {
+      const response = await apiClient.get<BalancesResponse>('/wallet/balances')
+      return response.data.balances
+    } catch (error) {
+      throw new Error('Failed to fetch wallet balances from backend')
     }
-
-    const response = await apiClient.get<Balance[]>('/wallet/balances')
-    return response.data
   },
 
   async payment(request: PaymentRequest): Promise<TransactionResult> {
-    if (import.meta.env.VITE_USE_MOCK === 'true') {
+    try {
+      const response = await apiClient.post<PaymentResponse>('/wallet/payment', request)
       return {
-        hash: 'mock-tx-hash-' + Date.now(),
-        status: 'success',
-        ledger: Math.floor(Math.random() * 1000000),
+        hash: response.data.tx_id,
+        status: response.data.ok ? 'success' : 'failed',
       }
+    } catch (error) {
+      throw new Error('Payment failed. Please try again.')
     }
-
-    const response = await apiClient.post<TransactionResult>('/wallet/payment', request)
-    return response.data
   },
 
-  async swap(request: SwapRequest): Promise<TransactionResult> {
-    if (import.meta.env.VITE_USE_MOCK === 'true') {
-      return {
-        hash: 'mock-swap-hash-' + Date.now(),
-        status: 'success',
-        ledger: Math.floor(Math.random() * 1000000),
+  async swap(request: { selling_asset_code: string; buying_asset_code: string; amount: string }): Promise<TransactionResult> {
+    try {
+      const swapRequest: SwapRequest = {
+        sell_asset: request.selling_asset_code,
+        buy_asset: request.buying_asset_code,
+        amount: request.amount,
       }
-    }
 
-    const response = await apiClient.post<TransactionResult>('/wallet/swap', request)
-    return response.data
+      const response = await apiClient.post<SwapResponse>('/wallet/swap', swapRequest)
+      return {
+        hash: 'swap-' + Date.now(), // Backend doesn't return tx hash for swaps
+        status: response.data.ok ? 'success' : 'failed',
+      }
+    } catch (error) {
+      throw new Error('Swap failed. Please try again.')
+    }
   },
 
   async getQuote(
@@ -102,23 +96,13 @@ export const walletApi = {
     toAsset: string,
     amount: string
   ): Promise<QuoteResponse> {
-    if (import.meta.env.VITE_USE_MOCK === 'true') {
-      const rate = 0.95 + Math.random() * 0.1 // Random rate between 0.95-1.05
-      return {
-        path: [
-          { asset_code: fromAsset },
-          { asset_code: toAsset },
-        ],
-        source_amount: amount,
-        destination_amount: (parseFloat(amount) * rate).toFixed(7),
-        price: rate.toFixed(7),
-        fee: (parseFloat(amount) * 0.01).toFixed(7),
-      }
+    try {
+      // Try to get real quote from backend
+      const response = await apiClient.get<QuoteResponse>(`/wallet/quote?from=${fromAsset}&to=${toAsset}&amount=${amount}`)
+      return response.data
+    } catch (error) {
+      // If backend doesn't have quote endpoint, throw error instead of mock data
+      throw new Error('Quote service unavailable. Please try again later.')
     }
-
-    const response = await apiClient.get<QuoteResponse>(
-      `/wallet/quote?from=${fromAsset}&to=${toAsset}&amount=${amount}`
-    )
-    return response.data
   },
 }

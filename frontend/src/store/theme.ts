@@ -59,8 +59,12 @@ export const useThemeStore = create<ThemeStore>()(
 
 // Initialize theme on app start
 export const initializeTheme = () => {
-  const { theme } = useThemeStore.getState()
-  useThemeStore.getState().setTheme(theme)
+  const store = useThemeStore.getState()
+  const root = document.documentElement
+  const isDark = store.theme === 'dark' || 
+    (store.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  
+  store.setTheme(store.theme) // This will trigger the theme application
 }
 
 // Listen for system theme changes

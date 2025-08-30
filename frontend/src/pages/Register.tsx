@@ -25,7 +25,7 @@ function Register() {
     if (password !== confirm) { toast.error(t('auth.register.passwordMismatch', 'Passwords do not match')); return }
     setIsLoading(true)
     try {
-      await authApi.register({ name, email, password })
+      await authApi.register({ username: email, full_name: name, password })
       toast.success(t('auth.register.success', 'Account created! Please sign in.'))
       navigate('/login')
     } catch (err) {

@@ -1,5 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'
 
 interface ApiResponse<T = any> {
   data: T
@@ -9,11 +8,9 @@ interface ApiResponse<T = any> {
 
 class ApiClient {
   private baseURL: string
-  private useMock: boolean
 
-  constructor(baseURL: string, useMock: boolean = false) {
+  constructor(baseURL: string) {
     this.baseURL = baseURL
-    this.useMock = useMock
   }
 
   private async request<T>(
@@ -22,45 +19,33 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
     
-    const defaultHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
-
     // Add auth token if available
-    const token = localStorage.getItem('unity-wallet-auth')
+    const token = localStorage.getItem('auth_token')
     if (token) {
-      const auth = JSON.parse(token)
-      if (auth.state?.token) {
-        defaultHeaders['Authorization'] = `Bearer ${auth.state.token}`
-      }
-    }
-
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        ...defaultHeaders,
+      options.headers = {
         ...options.headers,
-      },
+        'Authorization': `Bearer ${token}`,
+      }
     }
 
     try {
-      const response = await fetch(url, config)
-      
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      })
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      
+
       const data = await response.json()
-      return {
-        data,
-        status: 'success',
-      }
+      return data
     } catch (error) {
       console.error('API request failed:', error)
-      throw {
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      }
+      throw error
     }
   }
 
@@ -87,4 +72,4 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL, USE_MOCK)
+export const apiClient = new ApiClient(API_BASE_URL)

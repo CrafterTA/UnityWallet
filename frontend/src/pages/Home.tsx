@@ -1,7 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from '@tanstack/react-query'
 import { useThemeStore } from "@/store/theme";
+import { walletApi } from '@/api/wallet'
+import { analyticsApi } from '@/api/analytics'
 import LightModeBackground from "@/components/LightModeBackground";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -168,18 +171,18 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
 );
 };
 
-const TokenRow = ({ name, symbol, price, change, mcap }: any) => {
+const TokenRow = ({ name, symbol, balance, value }: any) => {
   const { isDark } = useThemeStore();
   
   // Icon mapping for cryptocurrencies
   const getCryptoIcon = (symbol: string) => {
     switch (symbol.toUpperCase()) {
-      case 'BTC':
-        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center text-white font-bold text-sm">₿</div>;
-      case 'ETH':
-        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">Ξ</div>;
+      case 'SYP':
+        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">S</div>;
       case 'USDC':
         return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-xs">$</div>;
+      case 'XLM':
+        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">XLM</div>;
       default:
         return <div className={`h-8 w-8 rounded-lg ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />;
     }
@@ -194,9 +197,8 @@ const TokenRow = ({ name, symbol, price, change, mcap }: any) => {
         <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{symbol}</p>
       </div>
     </div>
-    <div className={`col-span-2 text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>${price}</div>
-    <div className={`col-span-2 text-sm ${change.startsWith("-") ? "text-red-400" : "text-emerald-400"}`}>{change}</div>
-    <div className={`col-span-3 text-right text-sm ${isDark ? 'text-white/80' : 'text-slate-600'}`}>${mcap}</div>
+    <div className={`col-span-3 text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{balance}</div>
+    <div className={`col-span-4 text-right text-sm ${isDark ? 'text-white/80' : 'text-slate-600'}`}>${value}</div>
   </div>
   );
 };
@@ -351,6 +353,48 @@ export default function Web3ModernLayout() {
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
+
+  // Fetch real data from APIs
+  const { data: balances, isLoading: balancesLoading, error: balancesError } = useQuery({
+    queryKey: ['wallet-balances'],
+    queryFn: walletApi.getBalances,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: spendingData, isLoading: spendingLoading, error: spendingError } = useQuery({
+    queryKey: ['home-spending'],
+    queryFn: analyticsApi.getSpendingSummary,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: creditScore, isLoading: creditLoading, error: creditError } = useQuery({
+    queryKey: ['home-credit'],
+    queryFn: analyticsApi.getCreditScore,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+
+  // Calculate total balance from real API data
+  const totalBalance = balances?.reduce((sum, balance) => {
+    return sum + parseFloat(balance.amount);
+  }, 0) || 0;
+
+  // Process real balance data for display
+  const assets = balances?.map((balance, index) => ({
+    id: index + 1,
+    name: balance.asset_code === 'SYP' ? 'Stellar Yield Points' : 
+          balance.asset_code === 'USDC' ? 'USD Coin' :
+          balance.asset_code === 'XLM' ? 'Stellar Lumens' : balance.asset_code,
+    symbol: balance.asset_code,
+    balance: parseFloat(balance.amount).toFixed(2),
+    value: parseFloat(balance.amount).toFixed(2), // 1:1 ratio for demo
+  })) || [];
+
+  // Check for any errors
+  const hasError = balancesError || spendingError || creditError;
+  const isLoading = balancesLoading || spendingLoading || creditLoading;
 
   useEffect(() => {
     // Hero section animations
@@ -523,23 +567,66 @@ export default function Web3ModernLayout() {
                                  ? 'border-white/10 bg-white/5 ring-white/5 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)] hover:shadow-[0_35px_80px_-12px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.1)] hover:border-white/20 hover:scale-[1.02]' 
                                  : 'border-slate-200 bg-white/90 ring-slate-200/50 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.8)] hover:shadow-[0_35px_80px_-12px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] hover:border-slate-300 hover:scale-[1.02]'
                              }`}>
+              
+              {/* Error States */}
+              {(balancesError || spendingError || creditError) && (
+                <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
+                  <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>
+                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4" />
+                    {t('common.dataLoadError', 'Unable to load data')}
+                  </div>
+                </div>
+              )}
+              
+              {/* Loading State */}
+              {balancesLoading && (
+                <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100/80 border-slate-200'}`}>
+                  <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    {t('common.loading', 'Loading wallet data...')}
+                  </div>
+                </div>
+              )}
+              
+              {/* Normal Header */}
+              {!balancesLoading && !balancesError && (
                                                                  <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10 group-hover:bg-white/10 group-hover:border-white/20' : 'bg-slate-100/80 border-slate-200 group-hover:bg-slate-200/80 group-hover:border-slate-300'}`}>
                                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/> Portfolio Overview
-                </div>
+                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/>
+                    {balances?.length ? 'Portfolio Overview' : 'Wallet Ready'}
+                  </div>
                                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-                    <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300 animate-pulse group-hover:bg-emerald-400/25 transition-colors duration-300">Net +12.8%</span>
-                                         <span className={`rounded-full px-2 py-0.5 transition-colors duration-300 ${isDark ? 'bg-white/10 group-hover:bg-white/15' : 'bg-slate-200 group-hover:bg-slate-300'}`}>30d</span>
+                    {creditScore && (
+                      <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300 animate-pulse group-hover:bg-emerald-400/25 transition-colors duration-300">
+                        Score: {creditScore.score}
+                      </span>
+                    )}
+                                         <span className={`rounded-full px-2 py-0.5 transition-colors duration-300 ${isDark ? 'bg-white/10 group-hover:bg-white/15' : 'bg-slate-200 group-hover:bg-slate-300'}`}>Live</span>
+                  </div>
                 </div>
-              </div>
+              )}
+              
               <div className="grid gap-3 sm:gap-4 p-3 sm:p-4 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                   <div className={`rounded-xl sm:rounded-2xl border p-3 sm:p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
                     <div className={`mb-3 flex items-center justify-between text-xs sm:text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                       <span>Total Balance</span>
-                      <span className="flex items-center gap-1 text-emerald-300"><TrendingUp className="h-3 w-3 sm:h-4 sm:w-4"/> +8.2%</span>
+                      {spendingData && (
+                        <span className="flex items-center gap-1 text-emerald-300">
+                          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4"/>
+                          {t('common.thisMonth', 'This Month')}
+                        </span>
+                      )}
                     </div>
-                    <p className={`text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>$24,856.42</p>
+                    <p className={`text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      ${totalBalance.toLocaleString()}
+                    </p>
+                    {spendingData && (
+                      <p className={`text-sm mt-1 ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                        Spent: ${spendingData.total_spent}
+                      </p>
+                    )}
+                    
                     {/* Animated sparkline */}
                     <svg viewBox="0 0 200 60" className="mt-3 sm:mt-4 h-12 sm:h-16 w-full">
                       <polyline 
@@ -563,65 +650,77 @@ export default function Web3ModernLayout() {
                       </defs>
                     </svg>
                   </div>
+                  
                   <div className={`mt-3 sm:mt-4 rounded-xl sm:rounded-2xl border p-2 sm:p-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
                     <div className={`hidden sm:grid grid-cols-12 px-3 pb-2 pt-1 text-xs ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
                       <div className="col-span-5">Asset</div>
-                      <div className="col-span-2">Price</div>
-                      <div className="col-span-2">24h</div>
-                      <div className="col-span-3 text-right">Holdings</div>
+                      <div className="col-span-3">Amount</div>
+                      <div className="col-span-4 text-right">Value</div>
                     </div>
+                    
+                    {/* Mobile Asset List */}
                     <div className="space-y-2 sm:hidden">
-                      <div className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
-                        <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center text-white font-bold text-xs">₿</div>
-                          <div>
-                            <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Bitcoin</p>
-                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>BTC</p>
+                      {assets.length > 0 ? assets.map((asset) => (
+                        <div key={asset.id} className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
+                          <div className="flex items-center gap-2">
+                            <div className="h-6 w-6 rounded bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
+                              {asset.symbol[0]}
+                            </div>
+                            <div>
+                              <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{asset.name}</p>
+                              <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{asset.symbol}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{asset.balance}</p>
+                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>${asset.value}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>$64,230</p>
-                          <p className="text-xs text-emerald-400">+1.8%</p>
+                      )) : (
+                        <div className={`text-center py-4 text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                          {balancesError ? t('common.failedToLoad', 'Failed to load balances') : t('wallet.noAssets', 'No assets found')}
                         </div>
-                      </div>
-                      <div className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
-                        <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs">Ξ</div>
-                          <div>
-                            <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Ethereum</p>
-                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>ETH</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>$3,210</p>
-                          <p className="text-xs text-emerald-400">+0.7%</p>
-                        </div>
-                      </div>
-                      <div className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
-                        <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-xs">$</div>
-                          <div>
-                            <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>USDC</p>
-                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>USDC</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>$1.00</p>
-                          <p className="text-xs text-emerald-400">+0.1%</p>
-                        </div>
-                      </div>
+                      )}
                     </div>
+                    
+                    {/* Desktop Asset List */}
                     <div className="hidden sm:block">
-                    <TokenRow name="Bitcoin" symbol="BTC" price="64,230" change="+1.8%" mcap="0.25 BTC" />
-                    <TokenRow name="Ethereum" symbol="ETH" price="3,210" change="+0.7%" mcap="2.5 ETH" />
-                    <TokenRow name="USDC" symbol="USDC" price="1.00" change="+0.1%" mcap="5,420 USDC" />
-                  </div>
+                      {assets.length > 0 ? assets.map((asset) => (
+                        <TokenRow 
+                          key={asset.id}
+                          name={asset.name} 
+                          symbol={asset.symbol} 
+                          balance={asset.balance} 
+                          value={asset.value}
+                        />
+                      )) : (
+                        <div className={`text-center py-4 text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                          {balancesError ? t('common.failedToLoad', 'Failed to load balances') : t('wallet.noAssets', 'No assets found')}
+                        </div>
+                      )}
+                    </div>
                 </div>
                 </div>
+                
                 <div className="grid gap-3 sm:gap-4">
-                  <StatCard icon={Coins} label={t('dashboard.rewards', 'Rewards')} value="$342" sub={t('dashboard.earnedThisMonth', 'Earned this month')} />
-                  <StatCard icon={Shield} label={t('dashboard.security', 'Security')} value="Active" sub={t('dashboard.multiSigProtection', 'Multi-sig protection')} />
-                  <StatCard icon={LineChart} label={t('dashboard.growth', 'Growth')} value="12.8%" sub={t('dashboard.portfolioPerformance', 'Portfolio performance')} />
+                  <StatCard 
+                    icon={Coins} 
+                    label={t('dashboard.balance', 'Total Balance')} 
+                    value={`$${totalBalance.toLocaleString()}`} 
+                    sub={t('dashboard.realTimeData', 'Real-time data')} 
+                  />
+                  <StatCard 
+                    icon={Shield} 
+                    label={t('dashboard.security', 'Security')} 
+                    value={creditScore ? creditScore.grade : 'N/A'} 
+                    sub={creditScore ? creditScore.status : t('dashboard.checkingSecurity', 'Checking...')} 
+                  />
+                  <StatCard 
+                    icon={LineChart} 
+                    label={t('dashboard.spending', 'Monthly Spending')} 
+                    value={spendingData ? `$${spendingData.total_spent}` : 'N/A'} 
+                    sub={spendingData ? t('dashboard.thisMonth', 'This month') : t('dashboard.loadingSpending', 'Loading...')} 
+                  />
                 </div>
               </div>
             </div>
@@ -706,7 +805,7 @@ export default function Web3ModernLayout() {
                   className={`w-full sm:w-auto rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${
                     isDark 
                       ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20 hover:shadow-red-500/40' 
-                      : 'bg-yellow-500 hover:bg-yellow-600 text-slate-900 shadow-yellow-500/20 hover:shadow-yellow-500/40'
+                      : 'bg-yellow-500 text-slate-900 hover:bg-yellow-600 shadow-yellow-500/20 hover:shadow-yellow-500/40'
                   }`}
                 >
                   {t('home.cta.getStarted', 'Get Started')}

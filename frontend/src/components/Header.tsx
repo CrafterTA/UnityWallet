@@ -334,11 +334,11 @@ useEffect(() => {
                        onClick={() => setShowUserMenu(!showUserMenu)}
                        className={`flex items-center p-1 rounded-xl border transition-all duration-200 group ${isDark ? 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20' : 'bg-slate-100/80 hover:bg-slate-200/80 border-slate-200 hover:border-slate-300'}`}
                      >
-                      {user?.avatar ? (
-                                                 <img src={user.avatar} alt={user?.name || 'User'} className={`h-8 w-8 rounded-full object-cover ring-1 ${isDark ? 'ring-white/10' : 'ring-slate-200'}`} />
-                      ) : (
+                                              {user?.avatar ? (
+                          <img src={user.avatar} alt={user?.full_name || user?.username || 'User'} className={`h-8 w-8 rounded-full object-cover ring-1 ${isDark ? 'ring-white/10' : 'ring-slate-200'}`} />
+                        ) : (
                         <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-sm font-semibold shadow-lg">
-                          {(user?.name?.[0] || 'U').toUpperCase()}
+                          {(user?.full_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
                         </div>
                       )}
                     </button>
@@ -349,17 +349,17 @@ useEffect(() => {
                         {/* User Info Header */}
                                                  <div className={`p-4 border-b bg-gradient-to-r from-red-500/10 to-yellow-500/10 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                           <div className="flex items-center gap-3">
-                            {user?.avatar ? (
-                                                             <img src={user.avatar} alt={user?.name || 'User'} className={`h-12 w-12 rounded-full object-cover ring-2 flex-shrink-0 ${isDark ? 'ring-white/20' : 'ring-slate-200'}`} />
+                                                        {user?.avatar ? (
+                              <img src={user.avatar} alt={user?.full_name || user?.username || 'User'} className={`h-12 w-12 rounded-full object-cover ring-2 flex-shrink-0 ${isDark ? 'ring-white/20' : 'ring-slate-200'}`} />
                             ) : (
                               <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-lg font-semibold shadow-lg flex items-center justify-center flex-shrink-0">
-                                {(user?.name?.[0] || 'U').toUpperCase()}
+                                {(user?.full_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
                               </div>
                             )}
-                                                         <div className="flex-1 min-w-0">
-                               <p className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{user?.name || 'User'}</p>
-                               <p className={`text-xs truncate ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{user?.email || 'user@example.com'}</p>
-                             </div>
+                                                                                 <div className="flex-1 min-w-0">
+                          <p className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{user?.full_name || user?.username || 'User'}</p>
+                          <p className={`text-xs truncate ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{user?.username || 'user'}</p>
+                        </div>
                           </div>
                         </div>
 

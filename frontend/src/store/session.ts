@@ -3,13 +3,15 @@ import { persist } from 'zustand/middleware'
 
 interface User {
   id: string
-  email: string
-  name: string
+  username: string
+  full_name: string
+  name?: string // Added for compatibility
+  email?: string // Added for compatibility
   avatar?: string
   phone?: string
   location?: string
   bio?: string
-  kycStatus: 'pending' | 'verified' | 'rejected'
+  kyc_status: 'PENDING' | 'VERIFIED' | 'REJECTED'
 }
 
 interface AuthState {
@@ -17,6 +19,8 @@ interface AuthState {
   isAuthenticated: boolean
   token: string | null
   login: (user: User, token: string) => void
+  loginWithToken: (token: string) => void
+  setUserProfile: (user: User) => void
   logout: () => void
   updateUser: (updates: Partial<User>) => void
 }
@@ -30,6 +34,15 @@ export const useAuthStore = create<AuthState>()(
       
       login: (user: User, token: string) => {
         set({ user, token, isAuthenticated: true })
+      },
+      
+      loginWithToken: (token: string) => {
+        // For backend API that only returns token
+        set({ token, isAuthenticated: true, user: null })
+      },
+      
+      setUserProfile: (user: User) => {
+        set({ user })
       },
       
       logout: () => {

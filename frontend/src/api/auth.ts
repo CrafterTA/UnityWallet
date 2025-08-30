@@ -1,84 +1,50 @@
 import { apiClient } from './client'
 
 export interface LoginRequest {
-  email: string
+  username: string
   password: string
 }
 
 export interface LoginResponse {
-  user: {
-    id: string
-    email: string
-    name: string
-    avatar?: string
-    kycStatus: 'pending' | 'verified' | 'rejected'
-  }
-  token: string
-}
-
-// Helper to build a mock login response
-function buildMockResponse(email: string): LoginResponse {
-  return {
-    user: {
-      id: '1',
-      email,
-      name: 'Thang Pham',
-      kycStatus: 'verified',
-    },
-    token: 'mock-jwt-token-' + Date.now(),
-  }
+  access_token: string
+  token_type: string
 }
 
 export const authApi = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const useMock = import.meta.env.VITE_USE_MOCK === 'true'
-    const allowDemoFallback = import.meta.env.VITE_ALLOW_DEMO_LOGIN === 'true'
-
-    if (useMock) {
-      return buildMockResponse(credentials.email)
-    }
-
     try {
-      const response = await apiClient.post<LoginResponse>('/auth/login', credentials)
+      // Backend expects query parameters, not body
+      const response = await apiClient.post<LoginResponse>(`/auth/login?username=${credentials.username}&password=${credentials.password}`)
       return response.data
-    } catch (err: any) {
-      // Network / backend not available fallback (dev convenience)
-      const isNetworkIssue =
-        (err?.message && /fetch|network|failed/i.test(err.message)) || err?.status === 'error'
-      if (allowDemoFallback && isNetworkIssue) {
-        console.warn('[authApi] Backend unavailable, falling back to demo login:', err)
-        return buildMockResponse(credentials.email)
-      }
-      throw err
+    } catch (error) {
+      throw new Error('Login failed. Please check your credentials and try again.')
+    }
+  },
+
+  async getProfile(): Promise<any> {
+    try {
+      const response = await apiClient.get<any>('/auth/profile')
+      return response.data
+    } catch (error) {
+      throw new Error('Failed to fetch user profile')
     }
   },
 
   async logout(): Promise<void> {
-    if (import.meta.env.VITE_USE_MOCK === 'true') return
     try {
       await apiClient.post('/auth/logout')
-    } catch (err) {
-      // Non‑critical; just log
-      console.warn('[authApi] logout error (ignored):', err)
+    } catch (error) {
+      // Logout should always succeed locally even if backend call fails
+      console.warn('Backend logout failed, but local logout succeeded:', error)
     }
   },
 
-  // Simple mock register for demo; backend call if available
-  async register(payload: { name: string; email: string; password: string }): Promise<{ ok: true }> {
-    const useMock = import.meta.env.VITE_USE_MOCK === 'true'
-    if (useMock) {
-      return { ok: true }
-    }
+  async register(payload: { username: string; full_name: string; password: string }): Promise<{ ok: true }> {
     try {
       await apiClient.post('/auth/register', payload)
       return { ok: true }
-    } catch (err: any) {
-      const isNetworkIssue = (err?.message && /fetch|network|failed/i.test(err.message)) || err?.status === 'error'
-      if (isNetworkIssue) {
-        console.warn('[authApi] Backend unavailable, falling back to mock register:', err)
-        return { ok: true }
-      }
-      throw err
+    } catch (error) {
+      throw new Error('Registration failed. Please try again.')
     }
   },
 }

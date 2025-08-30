@@ -32,12 +32,12 @@ function Settings() {
        items: [
          {
            label: t('settings.profileInfo', 'Profile Information'),
-           value: user?.name || 'Demo User',
+           value: user?.name || user?.full_name || 'Demo User',
            action: () => toast('Profile editing coming soon', { icon: 'ℹ️' }),
          },
          {
            label: t('settings.kycStatus', 'KYC Status'),
-           value: user?.kycStatus === 'verified' ? t('settings.verified', 'Verified') : t('settings.pending', 'Pending'),
+           value: user?.kyc_status === 'VERIFIED' ? t('settings.verified', 'Verified') : t('settings.pending', 'Pending'),
            action: () => toast('KYC management coming soon', { icon: 'ℹ️' }),
          },
        ],
@@ -120,7 +120,7 @@ function Settings() {
             {user?.avatar ? (
               <img
                 src={user.avatar}
-                alt={user.name}
+                alt={user?.name || user?.full_name || 'User'}
                 className="w-16 h-16 rounded-xl object-cover"
               />
             ) : (
@@ -128,14 +128,14 @@ function Settings() {
             )}
           </div>
                      <div>
-             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{user?.name}</h3>
-             <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>{user?.email}</p>
+             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{user?.name || user?.full_name}</h3>
+             <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>{user?.email || user?.username}</p>
              <div className="flex items-center space-x-2 mt-1">
                <div className={`w-2 h-2 rounded-full ${
-                 user?.kycStatus === 'verified' ? 'bg-green-400' : 'bg-yellow-400'
+                 user?.kyc_status === 'VERIFIED' ? 'bg-green-400' : 'bg-yellow-400'
                }`} />
                <span className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                 {user?.kycStatus === 'verified' ? 'Verified Account' : 'Pending Verification'}
+                 {user?.kyc_status === 'VERIFIED' ? 'Verified Account' : 'Pending Verification'}
                </span>
              </div>
            </div>

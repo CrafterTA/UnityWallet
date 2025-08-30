@@ -93,7 +93,7 @@ function QRCodeGenerator() {
             >
               {balances?.map((balance) => (
                 <option key={balance.asset_code} value={balance.asset_code} className="bg-slate-800 text-white">
-                  {balance.asset_code} ({parseFloat(balance.balance).toFixed(2)} {t('qr.available', 'available')})
+                  {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)} {t('qr.available', 'available')})
                 </option>
               ))}
             </select>
