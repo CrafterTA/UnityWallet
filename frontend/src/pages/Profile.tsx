@@ -19,11 +19,13 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useAuthStore } from '@/store/session';
+import { useThemeStore } from '@/store/theme';
 
 const Profile: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, updateUser } = useAuthStore();
+  const { isDark } = useThemeStore();
   
   const [isEditing, setIsEditing] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -105,25 +107,25 @@ const Profile: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className={`min-h-screen ${isDark ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40'}`}>
       {/* Header */}
-      <div className="sticky top-0 z-40 border-b border-white/10">
+      <div className={`sticky top-0 z-40 border-b ${isDark ? 'border-white/10' : 'border-slate-200/50'}`}>
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+              className={`p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-slate-100 hover:bg-slate-200'}`}
             >
-              <ArrowLeft className="h-5 w-5 text-white" />
+              <ArrowLeft className={`h-5 w-5 ${isDark ? 'text-white' : 'text-slate-700'}`} />
             </button>
-            <h1 className="text-2xl font-bold text-white">{t('profile.title', 'Profile')}</h1>
+            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('profile.title', 'Profile')}</h1>
           </div>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Profile Header */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 mb-8">
+        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-slate-200/50'} backdrop-blur-xl rounded-3xl border p-8 mb-8`}>
           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
             {/* Avatar Section */}
             <div className="relative group">
@@ -165,13 +167,13 @@ const Profile: React.FC = () => {
             {/* User Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-2xl font-bold text-white truncate">
+                <h2 className={`text-2xl font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   {isEditing ? (
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className="bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                      className={`border rounded-lg px-3 py-1 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 ${isDark ? 'bg-white/10 border-white/20 text-white placeholder-white/50' : 'bg-white border-slate-300 text-slate-900'}`}
                       placeholder={t('profile.namePlaceholder', 'Enter your name')}
                     />
                   ) : (
@@ -197,20 +199,20 @@ const Profile: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                    className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-slate-100 hover:bg-slate-200'}`}
                   >
-                    <Edit3 className="h-4 w-4 text-white/70" />
+                    <Edit3 className={`h-4 w-4 ${isDark ? 'text-white/70' : 'text-slate-600'}`} />
                   </button>
                 )}
               </div>
               
-              <p className="text-white/60 text-sm mb-4">
+              <p className={`text-sm mb-4 ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
                 {isEditing ? (
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-white/60 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-red-500/50 w-full"
+                    className={`border rounded-lg px-3 py-1 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 w-full ${isDark ? 'bg-white/10 border-white/20 text-white/60 placeholder-white/30' : 'bg-white border-slate-300 text-slate-700'}`}
                     placeholder={t('profile.emailPlaceholder', 'Enter your email')}
                   />
                 ) : (
@@ -220,7 +222,7 @@ const Profile: React.FC = () => {
 
               {/* Bio */}
               <div className="mb-4">
-                <label className="block text-white/80 text-sm font-medium mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                   {t('profile.bio', 'Bio')}
                 </label>
                 {isEditing ? (
@@ -228,11 +230,11 @@ const Profile: React.FC = () => {
                     value={formData.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     rows={3}
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+                    className={`w-full border rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none ${isDark ? 'bg-white/10 border-white/20 text-white placeholder-white/30' : 'bg-white border-slate-300 text-slate-700'}`}
                     placeholder={t('profile.bioPlaceholder', 'Tell us about yourself...')}
                   />
                 ) : (
-                  <p className="text-white/70 text-sm">
+                  <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                     {formData.bio || t('profile.noBio', 'No bio added yet.')}
                   </p>
                 )}
@@ -241,14 +243,14 @@ const Profile: React.FC = () => {
               {/* Contact Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-white/50" />
-                  <span className="text-white/70 text-sm">
+                  <Phone className={`h-4 w-4 ${isDark ? 'text-white/50' : 'text-slate-500'}`} />
+                  <span className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                     {isEditing ? (
                       <input
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white/70 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm"
+                        className={`border rounded-lg px-2 py-1 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm ${isDark ? 'bg-white/10 border-white/20 text-white/70 placeholder-white/30' : 'bg-white border-slate-300 text-slate-700'}`}
                         placeholder={t('profile.phonePlaceholder', 'Phone number')}
                       />
                     ) : (
@@ -258,14 +260,14 @@ const Profile: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-4 w-4 text-white/50" />
-                  <span className="text-white/70 text-sm">
+                  <MapPin className={`h-4 w-4 ${isDark ? 'text-white/50' : 'text-slate-500'}`} />
+                  <span className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                     {isEditing ? (
                       <input
                         type="text"
                         value={formData.location}
                         onChange={(e) => handleInputChange('location', e.target.value)}
-                        className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white/70 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm"
+                        className={`border rounded-lg px-2 py-1 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm ${isDark ? 'bg-white/10 border-white/20 text-white/70 placeholder-white/30' : 'bg-white border-slate-300 text-slate-700'}`}
                         placeholder={t('profile.locationPlaceholder', 'Location')}
                       />
                     ) : (
@@ -281,13 +283,13 @@ const Profile: React.FC = () => {
         {/* Profile Sections */}
         <div className="space-y-6">
           {profileSections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
-              <div className="p-6 border-b border-white/10">
+            <div key={sectionIndex} className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-slate-200/50'} backdrop-blur-xl rounded-2xl border overflow-hidden`}>
+              <div className={`p-6 border-b ${isDark ? 'border-white/10' : 'border-slate-200/50'}`}>
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-white/10">
-                    <section.icon className="h-5 w-5 text-white" />
+                  <div className={`p-2 rounded-lg ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
+                    <section.icon className={`h-5 w-5 ${isDark ? 'text-white' : 'text-slate-700'}`} />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">{section.title}</h3>
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{section.title}</h3>
                 </div>
               </div>
               
@@ -296,10 +298,10 @@ const Profile: React.FC = () => {
                   <button
                     key={itemIndex}
                     onClick={item.action}
-                    className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-left text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200 group"
+                    className={`flex w-full items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group ${isDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
                   >
-                    <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
-                      <item.icon className="h-4 w-4" />
+                    <div className={`p-1.5 rounded-lg transition-colors ${isDark ? 'bg-white/5 group-hover:bg-white/10' : 'bg-slate-100 group-hover:bg-slate-200'}`}>
+                      <item.icon className={`h-4 w-4 ${isDark ? 'text-white/70' : 'text-slate-600'}`} />
                     </div>
                     <span className="font-medium">{item.label}</span>
                   </button>
@@ -309,10 +311,10 @@ const Profile: React.FC = () => {
           ))}
 
           {/* Danger Zone */}
-          <div className="bg-red-500/5 backdrop-blur-xl rounded-2xl border border-red-500/20 overflow-hidden">
-            <div className="p-6 border-b border-red-500/20">
+          <div className={`${isDark ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50/80 border-red-200/50'} backdrop-blur-xl rounded-2xl border overflow-hidden`}>
+            <div className={`p-6 border-b ${isDark ? 'border-red-500/20' : 'border-red-200/50'}`}>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-red-500/20">
+                <div className={`p-2 rounded-lg ${isDark ? 'bg-red-500/20' : 'bg-red-100'}`}>
                   <Trash2 className="h-5 w-5 text-red-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-red-400">{t('profile.dangerZone', 'Danger Zone')}</h3>
@@ -320,8 +322,8 @@ const Profile: React.FC = () => {
             </div>
             
             <div className="p-2">
-              <button className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-left text-red-400 hover:bg-red-500/10 transition-all duration-200 group">
-                <div className="p-1.5 rounded-lg bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
+              <button className={`flex w-full items-center gap-3 px-4 py-3 rounded-xl text-left text-red-400 transition-all duration-200 group ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-100'}`}>
+                <div className={`p-1.5 rounded-lg transition-colors ${isDark ? 'bg-red-500/10 group-hover:bg-red-500/20' : 'bg-red-100 group-hover:bg-red-200'}`}>
                   <Trash2 className="h-4 w-4" />
                 </div>
                 <span className="font-medium">{t('profile.deleteAccount', 'Delete Account')}</span>

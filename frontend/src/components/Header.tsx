@@ -410,10 +410,16 @@ useEffect(() => {
               ) : (
                 <button
                   onClick={() => go('/login')}
-                  className="group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 shadow-lg hover:scale-105 bg-red-600 hover:bg-red-700 text-white shadow-red-500/20 hover:shadow-red-500/40"
+                  className="group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-300 shadow-md hover:scale-105 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 hover:from-yellow-400 hover:via-orange-400 hover:to-red-700 text-white shadow-yellow-500/20 hover:shadow-yellow-500/30 relative overflow-hidden"
                 >
-                  <span>{t('navigation.getStarted', 'Get Started')}</span>
-                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  {/* Subtle shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -skew-x-12 -translate-x-full group-hover:translate-x-full" />
+                  
+                  {/* Subtle glow effect */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-red-600/10 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  
+                  <span className="relative z-10 drop-shadow-sm">{t('navigation.getStarted', 'Get Started')}</span>
+                  <ArrowRight className="h-4 w-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110 relative z-10 drop-shadow-sm" />
                 </button>
               )}
             </div>
