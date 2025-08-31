@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Text, Boolean, DECIMAL
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Text, Boolean, DECIMAL, JSON
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
@@ -29,6 +29,27 @@ class AlertType(enum.Enum):
     TRANSACTION = "transaction"
     LOYALTY = "loyalty"
     SECURITY = "security"
+
+class AuditAction(enum.Enum):
+    CREATE = "create"
+    READ = "read"
+    UPDATE = "update"
+    DELETE = "delete"
+    LOGIN = "login"
+    LOGOUT = "logout"
+    PAYMENT = "payment"
+    SWAP = "swap"
+    TRANSFER = "transfer"
+    KYC_VERIFY = "kyc_verify"
+    PASSWORD_CHANGE = "password_change"
+    API_KEY_CREATE = "api_key_create"
+    API_KEY_DELETE = "api_key_delete"
+
+class AuditStatus(enum.Enum):
+    SUCCESS = "success"
+    FAILED = "failed"
+    PENDING = "pending"
+    ERROR = "error"
 
 class User(Base):
     __tablename__ = "users"
@@ -133,3 +154,24 @@ class Alert(Base):
     
     # Relationships
     user = relationship("User", back_populates="alerts")
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    ts = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), nullable=True, index=True)  # Nullable for anonymous actions
+    action = Column(Enum(AuditAction), nullable=False, index=True)
+    resource = Column(String(100), nullable=False, index=True)  # e.g., "user", "transaction", "account"
+    resource_id = Column(String(100), nullable=True, index=True)  # Resource identifier (UUID as string, etc.)
+    status = Column(Enum(AuditStatus), nullable=False, index=True)
+    request_id = Column(String(100), nullable=True, index=True)  # Correlation ID
+    ip = Column(String(45), nullable=True, index=True)  # IPv4/IPv6 address
+    meta = Column(JSON, nullable=True)  # Flexible metadata in JSON format
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    
+    # Composite indexes for common query patterns
+    __table_args__ = (
+        # Index for queries by user and time range
+        {'mysql_engine': 'InnoDB'},
+    )

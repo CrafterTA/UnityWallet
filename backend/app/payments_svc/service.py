@@ -3,9 +3,11 @@
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from ..common.models import Account, Balance, Transaction, TransactionType, TransactionStatus
+from ..common.models import Account, Balance, Transaction, TransactionType, TransactionStatus, AuditAction, AuditStatus
 from ..common.redis_client import get_redis_client
 from ..common.logging import get_logger
+from ..common.audit import write_audit
+from fastapi import Request
 import uuid
 import json
 
@@ -24,7 +26,8 @@ class PaymentsService:
         user_id: str,
         asset_code: str,
         amount: Decimal,
-        memo: Optional[str] = None
+        memo: Optional[str] = None,
+        request: Request = None
     ) -> Dict[str, Any]:
         """Create QR code for payment request."""
         try:
@@ -65,6 +68,23 @@ class PaymentsService:
                 "amount": str(amount)
             })
             
+            # Audit QR creation
+            write_audit(
+                db=self.db,
+                action=AuditAction.CREATE,
+                resource="qr_payment",
+                status=AuditStatus.SUCCESS,
+                user_id=user_id,
+                resource_id=qr_id,
+                request=request,
+                meta={
+                    "asset_code": asset_code,
+                    "amount": str(amount),
+                    "memo": memo,
+                    "recipient_address": account.stellar_address
+                }
+            )
+            
             return {
                 "qr_id": qr_id,
                 "payload": payload
@@ -72,6 +92,23 @@ class PaymentsService:
             
         except Exception as e:
             logger.error(f"QR creation failed for user {user_id}: {e}")
+            
+            # Audit QR creation failure
+            write_audit(
+                db=self.db,
+                action=AuditAction.CREATE,
+                resource="qr_payment",
+                status=AuditStatus.ERROR,
+                user_id=user_id,
+                request=request,
+                meta={
+                    "asset_code": asset_code,
+                    "amount": str(amount),
+                    "memo": memo,
+                    "error": str(e)
+                }
+            )
+            
             raise
     
     def process_qr_payment(
@@ -79,7 +116,8 @@ class PaymentsService:
         qr_id: str,
         payer_user_id: str,
         idempotency_key: str,
-        correlation_id: Optional[str] = None
+        correlation_id: Optional[str] = None,
+        request: Request = None
     ) -> Dict[str, Any]:
         """Process QR code payment with idempotency."""
         try:
@@ -210,9 +248,45 @@ class PaymentsService:
                 "correlation_id": correlation_id
             })
             
+            # Audit successful payment
+            write_audit(
+                db=self.db,
+                action=AuditAction.PAYMENT,
+                resource="qr_payment",
+                status=AuditStatus.SUCCESS,
+                user_id=payer_user_id,
+                resource_id=qr_id,
+                request=request,
+                meta={
+                    "asset_code": asset_code,
+                    "amount": str(amount),
+                    "recipient_user_id": recipient_user_id,
+                    "memo": memo,
+                    "payer_tx_id": str(payer_tx.id),
+                    "recipient_tx_id": str(recipient_tx.id),
+                    "correlation_id": correlation_id
+                }
+            )
+            
             return result
             
         except Exception as e:
             self.db.rollback()
             logger.error(f"QR payment failed: {e}")
+            
+            # Audit payment failure
+            write_audit(
+                db=self.db,
+                action=AuditAction.PAYMENT,
+                resource="qr_payment",
+                status=AuditStatus.ERROR,
+                user_id=payer_user_id,
+                resource_id=qr_id,
+                request=request,
+                meta={
+                    "error": str(e),
+                    "correlation_id": correlation_id
+                }
+            )
+            
             raise

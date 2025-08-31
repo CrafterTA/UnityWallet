@@ -1,5 +1,5 @@
 """Auth service router"""
-from fastapi import APIRouter, Depends, Query, Form
+from fastapi import APIRouter, Depends, Query, Form, Request
 from sqlalchemy.orm import Session
 from ..common.database import get_db
 from ..common.auth import get_current_user
@@ -11,6 +11,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
+    request: Request,
     username: str = Query(..., description="Username for authentication"),
     password: str = Query(..., description="Password for authentication"),
     db: Session = Depends(get_db)
@@ -25,7 +26,7 @@ async def login(
     """
     login_data = LoginRequest(username=username, password=password)
     auth_service = AuthService(db)
-    return auth_service.login(login_data)
+    return auth_service.login(login_data, request)
 
 @router.post("/register", response_model=UserResponse)
 async def register(

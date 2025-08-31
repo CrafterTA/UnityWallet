@@ -1,9 +1,10 @@
 """QR code service business logic"""
 from sqlalchemy.orm import Session
-from ..common.models import User, Account, Balance, Transaction, TransactionType, TransactionStatus
+from ..common.models import User, Account, Balance, Transaction, TransactionType, TransactionStatus, AuditAction, AuditStatus
 from ..common.database import get_redis
+from ..common.audit import write_audit
 from .schema import QRCreateRequest, QRCreateResponse, QRPayRequest, QRPayResponse
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from decimal import Decimal
 from datetime import datetime, timedelta
 import json
@@ -20,7 +21,7 @@ class QRService:
         self.db = db
         self.redis = get_redis()
     
-    def create_qr_code(self, user: User, request: QRCreateRequest) -> QRCreateResponse:
+    def create_qr_code(self, user: User, request: QRCreateRequest, http_request: Request = None) -> QRCreateResponse:
         """Create a QR code for payment request"""
         logger.info(f"Creating QR code for user {user.username}: {request.amount} {request.asset_code}")
         
@@ -31,6 +32,21 @@ class QRService:
         ).first()
         
         if not account:
+            # Audit QR creation failure
+            write_audit(
+                db=self.db,
+                action=AuditAction.CREATE,
+                resource="qr_code",
+                status=AuditStatus.ERROR,
+                user_id=str(user.id),
+                request=http_request,
+                meta={
+                    "asset_code": request.asset_code,
+                    "amount": str(request.amount),
+                    "error": f"No {request.asset_code} account found"
+                }
+            )
+            
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"No {request.asset_code} account found"
@@ -59,6 +75,23 @@ class QRService:
         
         logger.info(f"QR code {qr_id} created successfully")
         
+        # Audit QR creation
+        write_audit(
+            db=self.db,
+            action=AuditAction.CREATE,
+            resource="qr_code",
+            status=AuditStatus.SUCCESS,
+            user_id=str(user.id),
+            resource_id=qr_id,
+            request=http_request,
+            meta={
+                "asset_code": request.asset_code,
+                "amount": str(request.amount),
+                "expires_at": expires_at.isoformat(),
+                "stellar_address": account.stellar_address
+            }
+        )
+        
         return QRCreateResponse(
             qr_id=qr_id,
             asset_code=request.asset_code,
@@ -67,7 +100,7 @@ class QRService:
             expires_at=expires_at
         )
     
-    def pay_qr_code(self, user: User, request: QRPayRequest, idempotency_key: str = None) -> QRPayResponse:
+    def pay_qr_code(self, user: User, request: QRPayRequest, idempotency_key: str = None, http_request: Request = None) -> QRPayResponse:
         """Pay a QR code"""
         logger.info(f"Processing QR payment from user {user.username} for QR {request.qr_id}")
         
@@ -83,6 +116,21 @@ class QRService:
         # Get QR data from Redis
         qr_data_str = self.redis.get(f"qr:{request.qr_id}")
         if not qr_data_str:
+            # Audit QR payment failure
+            write_audit(
+                db=self.db,
+                action=AuditAction.PAYMENT,
+                resource="qr_code",
+                status=AuditStatus.ERROR,
+                user_id=str(user.id),
+                resource_id=request.qr_id,
+                request=http_request,
+                meta={
+                    "error": "QR code not found or expired",
+                    "idempotency_key": idempotency_key
+                }
+            )
+            
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="QR code not found or expired"
@@ -99,6 +147,23 @@ class QRService:
         
         # Check if user is trying to pay their own QR code
         if str(user.id) == qr_data["user_id"]:
+            # Audit QR payment failure
+            write_audit(
+                db=self.db,
+                action=AuditAction.PAYMENT,
+                resource="qr_code",
+                status=AuditStatus.ERROR,
+                user_id=str(user.id),
+                resource_id=request.qr_id,
+                request=http_request,
+                meta={
+                    "error": "Cannot pay your own QR code",
+                    "asset_code": qr_data["asset_code"],
+                    "amount": qr_data["amount"],
+                    "idempotency_key": idempotency_key
+                }
+            )
+            
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Cannot pay your own QR code"
@@ -183,5 +248,23 @@ class QRService:
             }))
         
         logger.info(f"QR payment successful: {amount} {qr_data['asset_code']}")
+        
+        # Audit successful QR payment
+        write_audit(
+            db=self.db,
+            action=AuditAction.PAYMENT,
+            resource="qr_code",
+            status=AuditStatus.SUCCESS,
+            user_id=str(user.id),
+            resource_id=request.qr_id,
+            request=http_request,
+            meta={
+                "asset_code": qr_data["asset_code"],
+                "amount": str(amount),
+                "recipient_user_id": qr_data["user_id"],
+                "transaction_id": str(transaction.id),
+                "idempotency_key": idempotency_key
+            }
+        )
         
         return result

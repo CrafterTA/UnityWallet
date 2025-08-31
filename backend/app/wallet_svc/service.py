@@ -3,10 +3,13 @@
 from decimal import Decimal
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
-from ..common.models import Balance, Account, Transaction, TransactionType, TransactionStatus
+from ..common.models import Balance, Account, Transaction, TransactionType, TransactionStatus, AuditAction, AuditStatus
 from ..common.database import get_db
 from ..common.logging import get_logger, log_transaction
 from ..common.stellar_adapter import get_stellar_adapter
+from ..common.idemp import check_idempotency_key, store_idempotency_result
+from ..common.audit import write_audit
+from fastapi import Request
 import uuid
 
 logger = get_logger("wallet_service")
@@ -47,7 +50,8 @@ class WalletService:
         asset_code: str, 
         amount: Decimal,
         memo: Optional[str] = None,
-        correlation_id: Optional[str] = None
+        correlation_id: Optional[str] = None,
+        request: Request = None
     ) -> Dict[str, Any]:
         """Process payment transaction."""
         tx_id = str(uuid.uuid4())
@@ -120,6 +124,25 @@ class WalletService:
                     stellar_tx_hash=stellar_result.get("tx_hash")
                 )
                 
+                # Audit successful payment
+                write_audit(
+                    db=self.db,
+                    action=AuditAction.PAYMENT,
+                    resource="payment",
+                    status=AuditStatus.SUCCESS,
+                    user_id=user_id,
+                    resource_id=str(transaction.id),
+                    request=request,
+                    meta={
+                        "destination": destination,
+                        "asset_code": asset_code,
+                        "amount": str(amount),
+                        "memo": memo,
+                        "stellar_tx_hash": stellar_result.get("tx_hash"),
+                        "correlation_id": correlation_id
+                    }
+                )
+                
                 return {
                     "ok": True,
                     "tx_id": str(transaction.id),
@@ -145,11 +168,49 @@ class WalletService:
                     result_code=stellar_result.get("error")
                 )
                 
+                # Audit failed payment
+                write_audit(
+                    db=self.db,
+                    action=AuditAction.PAYMENT,
+                    resource="payment",
+                    status=AuditStatus.FAILED,
+                    user_id=user_id,
+                    resource_id=str(transaction.id),
+                    request=request,
+                    meta={
+                        "destination": destination,
+                        "asset_code": asset_code,
+                        "amount": str(amount),
+                        "memo": memo,
+                        "error": stellar_result.get("error"),
+                        "correlation_id": correlation_id
+                    }
+                )
+                
                 raise Exception(f"Stellar transaction failed: {stellar_result.get('error')}")
                 
         except Exception as e:
             self.db.rollback()
             logger.error(f"Payment failed for user {user_id}: {e}")
+            
+            # Audit payment error
+            write_audit(
+                db=self.db,
+                action=AuditAction.PAYMENT,
+                resource="payment",
+                status=AuditStatus.ERROR,
+                user_id=user_id,
+                request=request,
+                meta={
+                    "destination": destination,
+                    "asset_code": asset_code,
+                    "amount": str(amount),
+                    "memo": memo,
+                    "error": str(e),
+                    "correlation_id": correlation_id
+                }
+            )
+            
             raise
     
     def process_swap(
@@ -158,9 +219,86 @@ class WalletService:
         sell_asset: str,
         buy_asset: str,
         amount: Decimal,
-        correlation_id: Optional[str] = None
+        idempotency_key: str,
+        correlation_id: Optional[str] = None,
+        request: Request = None
     ) -> Dict[str, Any]:
-        """Process 1:1 asset swap."""
+        """Process 1:1 asset swap with idempotency protection."""
+        # Use composite key format: user_id:idempotency_key
+        composite_key = f"{user_id}:{idempotency_key}"
+        
+        try:
+            # Check for existing idempotency result
+            existing_result = check_idempotency_key(composite_key)
+            if existing_result is not None:
+                logger.error(
+                    f"Duplicate swap request detected",
+                    extra={
+                        "user_id": user_id,
+                        "idempotency_key": idempotency_key,
+                        "composite_key": composite_key,
+                        "sell_asset": sell_asset,
+                        "buy_asset": buy_asset,
+                        "amount": str(amount),
+                        "correlation_id": correlation_id,
+                        "error_type": "duplicate_request"
+                    }
+                )
+                # Return a special result indicating duplicate
+                return {
+                    "_duplicate": True,
+                    "composite_key": composite_key,
+                    "existing_result": existing_result
+                }
+            
+            # Execute the swap
+            result = self._execute_swap(user_id, sell_asset, buy_asset, amount, correlation_id, request)
+            
+            # Convert Decimal objects to strings for Redis storage
+            serializable_result = {
+                "ok": result["ok"],
+                "swapped": str(result["swapped"]),
+                "rate": str(result["rate"])
+            }
+            
+            # Store the result for future duplicate detection
+            success = store_idempotency_result(composite_key, serializable_result, ttl=3600)
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Swap failed for user {user_id}: {e}")
+            
+            # Audit swap failure
+            write_audit(
+                db=self.db,
+                action=AuditAction.SWAP,
+                resource="asset",
+                status=AuditStatus.ERROR,
+                user_id=user_id,
+                request=request,
+                meta={
+                    "sell_asset": sell_asset,
+                    "buy_asset": buy_asset,
+                    "amount": str(amount),
+                    "idempotency_key": idempotency_key,
+                    "correlation_id": correlation_id,
+                    "error": str(e)
+                }
+            )
+            
+            raise
+    
+    def _execute_swap(
+        self,
+        user_id: str,
+        sell_asset: str,
+        buy_asset: str,
+        amount: Decimal,
+        correlation_id: Optional[str] = None,
+        request: Request = None
+    ) -> Dict[str, Any]:
+        """Execute the actual swap operation."""
         tx_id = str(uuid.uuid4())
         
         try:
@@ -249,6 +387,26 @@ class WalletService:
                     "buy_asset": buy_asset,
                     "buy_amount": float(buy_amount),
                     "rate": float(swap_rate)
+                }
+            )
+            
+            # Audit successful swap
+            write_audit(
+                db=self.db,
+                action=AuditAction.SWAP,
+                resource="asset",
+                status=AuditStatus.SUCCESS,
+                user_id=user_id,
+                resource_id=str(transaction.id),
+                request=request,
+                meta={
+                    "sell_asset": sell_asset,
+                    "buy_asset": buy_asset,
+                    "sell_amount": str(amount),
+                    "buy_amount": str(buy_amount),
+                    "rate": str(swap_rate),
+                    "transaction_id": str(transaction.id),
+                    "correlation_id": correlation_id
                 }
             )
             

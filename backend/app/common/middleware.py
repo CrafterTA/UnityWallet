@@ -1,4 +1,4 @@
-"""Middleware for CORS, correlation ID, and rate limiting"""
+"""Middleware for CORS, correlation ID, rate limiting, and request ID"""
 from fastapi import FastAPI, Request, Response, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -8,6 +8,7 @@ from typing import Callable
 from .config import settings
 from .logging import set_correlation_id, get_correlation_id, generate_correlation_id
 from .database import get_redis
+from .audit import RequestIdMiddleware
 import logging
 
 logger = logging.getLogger(__name__)
@@ -100,6 +101,9 @@ def setup_middleware(app: FastAPI):
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    # Request ID middleware (for audit and debugging)
+    app.add_middleware(RequestIdMiddleware)
     
     # Correlation ID middleware
     app.add_middleware(CorrelationIdMiddleware)

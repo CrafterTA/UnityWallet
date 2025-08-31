@@ -5,7 +5,9 @@ from ..common.auth import authenticate_user, create_access_token, get_password_h
 from ..common.logging import set_user_id
 from .schema import LoginRequest, RegisterRequest, TokenResponse, UserResponse
 from ..common.models import KYCStatus
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
+from ..common.audit import write_audit
+from ..common.models import AuditAction, AuditStatus
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,7 +18,7 @@ class AuthService:
     def __init__(self, db: Session):
         self.db = db
     
-    def login(self, login_data: LoginRequest) -> TokenResponse:
+    def login(self, login_data: LoginRequest, request: Request = None) -> TokenResponse:
         """Authenticate user and return JWT token"""
         logger.info(f"Login attempt for username: {login_data.username}")
         
@@ -25,6 +27,22 @@ class AuthService:
         
         if not user:
             logger.warning(f"Failed login attempt for username: {login_data.username}")
+            
+            # Audit failed login attempt
+            write_audit(
+                db=self.db,
+                action=AuditAction.LOGIN,
+                resource="user",
+                status=AuditStatus.FAILED,
+                user_id=None,  # No user ID for failed login
+                resource_id=login_data.username,
+                request=request,
+                meta={
+                    "attempted_username": login_data.username,
+                    "failure_reason": "invalid_credentials"
+                }
+            )
+            
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",
@@ -38,6 +56,21 @@ class AuthService:
         access_token = create_access_token(data={"sub": user.username, "user_id": str(user.id)})
         
         logger.info(f"User {user.username} logged in successfully")
+        
+        # Audit successful login
+        write_audit(
+            db=self.db,
+            action=AuditAction.LOGIN,
+            resource="user",
+            status=AuditStatus.SUCCESS,
+            user_id=str(user.id),
+            resource_id=str(user.id),
+            request=request,
+            meta={
+                "username": user.username,
+                "login_method": "password"
+            }
+        )
         
         return TokenResponse(access_token=access_token)
 

@@ -63,6 +63,14 @@ class Settings(BaseSettings):
     STELLAR_DRY_RUN: bool = True
     STELLAR_HORIZON_URL: str = "https://horizon-testnet.stellar.org"
     
+    # Horizon Client Configuration
+    HORIZON_ENDPOINTS: List[str] = [
+        "https://horizon-testnet.stellar.org",
+        "https://horizon.stellar.org",  # mainnet as fallback
+        "https://horizon-testnet.stellar.org"  # testnet again as final fallback
+    ]
+    HTTP_TIMEOUT_S: int = 10
+    
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
     RATE_LIMIT_PER_HOUR: int = 1000

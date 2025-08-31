@@ -1,5 +1,5 @@
 """QR code service router"""
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 from ..common.database import get_db
@@ -13,7 +13,8 @@ router = APIRouter(prefix="/qr", tags=["QR Codes"])
 
 @router.post("/create", response_model=QRCreateResponse, status_code=201)
 async def create_qr_code(
-    request: QRCreateRequest,
+    qr_request: QRCreateRequest,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -26,12 +27,13 @@ async def create_qr_code(
     Creates a QR code that others can pay.
     """
     qr_service = QRService(db)
-    return qr_service.create_qr_code(current_user, request)
+    return qr_service.create_qr_code(current_user, qr_request, request)
 
 
 @router.post("/pay", response_model=QRPayResponse)
 async def pay_qr_code(
-    request: QRPayRequest,
+    pay_request: QRPayRequest,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
@@ -45,4 +47,4 @@ async def pay_qr_code(
     Supports idempotency via Idempotency-Key header.
     """
     qr_service = QRService(db)
-    return qr_service.pay_qr_code(current_user, request, idempotency_key)
+    return qr_service.pay_qr_code(current_user, pay_request, idempotency_key, request)
