@@ -1,9 +1,14 @@
 """Main FastAPI application"""
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
-from sqlalchemy import text
+# Standard library imports
 import logging
 from typing import Dict, Any, Optional
+
+# Third-party imports
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+
+# Local application imports
 from .common.config import settings
 from .common.database import create_tables, get_db, get_redis
 from .common.logging import setup_logging, get_logger
@@ -15,6 +20,10 @@ from .payments_svc.router import router as payments_router
 from .loyalty_svc.router import router as loyalty_router
 from .analytics_svc.router import router as analytics_router
 from .qr_svc.router import router as qr_router
+from .transactions_svc.router import router as transactions_router
+from .quotes_svc.router import router as quotes_router
+from .budgets_svc.router import router as budgets_router
+from .savings_svc.router import router as savings_router
 
 # Setup logger for health checks
 logger = get_logger("health")
@@ -115,6 +124,10 @@ app.include_router(payments_router)
 app.include_router(loyalty_router)
 app.include_router(analytics_router)
 app.include_router(qr_router)
+app.include_router(transactions_router)
+app.include_router(quotes_router)
+app.include_router(budgets_router)
+app.include_router(savings_router)
 
 @app.on_event("startup")
 async def startup_event():

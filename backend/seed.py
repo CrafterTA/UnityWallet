@@ -228,12 +228,178 @@ def seed_database():
         print("✅ Database seeded successfully!")
         print(f"Created {len(users)} users with accounts, balances, and sample data")
         
+        # Optional: Seed ML data if available
+        try:
+            seed_ml_data(db)
+        except Exception as e:
+            print(f"⚠️  ML seed data not available: {e}")
+        
     except Exception as e:
         print(f"❌ Error seeding database: {e}")
         db.rollback()
         raise
     finally:
         db.close()
+
+def seed_ml_data(db):
+    """Seed ML-generated transaction data if available"""
+    import json
+    import csv
+    from pathlib import Path
+    from datetime import datetime
+    
+    # Path to ML seed data
+    ML_ROOT = Path(__file__).parent.parent / "ml"
+    SEED_DATA_PATH = ML_ROOT / "data" / "seed"
+    
+    if not SEED_DATA_PATH.exists():
+        print("🔄 Generate ML seed data first: cd ml && python data/seed/make_seed.py")
+        return
+        
+    # Load transactions
+    transactions_file = SEED_DATA_PATH / "transactions.csv"
+    if not transactions_file.exists():
+        print("🔄 No ML transaction data found")
+        return
+        
+    print("🔄 Loading ML seed data...")
+    
+    # Load personas for user mapping
+    personas_file = SEED_DATA_PATH / "personas.json"
+    if personas_file.exists():
+        with open(personas_file, 'r', encoding='utf-8') as f:
+            personas = json.load(f)
+            
+        # Create ML personas as additional users
+        ml_users = []
+        for persona_key, persona_config in personas.items():
+            # Check if user exists
+            existing_user = db.query(User).filter(
+                User.username == persona_config['user_id'].lower()
+            ).first()
+            
+            if not existing_user:
+                ml_user = User(
+                    username=persona_config['user_id'].lower(),
+                    full_name=persona_config['name'],
+                    hashed_password=get_password_hash("password123"),
+                    kyc_status=KYCStatus.VERIFIED
+                )
+                db.add(ml_user)
+                ml_users.append(ml_user)
+                
+        if ml_users:
+            db.commit()
+            
+            # Create accounts for ML users
+            for user in ml_users:
+                for asset_code in ["SYP", "USD"]:
+                    account = Account(
+                        user_id=user.id,
+                        asset_code=asset_code,
+                        stellar_address=f"TEST_ML_{user.username.upper()}_{asset_code}"
+                    )
+                    db.add(account)
+                    
+                    # Initial balance
+                    balance = Balance(
+                        account_id=account.id,
+                        asset_code=asset_code,
+                        amount=Decimal("10000.0" if asset_code == "USD" else "25000000.0")
+                    )
+                    db.add(balance)
+                    
+            db.commit()
+            print(f"✅ Created {len(ml_users)} ML persona users")
+    
+    # Load and insert transactions 
+    with open(transactions_file, 'r', encoding='utf-8') as f:
+        transactions = list(csv.DictReader(f))
+        
+    transaction_count = 0
+    for txn_data in transactions:
+        # Find user
+        user = db.query(User).filter(
+            User.username == txn_data['user_id'].lower()
+        ).first()
+        
+        if not user:
+            continue
+            
+        # Find USD account
+        account = db.query(Account).filter(
+            Account.user_id == user.id,
+            Account.asset_code == "USD"
+        ).first()
+        
+        if not account:
+            continue
+            
+        # Convert VND to USD (rough conversion)
+        amount_vnd = float(txn_data['amount'])
+        amount_usd = amount_vnd / 24000
+        
+        # Create transaction
+        transaction = Transaction(
+            user_id=user.id,
+            tx_type=TransactionType.PAYMENT,
+            asset_code="USD",
+            amount=Decimal(str(round(amount_usd, 4))),
+            status=TransactionStatus.SUCCESS,
+            stellar_tx_hash=f"ml_{txn_data['transaction_id']}",
+            destination="ML_SEED_DESTINATION",
+            memo=txn_data.get('description', 'ML Seed Transaction'),
+            metadata=json.dumps({
+                'category': txn_data.get('category'),
+                'merchant': txn_data.get('merchant_name'),
+                'location': txn_data.get('location'),
+                'mcc': txn_data.get('mcc'),
+                'is_weekend': txn_data.get('is_weekend'),
+                'channel': txn_data.get('channel'),
+                'original_vnd_amount': amount_vnd
+            })
+        )
+        
+        db.add(transaction)
+        transaction_count += 1
+        
+        # Batch commit
+        if transaction_count % 50 == 0:
+            db.commit()
+            
+    db.commit()
+    print(f"✅ Seeded {transaction_count} ML transactions")
+    
+    # Load credit scores
+    credit_file = SEED_DATA_PATH / "credit_features.csv"
+    if credit_file.exists():
+        with open(credit_file, 'r', encoding='utf-8') as f:
+            credit_features = list(csv.DictReader(f))
+            
+        for credit_data in credit_features:
+            user = db.query(User).filter(
+                User.username == credit_data['user_id'].lower()
+            ).first()
+            
+            if user:
+                # Update or create credit score
+                existing_credit = db.query(CreditScore).filter(
+                    CreditScore.user_id == user.id
+                ).first()
+                
+                score = int(float(credit_data['credit_score']))
+                
+                if existing_credit:
+                    existing_credit.score = score
+                else:
+                    credit_score = CreditScore(
+                        user_id=user.id,
+                        score=score
+                    )
+                    db.add(credit_score)
+                    
+        db.commit()
+        print(f"✅ Updated credit scores for {len(credit_features)} users")
 
 if __name__ == "__main__":
     seed_database()

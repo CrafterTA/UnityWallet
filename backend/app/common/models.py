@@ -18,6 +18,7 @@ class TransactionType(enum.Enum):
     SWAP = "swap"
     EARN = "earn"
     BURN = "burn"
+    P2P_TRANSFER = "p2p_transfer"
 
 class TransactionStatus(enum.Enum):
     PENDING = "pending"

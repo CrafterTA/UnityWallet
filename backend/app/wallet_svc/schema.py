@@ -22,21 +22,6 @@ class BalancesResponse(BaseModel):
     balances: List[BalanceResponse]
 
 
-class PaymentRequest(BaseModel):
-    """Payment request schema."""
-    destination: str = Field(..., description="Stellar address of recipient")
-    asset_code: str = Field(..., description="Asset code (SYP, USD)")
-    amount: Decimal = Field(..., gt=0, description="Amount to send")
-    memo: Optional[str] = Field(None, max_length=28, description="Payment memo")
-
-
-class PaymentResponse(BaseModel):
-    """Payment response schema."""
-    ok: bool
-    tx_id: str
-    stellar: dict
-    
-    
 class SwapRequest(BaseModel):
     """Swap request schema."""
     sell_asset: str = Field(..., description="Asset to sell")

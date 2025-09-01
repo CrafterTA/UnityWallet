@@ -6,7 +6,8 @@ from ..common.database import get_db
 from ..common.auth import get_current_user
 from ..common.middleware import get_correlation_id
 from ..common.logging import get_logger
-from .schema import BalancesResponse, PaymentRequest, PaymentResponse, SwapRequest, SwapResponse
+from .schema import BalancesResponse, SwapRequest, SwapResponse
+from ..payments_svc.schema import PaymentRequest, PaymentResponse
 from .service import WalletService
 
 router = APIRouter(prefix="/wallet", tags=["Wallet"])
