@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Text, Boolean, DECIMAL, JSON
+from sqlalchemy.types import TypeDecorator, VARCHAR
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
@@ -67,6 +68,8 @@ class User(Base):
     loyalty_points = relationship("LoyaltyPoint", back_populates="user")
     credit_scores = relationship("CreditScore", back_populates="user")
     alerts = relationship("Alert", back_populates="user")
+    budgets = relationship("Budget", back_populates="user")
+    savings_goals = relationship("SavingsGoal", back_populates="user")
 
 class Account(Base):
     __tablename__ = "accounts"
@@ -96,7 +99,7 @@ class Transaction(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    tx_type = Column(Enum(TransactionType), nullable=False)
+    tx_type = Column(Enum(TransactionType, name='transactiontype', native_enum=True), nullable=False)
     asset_code = Column(String(12), nullable=False)
     amount = Column(DECIMAL(19, 7), nullable=False)
     status = Column(Enum(TransactionStatus), default=TransactionStatus.PENDING, nullable=False)
@@ -155,6 +158,37 @@ class Alert(Base):
     
     # Relationships
     user = relationship("User", back_populates="alerts")
+
+class Budget(Base):
+    __tablename__ = "budgets"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    category = Column(String(50), nullable=False)
+    limit = Column(DECIMAL(19, 7), nullable=False)
+    period = Column(String(20), nullable=False, default="monthly")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    
+    # Relationships
+    user = relationship("User", back_populates="budgets")
+
+class SavingsGoal(Base):
+    __tablename__ = "savings_goals"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    target_amount = Column(DECIMAL(19, 7), nullable=False)
+    current_amount = Column(DECIMAL(19, 7), nullable=False, default=0)
+    target_date = Column(DateTime(timezone=True), nullable=False)
+    start_date = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    status = Column(String(20), nullable=False, default="active")  # active, completed, paused
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    
+    # Relationships
+    user = relationship("User", back_populates="savings_goals")
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"

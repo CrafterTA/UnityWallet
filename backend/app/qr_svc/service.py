@@ -114,8 +114,8 @@ class QRService:
                 return QRPayResponse(**result)
         
         # Get QR data from Redis
-        qr_data_str = self.redis.get(f"qr:{request.qr_id}")
-        if not qr_data_str:
+        qr_data = self.redis.get(f"qr:{request.qr_id}")
+        if not qr_data:
             # Audit QR payment failure
             write_audit(
                 db=self.db,
@@ -136,7 +136,7 @@ class QRService:
                 detail="QR code not found or expired"
             )
         
-        qr_data = json.loads(qr_data_str)
+        # qr_data is already deserialized by Redis client
         
         # Check if QR code is already used
         if qr_data.get("used", False):
@@ -243,7 +243,7 @@ class QRService:
             idem_key = f"idem:{idempotency_key}"
             self.redis.setex(idem_key, 3600, json.dumps({
                 "success": True,
-                "transaction_id": transaction.id,
+                "transaction_id": str(transaction.id),
                 "message": "Payment successful"
             }))
         
