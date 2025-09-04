@@ -57,7 +57,6 @@ class SendExecReq(SendEstimateReq):
     secret: str
 
 # ==== Swap (DEX/AMM) ====
-# Discriminated-union cho /swap/quote để Swagger hiển thị đúng fields theo mode
 class QuoteSendReq(BaseModel):
     mode: Literal["send"] = "send"
     source_asset: AssetRef
@@ -81,7 +80,6 @@ QuoteBody = Annotated[
     Field(discriminator="mode")
 ]
 
-# Các schema execute cũ (giữ để tương thích)
 class ExecuteSendReq(BaseModel):
     secret: str
     destination: str
@@ -115,25 +113,6 @@ class ExecuteSwapReq(BaseModel):
     source_max: Optional[str] = None
     path: Optional[List[Dict[str, Any]]] = None
 
-# ==== Swap OTC (nếu bạn dùng router swap_otc.py) ====
-class OtcBeginReq(BaseModel):
-    user_public_key: str
-    send_asset: AssetRef
-    send_amount: str
-    receive_asset: AssetRef
-    price: Optional[str] = None
-    dest_amount: Optional[str] = None
-
-class OtcBeginResp(BaseModel):
-    xdr: str
-    price_used: str
-    dest_amount: str
-    need_user_signature: bool = True
-
-class OtcCompleteReq(BaseModel):
-    user_public_key: str
-    signed_xdr: str
-
 # ==== Dev/seed (tuỳ dự án) ====
 class SeedAllReq(BaseModel):
     secret: str
@@ -147,7 +126,7 @@ class DexQuoteReq(BaseModel):
     from_code: str
     to_code: str
     amount: str                         # sell: amount_in; buy: amount_out mong muốn
-    account: Optional[str] = None       # G... để تحسين path
+    account: Optional[str] = None       
     slippage_bps: int = 200
 
 class DexExecuteReq(BaseModel):

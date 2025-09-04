@@ -26,7 +26,7 @@ def _submit(tx):
     return resp["hash"]
 
 def _env_runtime():
-    """Đọc ENV tại thời điểm gọi (fallback về config “ảnh”)."""
+    """Đọc ENV."""
     return {
         "SYP_CODE": os.getenv("SYP_CODE") or CFG_SYP_CODE,
         "ISS_PUB": os.getenv("SYP_ISSUER_PUBLIC") or CFG_ISS_PUB,

@@ -10,7 +10,6 @@ from chain.services.stellar import asset_from_ref, asset_to_str, valid_pub
 
 router = APIRouter(prefix="/swap", tags=["swap"])
 
-# ===== Unified /swap/quote (Swagger hiển thị đúng fields theo mode) =====
 @router.post("/quote", include_in_schema=False)
 def quote(body: QuoteBody):
     """
@@ -19,7 +18,7 @@ def quote(body: QuoteBody):
     - implied_price & inverse
     - slippage_bps, dest_min_suggest/source_max_suggest
     - network_fee_xlm, path_assets, raw
-    - execute_suggest (gợi ý params để gọi /swap/execute)
+    - execute_suggest (để dùng cho /swap/execute)
     """
     if body.mode == "send":
         return quote_send(
@@ -77,7 +76,7 @@ def exec_swap_unified(body: ExecuteSwapReq):
 
     raise HTTPException(400, "mode must be 'send' or 'receive'")
 
-# ===== DEX-friendly alias: /swap/dex/* (input ngắn gọn như sàn) =====
+# ===== DEX-friendly alias: /swap/dex/
 @router.post("/dex/quote")
 def dex_quote(body: DexQuoteReq):
     if body.side == "sell":

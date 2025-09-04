@@ -35,8 +35,8 @@ def resolve_asset(code: str, issuer: Optional[str] = None) -> Asset:
     """
     Resolver 'thân thiện':
       - XLM/native => Asset.native()
-      - code == SYP_CODE => issuer = ISS_PUB (lấy từ .env)
-      - code == USDC_CODE => issuer = USDC_ISSUER (lấy từ .env)
+      - code == SYP_CODE => issuer = ISS_PUB 
+      - code == USDC_CODE => issuer = USDC_ISSUER 
       - mã khác: yêu cầu có issuer (nếu thiếu -> 400)
     """
     c = (_canon(code)).upper()
@@ -97,6 +97,5 @@ def base_fee() -> int:
 def tx_lookup(hash: str):
     return server.transactions().transaction(hash).call()
 
-# ✅ Hàm được swap.py dùng để log/hiển thị
 def asset_to_str(a: Asset) -> str:
     return "XLM" if a.is_native() else f"{a.code}:{a.issuer}"

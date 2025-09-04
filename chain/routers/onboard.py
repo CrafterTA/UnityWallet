@@ -92,7 +92,7 @@ def trustline_demo(body: TrustlineDemoReq):
         else:
             steps["change_trust_multi"] = "skipped_already_trusted"
 
-        # 2) AllowTrust SYP (nếu cần)
+        # 2) AllowTrust SYP 
         if issuer_auth_required(R["ISS_PUB"]):
             atx = build_allow_trust_tx(R["ISS_PUB"], user_pub, R["SYP_CODE"])
             atx.sign(R["ISS_SEC"])
