@@ -26,7 +26,7 @@ def _submit(tx):
     return resp["hash"]
 
 def _env_runtime():
-    """Đọc ENV tại thời điểm gọi (fallback về config “ảnh”)."""
+    """Đọc ENV."""
     return {
         "SYP_CODE": os.getenv("SYP_CODE") or CFG_SYP_CODE,
         "ISS_PUB": os.getenv("SYP_ISSUER_PUBLIC") or CFG_ISS_PUB,
@@ -55,7 +55,6 @@ def trustline_demo(body: TrustlineDemoReq):
         raise HTTPException(
             500,
             f"Missing ENV at runtime: {', '.join(missing)}. "
-            "Đặt đúng trong .env (chain/.env hoặc root) và restart server."
         )
 
     try:
@@ -117,7 +116,7 @@ def trustline_demo(body: TrustlineDemoReq):
             "airdrop_amount": R["AIRDROP_AMOUNT"],
             "steps": steps,
             "balances": balances_of(user_pub),
-            "env_snapshot": {  # giúp debug nhanh trên Swagger, không lộ secret
+            "env_snapshot": {  # debug nhanh 
                 "ISS_PUB_set": bool(R["ISS_PUB"]),
                 "ISS_SEC_set": bool(R["ISS_SEC"]),
                 "DST_PUB_set": bool(R["DST_PUB"]),
