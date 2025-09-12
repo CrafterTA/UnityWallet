@@ -1,25 +1,21 @@
 from fastapi import APIRouter, HTTPException
-from stellar_sdk import Keypair
+from stellar_sdk import Keypair, TransactionEnvelope
 from chain.models.schemas import (
     QuoteBody, QuoteSendReq, QuoteReceiveReq,
-    ExecuteSendReq, ExecuteReceiveReq, ExecuteSwapReq,
-    DexQuoteReq, DexExecuteReq, AssetRef
+    ExecuteSwapReq, DexQuoteReq, DexExecuteReq, AssetRef,
+    SwapBeginBody, SwapBeginSendReq, SwapBeginReceiveReq, SubmitSignedXDRReq
 )
-from chain.services.swap import quote_send, quote_receive, exec_send, exec_receive
-from chain.services.stellar import asset_from_ref, asset_to_str, valid_pub
+from chain.services.swap import (
+    quote_send, quote_receive, exec_send, exec_receive,
+    build_path_send_xdr, build_path_receive_xdr
+)
+from chain.services.stellar import asset_from_ref, asset_to_str, valid_pub, balances_of
+from chain.core.config import server, NET
 
 router = APIRouter(prefix="/swap", tags=["swap"])
 
-@router.post("/quote", include_in_schema=False)
+@router.post("/quote")
 def quote(body: QuoteBody):
-    """
-    Trả về ước tính kiểu DEX:
-    - source_amount / destination_amount
-    - implied_price & inverse
-    - slippage_bps, dest_min_suggest/source_max_suggest
-    - network_fee_xlm, path_assets, raw
-    - execute_suggest (để dùng cho /swap/execute)
-    """
     if body.mode == "send":
         return quote_send(
             source_asset=body.source_asset,
@@ -29,7 +25,6 @@ def quote(body: QuoteBody):
             max_paths=body.max_paths,
             slippage_bps=body.slippage_bps,
         )
-    # body.mode == "receive"
     return quote_receive(
         dest_asset=body.dest_asset,
         dest_amount=body.dest_amount,
@@ -39,19 +34,7 @@ def quote(body: QuoteBody):
         slippage_bps=body.slippage_bps,
     )
 
-# ===== Legacy execute (giữ để tương thích) =====
-@router.post("/execute/send", include_in_schema=False)
-def exec_swap_send(body: ExecuteSendReq):
-    return exec_send(body.secret, body.destination, body.source_asset,
-                     body.source_amount, body.dest_asset, body.dest_min, body.path)
-
-@router.post("/execute/receive", include_in_schema=False)
-def exec_swap_receive(body: ExecuteReceiveReq):
-    return exec_receive(body.secret, body.destination, body.dest_asset, body.dest_amount,
-                        body.source_asset, body.source_max, body.path)
-
-# ===== Unified /swap/execute =====
-@router.post("/execute", include_in_schema=False)
+@router.post("/execute")  # cũ: BE ký
 def exec_swap_unified(body: ExecuteSwapReq):
     try:
         kp = Keypair.from_secret(body.secret)
@@ -64,135 +47,74 @@ def exec_swap_unified(body: ExecuteSwapReq):
 
     if body.mode == "send":
         if not body.source_amount or not body.dest_min:
-            raise HTTPException(400, "source_amount and dest_min are required for mode=send")
+            raise HTTPException(400, "source_amount và dest_min là bắt buộc cho mode=send")
         return exec_send(body.secret, destination, body.source_asset,
                          body.source_amount, body.dest_asset, body.dest_min, body.path)
 
     if body.mode == "receive":
         if not body.dest_amount or not body.source_max:
-            raise HTTPException(400, "dest_amount and source_max are required for mode=receive")
+            raise HTTPException(400, "dest_amount và source_max là bắt buộc cho mode=receive")
         return exec_receive(body.secret, destination, body.dest_asset, body.dest_amount,
                             body.source_asset, body.source_max, body.path)
 
-    raise HTTPException(400, "mode must be 'send' or 'receive'")
+    raise HTTPException(400, "mode phải là 'send' hoặc 'receive'")
 
-# ===== DEX-friendly alias: /swap/dex/
-@router.post("/dex/quote")
-def dex_quote(body: DexQuoteReq):
-    if body.side == "sell":
-        q = quote_send(
-            source_asset=AssetRef(code=body.from_code),
-            source_amount=body.amount,
-            dest_asset=AssetRef(code=body.to_code),
-            source_account=body.account,
-            max_paths=5,
-            slippage_bps=body.slippage_bps,
+# NEW: 2-bước FE ký
+@router.post("/begin")
+def swap_begin(body: SwapBeginBody):
+    if isinstance(body, SwapBeginSendReq):
+        destination = body.destination or body.source_public
+        xdr = build_path_send_xdr(
+            source_public=body.source_public,
+            destination=destination,
+            source_asset=body.source_asset,
+            source_amount=body.source_amount,
+            dest_asset=body.dest_asset,
+            dest_min=body.dest_min,
+            path=body.path,
         )
-        if not q.get("found"):
-            return {"found": False, "side": "sell"}
-        return {
-            "found": True,
-            "side": "sell",
-            "from": asset_to_str(asset_from_ref(body.from_code)),
-            "to": asset_to_str(asset_from_ref(body.to_code)),
-            "amount_in": q["source_amount"],
-            "amount_out": q["destination_amount"],
-            "price": q["implied_price"],
-            "price_inverse": q["implied_price_inverse"],
-            "slippage_bps": q["slippage_bps"],
-            "min_received": q["dest_min_suggest"],
-            "network_fee_xlm": q["network_fee_xlm"],
-            "route": q["path_assets"],
-            "execute_suggest": {
-                "mode": "send",
-                "source_amount": q["source_amount"],
-                "dest_min": q["dest_min_suggest"],
-                "path": q["raw"]["path"],
-            },
-            "raw": q["raw"],
-        }
-
-    # side == "buy"
-    q = quote_receive(
-        dest_asset=AssetRef(code=body.to_code),
-        dest_amount=body.amount,
-        source_asset=AssetRef(code=body.from_code),
-        source_account=body.account,
-        max_paths=5,
-        slippage_bps=body.slippage_bps,
-    )
-    if not q.get("found"):
-        return {"found": False, "side": "buy"}
+    else:
+        destination = body.destination or body.source_public
+        xdr = build_path_receive_xdr(
+            source_public=body.source_public,
+            destination=destination,
+            dest_asset=body.dest_asset,
+            dest_amount=body.dest_amount,
+            source_asset=body.source_asset,
+            source_max=body.source_max,
+            path=body.path,
+        )
     return {
-        "found": True,
-        "side": "buy",
-        "from": asset_to_str(asset_from_ref(body.from_code)),
-        "to": asset_to_str(asset_from_ref(body.to_code)),
-        "amount_in": q["source_amount"],
-        "amount_out": q["destination_amount"],
-        "price": q["implied_price"],
-        "price_inverse": q["implied_price_inverse"],
-        "slippage_bps": q["slippage_bps"],
-        "max_sold": q["source_max_suggest"],
-        "network_fee_xlm": q["network_fee_xlm"],
-        "route": q["path_assets"],
-        "execute_suggest": {
-            "mode": "receive",
-            "dest_amount": q["destination_amount"],
-            "source_max": q["source_max_suggest"],
-            "path": q["raw"]["path"],
-        },
-        "raw": q["raw"],
+        "xdr": xdr,
+        "network_passphrase": NET,
+        "estimated_base_fee": server.fetch_base_fee(),
+        "op_count": 1
     }
 
-@router.post("/dex/execute")
-def dex_execute(body: DexExecuteReq):
-    try:
-        kp = Keypair.from_secret(body.secret)
-    except Exception:
-        raise HTTPException(400, "Invalid secret")
-    destination = body.destination or kp.public_key
-    if not valid_pub(destination):
-        raise HTTPException(400, "Invalid destination")
+@router.post("/complete")
+def swap_complete(body: SubmitSignedXDRReq):
+    if not body.signed_xdr or not body.signed_xdr.strip():
+        raise HTTPException(400, "signed_xdr is required")
+    te = TransactionEnvelope.from_xdr(body.signed_xdr, network_passphrase=NET)
+    if body.public_key:
+        kp = Keypair.from_public_key(body.public_key)
+        h = te.hash()
+        ok = False
+        for sig in te.signatures:
+            try:
+                kp.verify(h, sig.signature)
+                ok = True
+                break
+            except Exception:
+                continue
+        if not ok:
+            raise HTTPException(400, "XDR not signed by provided public_key")
 
-    if body.side == "sell":
-        q = quote_send(
-            source_asset=AssetRef(code=body.from_code),
-            source_amount=body.amount,
-            dest_asset=AssetRef(code=body.to_code),
-            source_account=kp.public_key,
-            max_paths=5,
-            slippage_bps=body.slippage_bps,
-        )
-        if not q.get("found"):
-            raise HTTPException(400, "No path found for this sell.")
-        return exec_send(
-            secret=body.secret,
-            destination=destination,
-            source_asset=AssetRef(code=body.from_code),
-            source_amount=q["source_amount"],
-            dest_asset=AssetRef(code=body.to_code),
-            dest_min=q["dest_min_suggest"],
-            path=q["raw"]["path"],
-        )
-
-    # side == "buy"
-    q = quote_receive(
-        dest_asset=AssetRef(code=body.to_code),
-        dest_amount=body.amount,
-        source_asset=AssetRef(code=body.from_code),
-        source_account=kp.public_key,
-        max_paths=5,
-        slippage_bps=body.slippage_bps,
-    )
-    if not q.get("found"):
-        raise HTTPException(400, "No path found for this buy.")
-    return exec_receive(
-        secret=body.secret,
-        destination=destination,
-        dest_asset=AssetRef(code=body.to_code),
-        dest_amount=q["destination_amount"],
-        source_asset=AssetRef(code=body.from_code),
-        source_max=q["source_max_suggest"],
-        path=q["raw"]["path"],
-    )
+    resp = server.submit_transaction(te)
+    signer = te.transaction.source.account_id
+    return {
+        "hash": resp["hash"],
+        "envelope_xdr": resp.get("envelope_xdr"),
+        "result_xdr": resp.get("result_xdr"),
+        "balances": balances_of(signer)
+    }

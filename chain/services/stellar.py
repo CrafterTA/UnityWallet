@@ -1,4 +1,3 @@
-# chain/services/stellar.py
 import requests
 from typing import Optional
 from fastapi import HTTPException
@@ -35,8 +34,8 @@ def resolve_asset(code: str, issuer: Optional[str] = None) -> Asset:
     """
     Resolver 'thân thiện':
       - XLM/native => Asset.native()
-      - code == SYP_CODE => issuer = ISS_PUB 
-      - code == USDC_CODE => issuer = USDC_ISSUER 
+      - code == SYP_CODE => issuer = ISS_PUB (lấy từ .env)
+      - code == USDC_CODE => issuer = USDC_ISSUER (lấy từ .env)
       - mã khác: yêu cầu có issuer (nếu thiếu -> 400)
     """
     c = (_canon(code)).upper()

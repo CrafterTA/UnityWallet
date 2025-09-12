@@ -19,12 +19,6 @@ def _path_to_assets_str(path: List[dict]) -> List[str]:
     return out
 
 def _horizon_path_to_assets(path: Optional[List[dict]]) -> List[Asset]:
-    """
-    Convert Horizon `path` (list of dicts) -> list[Asset] cho SDK.
-    Mỗi phần tử từ Horizon có dạng:
-      - {"asset_type":"native"} hoặc
-      - {"asset_type":"credit_alphanum4|12","asset_code":"...","asset_issuer":"G..."}
-    """
     assets: List[Asset] = []
     for p in path or []:
         t = (p.get("asset_type") or "").lower()
@@ -55,7 +49,6 @@ def _net_fee_fields(op_count: int = 1) -> Dict[str, str]:
         "estimated_base_fee": str(base_fee()),
     }
 
-# ---- Compat helper: add source_account nếu SDK có, nếu không thì bỏ qua (optional)
 def _apply_source_account(builder, account: Optional[str]):
     if not account:
         return builder
@@ -72,6 +65,7 @@ def _apply_source_account(builder, account: Optional[str]):
         pass
     return builder
 
+# -------- Quotes (giữ nguyên) --------
 def quote_send(source_asset: AssetRef, source_amount: str, dest_asset: AssetRef,
                source_account: Optional[str] = None, max_paths: int = 5, slippage_bps: int = 200) -> Dict[str, Any]:
     sa = asset_from_ref(source_asset.code, source_asset.issuer)
@@ -160,6 +154,7 @@ def quote_receive(dest_asset: AssetRef, dest_amount: str, source_asset: AssetRef
     }
     return out
 
+# -------- Execute (ký ở BE cũ) --------
 def exec_send(secret: str, destination: str,
               source_asset: AssetRef, source_amount: str,
               dest_asset: AssetRef, dest_min: str,
@@ -171,7 +166,7 @@ def exec_send(secret: str, destination: str,
     sa = asset_from_ref(source_asset.code, source_asset.issuer)
     da = asset_from_ref(dest_asset.code, dest_asset.issuer)
 
-    path_assets = _horizon_path_to_assets(path)  # <-- convert dicts -> Asset
+    path_assets = _horizon_path_to_assets(path)
 
     acc = server.load_account(kp.public_key)
     tx = (TransactionBuilder(acc, network_passphrase=NET, base_fee=server.fetch_base_fee())
@@ -200,7 +195,7 @@ def exec_receive(secret: str, destination: str,
     sa = asset_from_ref(source_asset.code, source_asset.issuer)
     da = asset_from_ref(dest_asset.code, dest_asset.issuer)
 
-    path_assets = _horizon_path_to_assets(path)  # <-- convert dicts -> Asset
+    path_assets = _horizon_path_to_assets(path)
 
     acc = server.load_account(kp.public_key)
     tx = (TransactionBuilder(acc, network_passphrase=NET, base_fee=server.fetch_base_fee())
@@ -217,3 +212,40 @@ def exec_receive(secret: str, destination: str,
         "result_xdr": resp.get("result_xdr"),
         "balances": balances_of(kp.public_key)
     }
+
+# -------- NEW: build XDR (ký ở FE) --------
+def build_path_send_xdr(source_public: str, destination: str,
+                        source_asset: AssetRef, source_amount: str,
+                        dest_asset: AssetRef, dest_min: str,
+                        path: Optional[List[dict]] = None) -> str:
+    if not valid_pub(source_public): raise HTTPException(400, "Invalid source_public")
+    if not valid_pub(destination): raise HTTPException(400, "Invalid destination")
+    sa = asset_from_ref(source_asset.code, source_asset.issuer)
+    da = asset_from_ref(dest_asset.code, dest_asset.issuer)
+    acc = server.load_account(source_public)
+    path_assets = _horizon_path_to_assets(path)
+    tx = (TransactionBuilder(acc, network_passphrase=NET, base_fee=server.fetch_base_fee())
+          .append_path_payment_strict_send_op(destination=destination,
+                                              send_asset=sa, send_amount=source_amount,
+                                              dest_asset=da, dest_min=dest_min,
+                                              path=path_assets)
+          .set_timeout(180).build())
+    return tx.to_xdr()
+
+def build_path_receive_xdr(source_public: str, destination: str,
+                           dest_asset: AssetRef, dest_amount: str,
+                           source_asset: AssetRef, source_max: str,
+                           path: Optional[List[dict]] = None) -> str:
+    if not valid_pub(source_public): raise HTTPException(400, "Invalid source_public")
+    if not valid_pub(destination): raise HTTPException(400, "Invalid destination")
+    sa = asset_from_ref(source_asset.code, source_asset.issuer)
+    da = asset_from_ref(dest_asset.code, dest_asset.issuer)
+    acc = server.load_account(source_public)
+    path_assets = _horizon_path_to_assets(path)
+    tx = (TransactionBuilder(acc, network_passphrase=NET, base_fee=server.fetch_base_fee())
+          .append_path_payment_strict_receive_op(destination=destination,
+                                                 send_asset=sa, send_max=source_max,
+                                                 dest_asset=da, dest_amount=dest_amount,
+                                                 path=path_assets)
+          .set_timeout(180).build())
+    return tx.to_xdr()

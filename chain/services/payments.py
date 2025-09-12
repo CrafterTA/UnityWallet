@@ -27,3 +27,16 @@ def execute_payment(secret: str, destination: str, asset_ref: AssetRef, amount: 
         "result_xdr": resp.get("result_xdr"),
         "balances": balances_of(kp.public_key)
     }
+
+# NEW: build payment XDR (unsigned) cho FE ký
+def build_payment_xdr(source_public: str, destination: str, asset_ref: AssetRef, amount: str) -> str:
+    if not valid_pub(source_public):
+        raise HTTPException(400, "Invalid source_public")
+    if not valid_pub(destination):
+        raise HTTPException(400, "Invalid destination")
+    a = asset_from_ref(asset_ref.code, asset_ref.issuer)
+    acc = server.load_account(source_public)
+    tx = (TransactionBuilder(acc, network_passphrase=NET, base_fee=server.fetch_base_fee())
+          .append_payment_op(destination=destination, asset=a, amount=amount)
+          .set_timeout(180).build())
+    return tx.to_xdr()

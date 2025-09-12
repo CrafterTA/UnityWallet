@@ -69,21 +69,3 @@ def airdrop_syp(dst_pub: str):
     tb.sign(DST_SEC)
     return server.submit_transaction(tb)
 
-# -------- liquidity-pool trust (for onboard 2-step) --------
-from chain.models.schemas import AssetRef, PoolRef
-from chain.services.stellar import asset_from_ref
-
-def build_bulk_change_trust_tx(public_key: str, assets: List[AssetRef], pools: List[PoolRef]):
-    acc = server.load_account(public_key)
-    tb = TransactionBuilder(acc, network_passphrase=NET, base_fee=server.fetch_base_fee())
-    for ar in assets:
-        a = asset_from_ref(ar.code, ar.issuer)
-        if a.is_native():
-            continue
-        tb.append_change_trust_op(asset=a)
-    for pr in pools:
-        a = asset_from_ref(pr.asset_a.code, pr.asset_a.issuer)
-        b = asset_from_ref(pr.asset_b.code, pr.asset_b.issuer)
-        lpa = LiquidityPoolAsset(a, b, pr.fee_bps)
-        tb.append_change_trust_op(asset=lpa)
-    return tb.set_timeout(180).build()

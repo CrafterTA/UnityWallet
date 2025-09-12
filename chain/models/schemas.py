@@ -19,27 +19,12 @@ class ImportMnemonicReq(BaseModel):
     account_index: int = 0
     fund: bool = True
 
-class Pubkey(BaseModel):
-    public_key: str
-
-class SignedXDR(BaseModel):
-    xdr: str
-    public_key: str
-
-class TrustlineDemoReq(BaseModel):
-    secret: str
-
-# ==== Asset / Pool ====
+# ==== Asset ====
 class AssetRef(BaseModel):
     code: str
-    issuer: Optional[str] = None  # có thể bỏ qua với XLM/SYP/USDC (resolver sẽ map từ .env)
+    issuer: Optional[str] = None
 
-class PoolRef(BaseModel):
-    asset_a: AssetRef
-    asset_b: AssetRef
-    fee_bps: int = 30
-
-# ==== Onboard ====
+# ==== Onboard (FE ký) ====
 class OnboardBeginReq(BaseModel):
     public_key: str
 
@@ -47,7 +32,7 @@ class OnboardCompleteReq(BaseModel):
     public_key: str
     signed_xdr: str
 
-# ==== Send ====
+# ==== Send (estimate/execute cũ) ====
 class SendEstimateReq(BaseModel):
     source: AssetRef
     amount: str
@@ -56,7 +41,7 @@ class SendEstimateReq(BaseModel):
 class SendExecReq(SendEstimateReq):
     secret: str
 
-# ==== Swap (DEX/AMM) ====
+# ==== Swap (quote/execute cũ) ====
 class QuoteSendReq(BaseModel):
     mode: Literal["send"] = "send"
     source_asset: AssetRef
@@ -80,60 +65,68 @@ QuoteBody = Annotated[
     Field(discriminator="mode")
 ]
 
-class ExecuteSendReq(BaseModel):
+class ExecuteSwapReq(BaseModel):
+    mode: Literal["send", "receive"]
     secret: str
+    destination: Optional[str] = None
+    source_asset: AssetRef
+    dest_asset: AssetRef
+    source_amount: Optional[str] = None
+    dest_min: Optional[str] = None
+    dest_amount: Optional[str] = None
+    source_max: Optional[str] = None
+    path: Optional[List[Dict[str, Any]]] = None
+
+# ==== DEX-friendly (giữ nguyên) ====
+class DexQuoteReq(BaseModel):
+    side: Literal["sell", "buy"]
+    from_code: str
+    to_code: str
+    amount: str
+    account: Optional[str] = None
+    slippage_bps: int = 200
+
+class DexExecuteReq(BaseModel):
+    side: Literal["sell", "buy"]
+    secret: str
+    from_code: str
+    to_code: str
+    amount: str
+    destination: Optional[str] = None
+    slippage_bps: int = 200
+
+# ==== NEW: 2-bước FE ký cho send/swap ====
+class SubmitSignedXDRReq(BaseModel):
+    public_key: Optional[str] = None  # optional: BE có thể verify chữ ký thuộc về ai
+    signed_xdr: str
+
+class SendBeginReq(BaseModel):
+    source_public: str
     destination: str
+    asset: AssetRef
+    amount: str
+
+class SwapBeginSendReq(BaseModel):
+    mode: Literal["send"] = "send"
+    source_public: str
+    destination: Optional[str] = None
     source_asset: AssetRef
     source_amount: str
     dest_asset: AssetRef
     dest_min: str
     path: Optional[List[Dict[str, Any]]] = None
 
-class ExecuteReceiveReq(BaseModel):
-    secret: str
-    destination: str
+class SwapBeginReceiveReq(BaseModel):
+    mode: Literal["receive"] = "receive"
+    source_public: str
+    destination: Optional[str] = None
     dest_asset: AssetRef
     dest_amount: str
     source_asset: AssetRef
     source_max: str
     path: Optional[List[Dict[str, Any]]] = None
 
-# Endpoint execute hợp nhất
-class ExecuteSwapReq(BaseModel):
-    mode: Literal["send", "receive"]
-    secret: str
-    destination: Optional[str] = None  # nếu None -> mặc định ví người ký
-    source_asset: AssetRef
-    dest_asset: AssetRef
-    # mode=send:
-    source_amount: Optional[str] = None
-    dest_min: Optional[str] = None
-    # mode=receive:
-    dest_amount: Optional[str] = None
-    source_max: Optional[str] = None
-    path: Optional[List[Dict[str, Any]]] = None
-
-# ==== Dev/seed (tuỳ dự án) ====
-class SeedAllReq(BaseModel):
-    secret: str
-    target_prices: Dict[str, float]
-    amounts: Dict[str, Dict[str, str]]
-    fee_bps: int = 30
-
-# ==== DEX-friendly alias ====
-class DexQuoteReq(BaseModel):
-    side: Literal["sell", "buy"]        # sell = mode=send, buy = mode=receive
-    from_code: str
-    to_code: str
-    amount: str                         # sell: amount_in; buy: amount_out mong muốn
-    account: Optional[str] = None       
-    slippage_bps: int = 200
-
-class DexExecuteReq(BaseModel):
-    side: Literal["sell", "buy"]
-    secret: str                         # SB... của user
-    from_code: str
-    to_code: str
-    amount: str                         # cùng nghĩa như trên
-    destination: Optional[str] = None   # bỏ trống => ví người ký
-    slippage_bps: int = 200
+SwapBeginBody = Annotated[
+    Union[SwapBeginSendReq, SwapBeginReceiveReq],
+    Field(discriminator="mode")
+]
