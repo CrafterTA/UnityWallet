@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     
     # LLM Configuration
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
-    gemini_api_key: str = Field(default="AIzaSyDP7DyYHxeHKLaX2tZ47Kb73WbetcL88HU", env="GEMINI_API_KEY")
+    gemini_api_key: Optional[str] = Field(default=None, env="GEMINI_API_KEY")
     llm_model: str = Field(default="gpt-3.5-turbo", env="LLM_MODEL")
     gemini_model: str = Field(default="gemini-2.0-flash", env="GEMINI_MODEL")
     use_local_llm: bool = Field(default=False, env="USE_LOCAL_LLM")
