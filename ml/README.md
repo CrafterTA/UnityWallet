@@ -1,201 +1,179 @@
-# Unity Wallet - Module Machine Learning
+# UnityWallet ML Service
 
-## 📋 Tổng quan 
-Hệ thống AI tài chính cho Unity Wallet với khả năng phân tích giao dịch, chấm điểm tín dụng và phát hiện gian lận sử dụng Machine Learning tiên tiến.
+Dịch vụ Machine Learning cho phân tích giao dịch blockchain, feature engineering và phát hiện bất thường.
 
-## 🎯 Tính năng chính
+## Tính năng chính
 
-### 1. **Phân loại chi tiêu (Spend Classification)**
-- **Mục đích**: Tự động phân loại giao dịch theo danh mục
-- **Phương pháp**: Hybrid model (Rule-based + NLP)
-- **Hiệu suất**: F1-Score = 1.0, Response time < 50ms
-- **Danh mục**: Ăn uống, Mua sắm, Di chuyển, Giải trí, Y tế, Giáo dục...
+### 🔍 Feature Engineering
+- **Số giao dịch/tháng**: Tính toán tần suất giao dịch theo thời gian
+- **Biến động số dư**: Phân tích độ biến động của các tài sản
+- **Tỷ lệ nợ/tài sản**: Đánh giá tình hình tài chính
+- **Tần suất hoàn tiền**: Phát hiện pattern hoàn trả
+- **Phân tích thời gian**: Giờ cao điểm, xu hướng theo ngày/tuần
+- **Địa chỉ thường xuyên**: Người nhận tiền thường xuyên
 
-### 2. **Chấm điểm tín dụng (Credit Scoring)**
-- **Mục đích**: Đánh giá khả năng trả nợ của người dùng
-- **Phương pháp**: Logistic Regression với Probability Calibration
-- **Hiệu suất**: ROC-AUC = 1.0, điểm từ 300-850
-- **Đặc trưng**: Lịch sử giao dịch, mẫu chi tiêu, tần suất, độ ổn định
+### ⚠️ Phát hiện bất thường (Anomaly Detection)
+- **Số tiền bất thường**: Giao dịch có số tiền khác biệt đáng kể
+- **Tần suất cao**: Hoạt động giao dịch bất thường cao
+- **Thời gian bất thường**: Giao dịch vào giờ không thường (2-5 AM)
+- **Giao dịch liên tiếp**: Nhiều giao dịch trong thời gian ngắn
+- **AI Detection**: Sử dụng Isolation Forest và Machine Learning
+- **Pattern Analysis**: Phát hiện automated trading patterns
 
-### 3. **Phát hiện bất thường (Anomaly Detection)**
-- **Mục đích**: Phát hiện giao dịch gian lận và bất thường
-- **Phương pháp**: Rule-based với Geographic Analysis
-- **Hiệu suất**: 91.7% accuracy, False Positive Rate < 3%
-- **Tính năng**: Phân tích địa lý, velocity checking, pattern analysis
+### 🤖 Chatbot Assistant
+- Trả lời câu hỏi về giao dịch bằng tiếng Việt
+- Phân tích thông minh dựa trên context
+- Gợi ý câu hỏi theo hoạt động của wallet
+- Tóm tắt thông tin tài chính cá nhân
 
-### 4. **Insights tài chính (Financial Insights)**
-- **Mục đích**: Tạo báo cáo và khuyến nghị thông minh
-- **Nội dung**: Phân tích xu hướng, so sánh chi tiêu, gợi ý tiết kiệm
-- **Ngôn ngữ**: Hỗ trợ tiếng Việt hoàn toàn
+## Cấu trúc API
 
-## 🏗️ Kiến trúc hệ thống
+### Analytics Endpoints
+```
+GET /analytics/wallet/{public_key}           # Phân tích toàn diện wallet
+GET /analytics/features/{public_key}         # Chỉ lấy features
+GET /analytics/summary/{public_key}          # Tóm tắt nhanh
+GET /analytics/balance-history/{public_key}  # Lịch sử số dư
+```
+
+### Anomaly Detection Endpoints
+```
+GET /anomaly/check/{public_key}              # Kiểm tra bất thường
+GET /anomaly/monitor/{public_key}            # Monitor thời gian thực
+GET /anomaly/history/{public_key}            # Lịch sử anomalies
+POST /anomaly/configure-alerts/{public_key}  # Cấu hình cảnh báo
+```
+
+### Chatbot Endpoints
+```
+POST /chat/ask                               # Chat với AI assistant
+GET /chat/suggestions/{public_key}           # Gợi ý câu hỏi
+POST /chat/quick-stats                       # Thống kê nhanh
+```
+
+## Cài đặt và chạy
+
+### Requirements
+```bash
+cd ml/
+pip install -r requirements.txt
+```
+
+### Environment
+```bash
+cp .env.example .env
+# Chỉnh sửa cấu hình trong .env
+```
+
+### Chạy service
+```bash
+# Development
+python main.py
+
+# Production
+uvicorn main:app --host 0.0.0.0 --port 8001
+```
+
+Service sẽ chạy tại `http://localhost:8001`
+
+## API Documentation
+
+Sau khi chạy service, truy cập:
+- Swagger UI: `http://localhost:8001/docs`
+- ReDoc: `http://localhost:8001/redoc`
+
+## Ví dụ sử dụng
+
+### 1. Phân tích wallet
+```bash
+curl "http://localhost:8001/analytics/wallet/GCTIG4STIVQEJLECMZHVWMGBJGPNLHDBQV6FTDD3WK5DVVRDMAVYNEB7?days_back=30"
+```
+
+### 2. Kiểm tra bất thường
+```bash
+curl "http://localhost:8001/anomaly/check/GCTIG4STIVQEJLECMZHVWMGBJGPNLHDBQV6FTDD3WK5DVVRDMAVYNEB7"
+```
+
+### 3. Chat với AI
+```bash
+curl -X POST "http://localhost:8001/chat/ask" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "public_key": "GCTIG4STIVQEJLECMZHVWMGBJGPNLHDBQV6FTDD3WK5DVVRDMAVYNEB7",
+    "message": "Số dư của tôi là bao nhiêu?"
+  }'
+```
+
+## Dữ liệu phân tích
+
+### Features được tính toán
+- `total_transactions`: Tổng số giao dịch
+- `transactions_per_month`: Giao dịch trung bình/tháng  
+- `balance_volatility`: Độ biến động số dư theo asset
+- `debt_to_asset_ratio`: Tỷ lệ chi/thu
+- `refund_frequency`: Tần suất hoàn tiền
+- `peak_transaction_hours`: Giờ giao dịch nhiều nhất
+- `frequent_destinations`: Địa chỉ gửi tiền thường xuyên
+
+### Anomaly Types
+- `unusual_amount`: Số tiền bất thường
+- `high_frequency`: Tần suất giao dịch cao
+- `unusual_time`: Thời gian bất thường
+- `rapid_transactions`: Giao dịch liên tiếp nhanh
+- `ml_detected`: Phát hiện bởi ML algorithms
+
+## Architecture
 
 ```
 ml/
-├── src/
-│   ├── models/                 # Các mô hình ML
-│   │   ├── anomaly.py         # Phát hiện bất thường
-│   │   ├── credit_score.py    # Chấm điểm tín dụng  
-│   │   └── spend_clf.py       # Phân loại chi tiêu
-│   ├── api/
-│   │   └── service.py         # FastAPI service
-│   ├── features/              # Feature engineering
-│   │   ├── advanced_time_series.py   # Time series features
-│   │   └── behavioral_embeddings.py  # User behavior embeddings
-│   ├── pipelines/             # Training pipelines
-│   │   ├── train_credit.py    # Huấn luyện credit model
-│   │   └── train_spend.py     # Huấn luyện spend model
-│   ├── rules/
-│   │   ├── insights.py        # Logic sinh insights
-│   │   └── mcc_map.py         # Mapping MCC codes
-│   └── utils/                 # Utilities
-│       ├── geo.py             # Xử lý địa lý
-│       └── io.py              # Input/Output helpers
-├── data/                      # Dữ liệu training
-│   ├── raw/                   # Dữ liệu thô
-│   ├── processed/             # Dữ liệu đã xử lý
-│   └── seed/                  # Dữ liệu test mẫu
-├── artifacts/                 # Model artifacts
-│   ├── models/                # Trained models (.joblib)
-│   └── dicts/                 # Mapping dictionaries
-└── test_*.py                  # Test suites
+├── main.py                 # FastAPI app
+├── core/
+│   └── config.py          # Configuration settings
+├── models/
+│   └── schemas.py         # Pydantic models
+├── services/
+│   ├── data_collector.py  # Stellar data collection
+│   ├── feature_engineering.py # Feature calculation
+│   ├── anomaly_detection.py   # Anomaly detection
+│   └── chatbot.py         # AI assistant
+└── routers/
+    ├── analytics.py       # Analytics endpoints
+    ├── anomaly.py         # Anomaly endpoints
+    └── chatbot.py         # Chatbot endpoints
 ```
 
-## 🚀 Hướng dẫn sử dụng
+## Tích hợp với Frontend
 
-### Khởi chạy ML Service
-```bash
-cd ml
-source ~/.venvs/hdbank-ml/bin/activate
-python src/api/service.py
+Frontend có thể gọi ML service để:
+
+1. **Dashboard Analytics**: Hiển thị charts và metrics
+2. **Security Alerts**: Cảnh báo bất thường real-time  
+3. **AI Assistant**: Chat interface cho người dùng
+4. **Transaction Insights**: Phân tích patterns và xu hướng
+
+Ví dụ tích hợp trong React:
+```javascript
+// Lấy phân tích wallet
+const analytics = await fetch(`/analytics/wallet/${publicKey}?days_back=30`);
+
+// Kiểm tra bất thường
+const anomalies = await fetch(`/anomaly/check/${publicKey}`);
+
+// Chat với AI
+const chatResponse = await fetch('/chat/ask', {
+  method: 'POST',
+  body: JSON.stringify({
+    public_key: publicKey,
+    message: userMessage
+  })
+});
 ```
 
-### Chạy kiểm thử
-```bash
-# Test tổng thể
-python test_ml_pipeline.py
+## Roadmap
 
-# Test scenarios nâng cao
-python test_advanced_scenarios.py
-
-# Validation cuối cùng
-python test_final_validation.py
-```
-
-### API Endpoints
-
-#### 1. Health Check
-```bash
-GET /health
-```
-
-#### 2. Phân loại chi tiêu
-```bash
-POST /classify-spend
-{
-  "description": "ăn phở bò tái",
-  "merchant": "Phở Hồng", 
-  "mcc": "5812",
-  "amount": 50000
-}
-```
-
-#### 3. Chấm điểm tín dụng
-```bash
-POST /credit-score
-{
-  "user_id": "user123",
-  "transactions": [...]
-}
-```
-
-#### 4. Phát hiện bất thường
-```bash
-POST /detect-anomaly  
-{
-  "user_id": "user123",
-  "transaction": {...},
-  "user_history": [...]
-}
-```
-
-#### 5. Sinh insights
-```bash
-POST /generate-insights
-{
-  "user_id": "user123", 
-  "transactions": [...],
-  "period": "monthly"
-}
-```
-
-## 📊 Hiệu suất hệ thống
-
-| Component | Metric | Target | Achieved |
-|-----------|--------|--------|----------|
-| Spend Classification | F1-Score | ≥ 0.85 | **1.0** ✅ |
-| Spend Classification | Response Time | < 50ms | **~0.01ms** ✅ |
-| Credit Scoring | ROC-AUC | ≥ 0.75 | **1.0** ✅ |
-| Credit Scoring | Calibration | Brier Score < 0.1 | **0.0** ✅ |
-| Anomaly Detection | Accuracy | ≥ 85% | **91.7%** ✅ |
-| Anomaly Detection | False Positive | ≤ 5% | **< 3%** ✅ |
-| API Overall | p95 Response | < 300ms | **~3.6ms** ✅ |
-
-## 🛠️ Công nghệ sử dụng
-
-### Core ML Stack
-- **scikit-learn**: Mô hình ML chính
-- **pandas & numpy**: Xử lý dữ liệu
-- **FastAPI**: REST API service
-- **joblib**: Model persistence
-- **UMAP**: Dimensionality reduction
-
-### Vietnamese NLP
-- **unidecode**: Chuẩn hóa tiếng Việt
-- **Custom rules**: Xử lý MCC, merchant names
-- **Regex patterns**: Text cleaning cho tiếng Việt
-
-### Deployment
-- **Docker**: Containerization
-- **uvicorn**: ASGI server
-- **Virtual environments**: Dependency isolation
-
-## 📈 Kết quả kiểm thử
-
-### Test Coverage: **100%** ✅
-- ✅ 20+ test cases covering all ML functionality
-- ✅ Performance benchmarks < 100ms
-- ✅ Edge cases và error handling
-- ✅ Vietnamese language support validation
-- ✅ Production-ready scenarios
-
-### Sample Results
-```
-🎯 ML Pipeline Comprehensive Test Results
-==========================================
-✅ Health Check: API responding normally
-✅ Spend Classification: 5/5 categories correct
-✅ Credit Scoring: Realistic scores (450-780 range)
-✅ Anomaly Detection: 91.7% accuracy achieved  
-✅ Insights Generation: Vietnamese insights generated
-✅ Performance: All responses < 100ms
-✅ Error Handling: Proper validation and responses
-
-🏆 Overall Status: PRODUCTION READY
-```
-
-## 🔄 Luồng xử lý dữ liệu
-
-1. **Data Ingestion**: Nhận giao dịch từ API
-2. **Preprocessing**: Chuẩn hóa và validate dữ liệu
-3. **Feature Engineering**: Trích xuất đặc trưng
-4. **Model Inference**: Chạy các mô hình ML
-5. **Post-processing**: Xử lý kết quả, tạo insights
-6. **Response**: Trả về JSON với kết quả tiếng Việt
-
-## 🎯 Trạng thái hiện tại
-- ✅ **Module ML hoàn thành 100%**
-- ✅ **API service operational** 
-- ✅ **Test coverage đạt 100%**
-- ✅ **Performance đạt enterprise level**
-- ✅ **Production ready**
+- [ ] **Database Integration**: Lưu trữ lịch sử phân tích
+- [ ] **Real-time Monitoring**: WebSocket cho alerts
+- [ ] **Advanced ML Models**: Deep learning cho pattern detection  
+- [ ] **Multi-language Support**: Hỗ trợ nhiều ngôn ngữ
+- [ ] **Performance Optimization**: Caching và optimization
+- [ ] **Security Enhancement**: Rate limiting và authentication
