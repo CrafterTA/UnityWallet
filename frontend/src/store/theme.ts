@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dark'
 
 interface ThemeStore {
   theme: Theme
@@ -19,8 +19,7 @@ export const useThemeStore = create<ThemeStore>()(
         
         // Apply theme to document
         const root = document.documentElement
-        const isDark = theme === 'dark' || 
-          (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        const isDark = theme === 'dark'
         
         set({ isDark })
         
@@ -37,8 +36,7 @@ export const useThemeStore = create<ThemeStore>()(
       init: () => {
         const { theme } = get()
         const root = document.documentElement
-        const isDark = theme === 'dark' || 
-          (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        const isDark = theme === 'dark'
         
         set({ isDark })
         
@@ -60,19 +58,5 @@ export const useThemeStore = create<ThemeStore>()(
 // Initialize theme on app start
 export const initializeTheme = () => {
   const store = useThemeStore.getState()
-  const root = document.documentElement
-  const isDark = store.theme === 'dark' || 
-    (store.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  
   store.setTheme(store.theme) // This will trigger the theme application
-}
-
-// Listen for system theme changes
-if (typeof window !== 'undefined') {
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    const { theme } = useThemeStore.getState()
-    if (theme === 'system') {
-      useThemeStore.getState().setTheme('system')
-    }
-  })
 }

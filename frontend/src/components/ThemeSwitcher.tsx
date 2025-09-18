@@ -1,98 +1,52 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { Sun, Moon } from 'lucide-react';
 import { useThemeStore } from '@/store/theme';
-import { Moon, Sun, Monitor } from 'lucide-react';
-import { gsap } from 'gsap';
 
-const ThemeSwitcher: React.FC = () => {
-  const { theme, setTheme, isDark } = useThemeStore();
-  const switcherRef = useRef<HTMLDivElement>(null);
-  const indicatorRef = useRef<HTMLDivElement>(null);
+interface ThemeSwitcherProps {
+  compact?: boolean;
+}
 
-  const themes = [
-    { key: 'light', icon: Sun, label: 'Light' },
-    { key: 'dark', icon: Moon, label: 'Dark' },
-    { key: 'system', icon: Monitor, label: 'System' },
-  ] as const;
+const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false }) => {
+  const { isDark, setTheme } = useThemeStore();
 
-  useEffect(() => {
-    // Animate the indicator position based on current theme
-    const currentIndex = themes.findIndex(t => t.key === theme);
-    const indicator = indicatorRef.current;
-    
-    if (indicator && currentIndex !== -1) {
-      gsap.to(indicator, {
-        xPercent: currentIndex * 100,
-        duration: 0.3,
-        ease: 'power2.out'
-      });
-    }
-  }, [theme]);
-
-  useEffect(() => {
-    // Initial animation
-    const switcher = switcherRef.current;
-    if (switcher) {
-      gsap.fromTo(switcher,
-        { opacity: 0, scale: 0.8, y: -20 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "back.out(1.7)" }
-      );
-    }
-  }, []);
-
-  const handleThemeChange = (newTheme: typeof theme) => {
-    if (newTheme === theme) return; // Don't animate if same theme
-    
-    setTheme(newTheme);
-    
-    // Add a subtle bounce animation
-    const switcher = switcherRef.current;
-    if (switcher) {
-      gsap.to(switcher, {
-        scale: 1.05,
-        duration: 0.1,
-        yoyo: true,
-        repeat: 1,
-        ease: "power2.inOut"
-      });
-    }
-    
-    // Animate the indicator smoothly
-    const currentIndex = themes.findIndex(t => t.key === newTheme);
-    const indicator = indicatorRef.current;
-    
-    if (indicator && currentIndex !== -1) {
-      gsap.to(indicator, {
-        xPercent: currentIndex * 100,
-        duration: 0.3,
-        ease: 'power2.out'
-      });
-    }
+  const toggleTheme = () => {
+    setTheme(isDark ? 'light' : 'dark');
   };
 
   return (
-    <div ref={switcherRef} className={`relative flex h-10 items-center rounded-xl border p-1 backdrop-blur-sm shadow-lg ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
-      {/* Sliding indicator */}
-      <div
-        ref={indicatorRef}
-        className="absolute left-1 top-1 h-[calc(100%-8px)] w-[calc((100%-8px)/3)] rounded-lg bg-gradient-to-r from-red-500/20 to-yellow-500/20 ring-1 ring-inset ring-white/20 shadow-sm backdrop-blur-sm"
-        style={{ transform: `translateX(${themes.findIndex(t => t.key === theme) * 100}%)` }}
-      />
+    <button
+      onClick={toggleTheme}
+      className={`
+        group relative flex items-center justify-center rounded-xl border transition-all duration-300 hover:scale-105
+        ${isDark 
+          ? 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20' 
+          : 'bg-slate-100/80 hover:bg-slate-200/80 border-slate-200 hover:border-slate-300'
+        }
+        ${compact ? 'p-2' : 'p-2.5'}
+      `}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+    >
+      {/* Background glow effect */}
+      <div className={`
+        absolute inset-0 rounded-xl transition-all duration-300
+        ${isDark 
+          ? 'bg-gradient-to-r from-yellow-400/20 to-orange-400/20 opacity-0 group-hover:opacity-100' 
+          : 'bg-gradient-to-r from-slate-400/20 to-slate-600/20 opacity-0 group-hover:opacity-100'
+        }
+      `} />
       
-      {themes.map((themeOption) => (
-        <button
-          key={themeOption.key}
-          onClick={() => handleThemeChange(themeOption.key)}
-          title={themeOption.label}
-          className={`relative z-10 flex h-8 w-[calc((100%-8px)/3)] items-center justify-center rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 ${
-            theme === themeOption.key
-              ? `${isDark ? 'text-white' : 'text-slate-900'}`
-              : `${isDark ? 'text-white/70 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`
-          }`}
-        >
-          <themeOption.icon className="h-4 w-4 transition-transform duration-200" />
-        </button>
-      ))}
-    </div>
+      {/* Icon with smooth rotation */}
+      <div className="relative z-10 transition-transform duration-500 group-hover:rotate-12">
+        {isDark ? (
+          <Sun className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} text-yellow-400 transition-colors duration-300 group-hover:text-yellow-300`} />
+        ) : (
+          <Moon className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} text-slate-600 transition-colors duration-300 group-hover:text-slate-800`} />
+        )}
+      </div>
+      
+      {/* Subtle shine effect */}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 -translate-x-full group-hover:translate-x-full" />
+    </button>
   );
 };
 

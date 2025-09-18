@@ -1,0 +1,21 @@
+{
+  "name": "UnityWallet - Your Digital Wallet",
+  "short_name": "UnityWallet",
+  "description": "Transform loyalty points into digital assets with UnityWallet - powered by Stellar blockchain",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#E31E24",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}

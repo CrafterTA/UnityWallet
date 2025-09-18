@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from '@tanstack/react-query'
 import { useThemeStore } from "@/store/theme";
+import { useAuthStore } from "@/store/session";
 import { walletApi } from '@/api/wallet'
 import { analyticsApi } from '@/api/analytics'
 import LightModeBackground from "@/components/LightModeBackground";
@@ -347,6 +348,7 @@ export default function Web3ModernLayout() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isDark } = useThemeStore();
+  const { isAuthenticated } = useAuthStore();
 
   const heroRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -354,47 +356,74 @@ export default function Web3ModernLayout() {
   const ctaRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Fetch real data from APIs
+  // Fetch real data from APIs - only when authenticated
   const { data: balances, isLoading: balancesLoading, error: balancesError } = useQuery({
     queryKey: ['wallet-balances'],
     queryFn: walletApi.getBalances,
+    enabled: isAuthenticated,
     retry: 1,
     refetchOnWindowFocus: false,
   })
 
   const { data: spendingData, isLoading: spendingLoading, error: spendingError } = useQuery({
     queryKey: ['home-spending'],
-    queryFn: analyticsApi.getSpendingSummary,
+    queryFn: analyticsApi.getSpendingAnalytics,
+    enabled: isAuthenticated,
     retry: 1,
     refetchOnWindowFocus: false,
   })
 
   const { data: creditScore, isLoading: creditLoading, error: creditError } = useQuery({
     queryKey: ['home-credit'],
-    queryFn: analyticsApi.getCreditScore,
+    queryFn: analyticsApi.getInsights,
+    enabled: isAuthenticated,
     retry: 1,
     refetchOnWindowFocus: false,
   })
 
-  // Calculate total balance from real API data
-  const totalBalance = balances?.reduce((sum, balance) => {
-    return sum + parseFloat(balance.amount);
-  }, 0) || 0;
+  // Calculate total balance and assets - use real data if authenticated, demo data if not
+  const totalBalance = isAuthenticated 
+    ? (balances?.reduce((sum, balance) => sum + parseFloat(balance.amount), 0) || 0)
+    : 12345.67; // Demo balance for unauthenticated users
 
-  // Process real balance data for display
-  const assets = balances?.map((balance, index) => ({
-    id: index + 1,
-    name: balance.asset_code === 'SYP' ? 'Stellar Yield Points' : 
-          balance.asset_code === 'USDC' ? 'USD Coin' :
-          balance.asset_code === 'XLM' ? 'Stellar Lumens' : balance.asset_code,
-    symbol: balance.asset_code,
-    balance: parseFloat(balance.amount).toFixed(2),
-    value: parseFloat(balance.amount).toFixed(2), // 1:1 ratio for demo
-  })) || [];
+  // Process balance data for display
+  const assets = isAuthenticated 
+    ? (balances?.map((balance, index) => ({
+        id: index + 1,
+        name: balance.asset_code === 'SYP' ? 'Stellar Yield Points' : 
+              balance.asset_code === 'USDC' ? 'USD Coin' :
+              balance.asset_code === 'XLM' ? 'Stellar Lumens' : balance.asset_code,
+        symbol: balance.asset_code,
+        balance: parseFloat(balance.amount).toFixed(2),
+        value: parseFloat(balance.amount).toFixed(2), // 1:1 ratio for demo
+      })) || [])
+    : [
+        {
+          id: 1,
+          name: 'Stellar Yield Points',
+          symbol: 'SYP',
+          balance: '8500.00',
+          value: '8500.00'
+        },
+        {
+          id: 2,
+          name: 'USD Coin',
+          symbol: 'USDC',
+          balance: '2845.67',
+          value: '2845.67'
+        },
+        {
+          id: 3,
+          name: 'Stellar Lumens',
+          symbol: 'XLM',
+          balance: '1000.00',
+          value: '1000.00'
+        }
+      ];
 
-  // Check for any errors
-  const hasError = balancesError || spendingError || creditError;
-  const isLoading = balancesLoading || spendingLoading || creditLoading;
+  // Check for any errors - only when authenticated
+  const hasError = isAuthenticated && (balancesError || spendingError || creditError);
+  const isLoading = isAuthenticated && (balancesLoading || spendingLoading || creditLoading);
 
   useEffect(() => {
     // Hero section animations
@@ -538,20 +567,20 @@ export default function Web3ModernLayout() {
             </p>
             <div ref={ctaRef} className="mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
               <button
-                onClick={() => navigate('/pay')}
+                onClick={() => isAuthenticated ? navigate('/pay') : navigate('/login')}
                 className={`w-full sm:w-auto rounded-xl px-6 py-3 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 ${
                   isDark 
                     ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20 hover:shadow-red-500/40' 
                     : 'bg-yellow-500 text-slate-900 hover:bg-yellow-600 shadow-yellow-500/20 hover:shadow-yellow-500/40'
                 }`}
               >
-                {t('home.hero.startTrading')}
+                {isAuthenticated ? t('home.hero.startTrading', 'Start Trading') : t('home.hero.getStarted', 'Get Started')}
               </button>
               <button
-                onClick={() => navigate('/activity')}
+                onClick={() => isAuthenticated ? navigate('/activity') : navigate('/login')}
                 className={`w-full sm:w-auto rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-300 hover:scale-105 ${isDark ? 'border-white/10 bg-white/5 text-white/90 hover:bg-white/10' : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:border-slate-400'}`}
               >
-                {t('home.hero.viewActivity')}
+                {isAuthenticated ? t('home.hero.viewActivity', 'View Activity') : t('home.hero.learnMore', 'Learn More')}
               </button>
             </div>
                          <div className={`mt-6 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-4 text-xs text-reveal ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
@@ -568,8 +597,8 @@ export default function Web3ModernLayout() {
                                  : 'border-slate-200 bg-white/90 ring-slate-200/50 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.8)] hover:shadow-[0_35px_80px_-12px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] hover:border-slate-300 hover:scale-[1.02]'
                              }`}>
               
-              {/* Error States */}
-              {(balancesError || spendingError || creditError) && (
+              {/* Error States - only show when authenticated and there are actual errors */}
+              {isAuthenticated && hasError && (
                 <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
                   <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>
                     <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -578,8 +607,8 @@ export default function Web3ModernLayout() {
                 </div>
               )}
               
-              {/* Loading State */}
-              {balancesLoading && (
+              {/* Loading State - only show when authenticated and loading */}
+              {isAuthenticated && isLoading && (
                 <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100/80 border-slate-200'}`}>
                   <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -588,20 +617,41 @@ export default function Web3ModernLayout() {
                 </div>
               )}
               
-              {/* Normal Header */}
-              {!balancesLoading && !balancesError && (
-                                                                 <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10 group-hover:bg-white/10 group-hover:border-white/20' : 'bg-slate-100/80 border-slate-200 group-hover:bg-slate-200/80 group-hover:border-slate-300'}`}>
-                                     <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/>
-                    {balances?.length ? 'Portfolio Overview' : 'Wallet Ready'}
+              {/* Demo Data Banner for unauthenticated users */}
+              {!isAuthenticated && (
+                <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-200'}`}>
+                  <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4" />
+                    {t('common.demoMode', 'Demo Mode - Sign in to view your real wallet')}
                   </div>
-                                 <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-                    {creditScore && (
+                  <button 
+                    onClick={() => navigate('/login')}
+                    className={`text-xs px-3 py-1 rounded-lg transition-colors ${isDark ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
+                  >
+                    {t('common.signIn', 'Sign In')}
+                  </button>
+                </div>
+              )}
+              
+              {/* Normal Header */}
+              {!isLoading && !hasError && (
+                <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10 group-hover:bg-white/10 group-hover:border-white/20' : 'bg-slate-100/80 border-slate-200 group-hover:bg-slate-200/80 group-hover:border-slate-300'}`}>
+                  <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/>
+                    {isAuthenticated 
+                      ? (balances?.length ? 'Portfolio Overview' : 'Wallet Ready')
+                      : 'Demo Portfolio'
+                    }
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                    {isAuthenticated && creditScore && (
                       <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300 animate-pulse group-hover:bg-emerald-400/25 transition-colors duration-300">
-                        Score: {creditScore.score}
+                        Score: {creditScore?.credit_score?.score || 'N/A'}
                       </span>
                     )}
-                                         <span className={`rounded-full px-2 py-0.5 transition-colors duration-300 ${isDark ? 'bg-white/10 group-hover:bg-white/15' : 'bg-slate-200 group-hover:bg-slate-300'}`}>Live</span>
+                    <span className={`rounded-full px-2 py-0.5 transition-colors duration-300 ${isDark ? 'bg-white/10 group-hover:bg-white/15' : 'bg-slate-200 group-hover:bg-slate-300'}`}>
+                      {isAuthenticated ? 'Live' : 'Demo'}
+                    </span>
                   </div>
                 </div>
               )}
@@ -611,19 +661,30 @@ export default function Web3ModernLayout() {
                   <div className={`rounded-xl sm:rounded-2xl border p-3 sm:p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
                     <div className={`mb-3 flex items-center justify-between text-xs sm:text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                       <span>Total Balance</span>
-                      {spendingData && (
+                      {isAuthenticated && spendingData && (
                         <span className="flex items-center gap-1 text-emerald-300">
                           <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4"/>
                           {t('common.thisMonth', 'This Month')}
+                        </span>
+                      )}
+                      {!isAuthenticated && (
+                        <span className="flex items-center gap-1 text-blue-400">
+                          <Sparkles className="h-3 w-3 sm:h-4 sm:w-4"/>
+                          Demo Data
                         </span>
                       )}
                     </div>
                     <p className={`text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       ${totalBalance.toLocaleString()}
                     </p>
-                    {spendingData && (
+                    {isAuthenticated && spendingData && (
                       <p className={`text-sm mt-1 ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
                         Spent: ${spendingData.total_spent}
+                      </p>
+                    )}
+                    {!isAuthenticated && (
+                      <p className={`text-sm mt-1 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                        Sample portfolio with demo assets
                       </p>
                     )}
                     
@@ -678,7 +739,12 @@ export default function Web3ModernLayout() {
                         </div>
                       )) : (
                         <div className={`text-center py-4 text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
-                          {balancesError ? t('common.failedToLoad', 'Failed to load balances') : t('wallet.noAssets', 'No assets found')}
+                          {isAuthenticated && balancesError 
+                            ? t('common.failedToLoad', 'Failed to load balances') 
+                            : !isAuthenticated 
+                              ? t('wallet.signInToSeeAssets', 'Sign in to see your assets')
+                              : t('wallet.noAssets', 'No assets found')
+                          }
                         </div>
                       )}
                     </div>
@@ -695,7 +761,12 @@ export default function Web3ModernLayout() {
                         />
                       )) : (
                         <div className={`text-center py-4 text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
-                          {balancesError ? t('common.failedToLoad', 'Failed to load balances') : t('wallet.noAssets', 'No assets found')}
+                          {isAuthenticated && balancesError 
+                            ? t('common.failedToLoad', 'Failed to load balances') 
+                            : !isAuthenticated 
+                              ? t('wallet.signInToSeeAssets', 'Sign in to see your assets')
+                              : t('wallet.noAssets', 'No assets found')
+                          }
                         </div>
                       )}
                     </div>
@@ -707,19 +778,19 @@ export default function Web3ModernLayout() {
                     icon={Coins} 
                     label={t('dashboard.balance', 'Total Balance')} 
                     value={`$${totalBalance.toLocaleString()}`} 
-                    sub={t('dashboard.realTimeData', 'Real-time data')} 
+                    sub={isAuthenticated ? t('dashboard.realTimeData', 'Real-time data') : 'Demo data'} 
                   />
                   <StatCard 
                     icon={Shield} 
                     label={t('dashboard.security', 'Security')} 
-                    value={creditScore ? creditScore.grade : 'N/A'} 
-                    sub={creditScore ? creditScore.status : t('dashboard.checkingSecurity', 'Checking...')} 
+                    value={isAuthenticated ? (creditScore?.credit_score ? creditScore.credit_score.grade : 'Good') : 'Excellent'} 
+                    sub={isAuthenticated ? (creditScore?.credit_score ? 'Credit Score' : t('dashboard.checkingSecurity', 'Checking...')) : 'Demo security score'} 
                   />
                   <StatCard 
                     icon={LineChart} 
                     label={t('dashboard.spending', 'Monthly Spending')} 
-                    value={spendingData ? `$${spendingData.total_spent}` : 'N/A'} 
-                    sub={spendingData ? t('dashboard.thisMonth', 'This month') : t('dashboard.loadingSpending', 'Loading...')} 
+                    value={isAuthenticated ? (spendingData ? `$${spendingData.total_spent}` : 'N/A') : '$2,847'} 
+                    sub={isAuthenticated ? (spendingData ? t('dashboard.thisMonth', 'This month') : t('dashboard.loadingSpending', 'Loading...')) : 'Demo spending'} 
                   />
                 </div>
               </div>

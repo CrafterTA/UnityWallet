@@ -11,7 +11,7 @@ function Swap() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
   const [fromAsset, setFromAsset] = useState('SYP')
-  const [toAsset, setToAsset] = useState('USDC')
+  const [toAsset, setToAsset] = useState('USD')
   const [fromAmount, setFromAmount] = useState('')
   const [isSwapping, setIsSwapping] = useState(false)
   const [fromAssetOpen, setFromAssetOpen] = useState(false)
@@ -41,6 +41,21 @@ function Swap() {
     refetchOnWindowFocus: false,
   })
 
+  // Auto-select first available asset when balances load
+  useEffect(() => {
+    if (balances && balances.length > 0) {
+      const availableAssets = balances.map(b => b.asset_code)
+      if (!availableAssets.includes(fromAsset)) {
+        setFromAsset(availableAssets[0])
+      }
+      if (!availableAssets.includes(toAsset)) {
+        // Set toAsset to a different asset than fromAsset
+        const otherAssets = availableAssets.filter(asset => asset !== fromAsset)
+        setToAsset(otherAssets.length > 0 ? otherAssets[0] : availableAssets[0])
+      }
+    }
+  }, [balances, fromAsset, toAsset])
+
   const { data: quote, isLoading: quoteLoading, error: quoteError } = useQuery({
     queryKey: ['quote', fromAsset, toAsset, fromAmount],
     queryFn: () => walletApi.getQuote(fromAsset, toAsset, fromAmount),
@@ -50,14 +65,21 @@ function Swap() {
   })
 
   const handleSwapAssets = () => {
-    setFromAsset(toAsset)
-    setToAsset(fromAsset)
-    setFromAmount('')
+    if (fromAsset !== toAsset) {
+      setFromAsset(toAsset)
+      setToAsset(fromAsset)
+      setFromAmount('')
+    }
   }
 
   const handleSwap = async () => {
     if (!fromAsset || !toAsset || !fromAmount) {
       toast.error(t('swap.fillAllFields', 'Please fill in all fields'))
+      return
+    }
+
+    if (fromAsset === toAsset) {
+      toast.error(t('swap.sameAsset', 'Cannot swap the same asset'))
       return
     }
 
@@ -81,7 +103,7 @@ function Swap() {
       const result = await walletApi.swap({
         selling_asset_code: fromAsset,
         buying_asset_code: toAsset,
-        amount: fromAmount
+        amount: amountNum.toString()
       })
 
       if (result.status === 'success') {
@@ -107,7 +129,7 @@ function Swap() {
     return balance ? parseFloat(balance.amount) : 0
   }
 
-  const isValidAmount = fromAmount && parseFloat(fromAmount) > 0 && parseFloat(fromAmount) <= getAssetBalance(fromAsset)
+  const isValidAmount = fromAmount && parseFloat(fromAmount) > 0 && parseFloat(fromAmount) <= getAssetBalance(fromAsset) && fromAsset !== toAsset
 
   return (
     <div className={`min-h-screen ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -195,25 +217,27 @@ function Swap() {
                 {fromAssetOpen && balances && (
                   <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border backdrop-blur-sm z-10 ${
                     isDark 
-                      ? 'bg-white/10 border-white/20' 
-                      : 'bg-white border-slate-200 shadow-lg'
+                      ? 'bg-slate-800/95 border-slate-600 shadow-2xl' 
+                      : 'bg-white border-slate-200 shadow-2xl'
                   }`}>
-                    {balances.map((balance) => (
-                      <button
-                        key={balance.asset_code}
-                        onClick={() => {
-                          setFromAsset(balance.asset_code)
-                          setFromAssetOpen(false)
-                        }}
-                        className={`w-full px-4 py-3 text-left hover:bg-white/10 transition-colors ${
-                          balance.asset_code === fromAsset
-                            ? (isDark ? 'bg-white/20 text-white' : 'bg-yellow-100 text-slate-900')
-                            : (isDark ? 'text-white/80 hover:text-white' : 'text-slate-700 hover:text-slate-900')
-                        } ${balance.asset_code === fromAsset ? 'font-semibold' : ''}`}
-                      >
-                        {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)})
-                      </button>
-                    ))}
+                    {balances
+                      .filter(balance => balance.asset_code !== toAsset)
+                      .map((balance) => (
+                        <button
+                          key={balance.asset_code}
+                          onClick={() => {
+                            setFromAsset(balance.asset_code)
+                            setFromAssetOpen(false)
+                          }}
+                          className={`w-full px-4 py-3 text-left transition-colors ${
+                            balance.asset_code === fromAsset
+                              ? (isDark ? 'bg-slate-700 text-white' : 'bg-yellow-100 text-slate-900')
+                              : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
+                          } ${balance.asset_code === fromAsset ? 'font-semibold' : ''}`}
+                        >
+                          {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)})
+                        </button>
+                      ))}
                   </div>
                 )}
               </div>
@@ -243,16 +267,16 @@ function Swap() {
               <label className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{t('swap.to', 'To')}</label>
              
              <div className="flex space-x-3">
-                            <input
-                  type="text"
-                  value={quote?.destination_amount || ''}
-                  readOnly
-                  className={`flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 border backdrop-blur-sm ${
-                    isDark 
-                      ? 'bg-white/10 border-white/20 text-white/70' 
-                      : 'bg-slate-100/80 border-slate-300 text-slate-600'
-                  }`}
-                />
+                 <input
+                type="text"
+                value={quote?.to_amount || ''}
+                readOnly
+                className={`flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 border backdrop-blur-sm ${
+                  isDark 
+                    ? 'bg-white/10 border-white/20 text-white/70' 
+                    : 'bg-slate-100/80 border-slate-300 text-slate-600'
+                }`}
+              />
                
                <div className="relative min-w-[120px]" ref={toAssetRef}>
                  <button
@@ -274,25 +298,27 @@ function Swap() {
                  {toAssetOpen && balances && (
                    <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border backdrop-blur-sm z-10 ${
                      isDark 
-                       ? 'bg-white/10 border-white/20' 
-                       : 'bg-white border-slate-200 shadow-lg'
+                       ? 'bg-slate-800/95 border-slate-600 shadow-2xl' 
+                       : 'bg-white border-slate-200 shadow-2xl'
                    }`}>
-                     {balances.map((balance) => (
-                       <button
-                         key={balance.asset_code}
-                         onClick={() => {
-                           setToAsset(balance.asset_code)
-                           setToAssetOpen(false)
-                         }}
-                         className={`w-full px-4 py-3 text-left hover:bg-white/10 transition-colors ${
-                           balance.asset_code === toAsset
-                             ? (isDark ? 'bg-white/20 text-white' : 'bg-yellow-100 text-slate-900')
-                             : (isDark ? 'text-white/80 hover:text-white' : 'text-slate-700 hover:text-slate-900')
-                         } ${balance.asset_code === toAsset ? 'font-semibold' : 'text-slate-700'}`}
-                       >
-                         {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)})
-                       </button>
-                     ))}
+                     {balances
+                       .filter(balance => balance.asset_code !== fromAsset)
+                       .map((balance) => (
+                         <button
+                           key={balance.asset_code}
+                           onClick={() => {
+                             setToAsset(balance.asset_code)
+                             setToAssetOpen(false)
+                           }}
+                           className={`w-full px-4 py-3 text-left transition-colors ${
+                             balance.asset_code === toAsset
+                               ? (isDark ? 'bg-slate-700 text-white' : 'bg-yellow-100 text-slate-900')
+                               : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
+                           } ${balance.asset_code === toAsset ? 'font-semibold' : ''}`}
+                         >
+                           {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)})
+                         </button>
+                       ))}
                    </div>
                  )}
                </div>
@@ -305,19 +331,19 @@ function Swap() {
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('swap.swapRate', 'Exchange Rate')}:</span>
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    1 {fromAsset} = {quote.price} {toAsset}
+                    1 {fromAsset} = {quote.exchange_rate} {toAsset}
                   </span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('swap.networkFee', 'Network Fee')}:</span>
-                  <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{quote.fee} {fromAsset}</span>
+                  <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{quote.fee_amount} {fromAsset}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('swap.estimatedOutput', 'You will receive')}:</span>
                   <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    {quote.destination_amount} {toAsset}
+                    {quote.to_amount} {toAsset}
                   </span>
                 </div>
               </div>

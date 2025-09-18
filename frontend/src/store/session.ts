@@ -1,66 +1,80 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { QueryClient } from '@tanstack/react-query'
 
-interface User {
-  id: string
-  username: string
-  full_name: string
-  name?: string // Added for compatibility
-  email?: string // Added for compatibility
-  avatar?: string
-  phone?: string
-  location?: string
-  bio?: string
-  kyc_status: 'PENDING' | 'VERIFIED' | 'REJECTED'
+interface Wallet {
+  public_key: string
+  secret: string
+  mnemonic?: string
+  account_exists: boolean
+  funded_or_existing: boolean
+  balances: Record<string, string>
+  created_at: string
 }
 
 interface AuthState {
-  user: User | null
+  wallet: Wallet | null
   isAuthenticated: boolean
-  token: string | null
-  login: (user: User, token: string) => void
-  loginWithToken: (token: string) => void
-  setUserProfile: (user: User) => void
+  queryClient: QueryClient | null
+  setWallet: (wallet: Wallet) => void
+  setQueryClient: (client: QueryClient) => void
   logout: () => void
-  updateUser: (updates: Partial<User>) => void
+  updateWallet: (updates: Partial<Wallet>) => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user: null,
+      wallet: null,
       isAuthenticated: false,
-      token: null,
+      queryClient: null,
       
-      login: (user: User, token: string) => {
-        set({ user, token, isAuthenticated: true })
+      setWallet: (wallet: Wallet) => {
+        set({ wallet, isAuthenticated: true })
       },
       
-      loginWithToken: (token: string) => {
-        // For backend API that only returns token
-        set({ token, isAuthenticated: true, user: null })
-      },
-      
-      setUserProfile: (user: User) => {
-        set({ user })
+      setQueryClient: (client: QueryClient) => {
+        set({ queryClient: client })
       },
       
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false })
+        // Clear only auth-related data, preserve theme and other preferences
+        localStorage.removeItem('unity-wallet-auth')
+        
+        // Clear all other localStorage keys except theme
+        const keysToRemove = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key !== 'theme-storage') {
+            keysToRemove.push(key)
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key))
+        
+        // Clear session storage
+        sessionStorage.clear()
+        
+        // Clear query cache
+        const { queryClient } = get()
+        if (queryClient) {
+          queryClient.clear()
+        }
+        
+        // Reset state
+        set({ wallet: null, isAuthenticated: false })
       },
       
-      updateUser: (updates: Partial<User>) => {
-        const currentUser = get().user
-        if (currentUser) {
-          set({ user: { ...currentUser, ...updates } })
+      updateWallet: (updates: Partial<Wallet>) => {
+        const currentWallet = get().wallet
+        if (currentWallet) {
+          set({ wallet: { ...currentWallet, ...updates } })
         }
       },
     }),
     {
       name: 'unity-wallet-auth',
       partialize: (state: AuthState) => ({
-        user: state.user,
-        token: state.token,
+        wallet: state.wallet,
         isAuthenticated: state.isAuthenticated,
       }),
     }

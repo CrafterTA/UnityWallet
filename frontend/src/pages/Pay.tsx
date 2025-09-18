@@ -20,8 +20,10 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useThemeStore } from '@/store/theme'
 import { walletApi } from '@/api/wallet'
+import { transactionsApi, Transaction } from '@/api/transactions'
 import QRCodeGenerator from '@/components/QRCodeGenerator'
 import QRScanner from '@/components/QRScanner'
+import TransactionDetailModal from '@/components/TransactionDetailModal'
 import toast from 'react-hot-toast'
 
 /* ---------------- Helpers (top-level) ---------------- */
@@ -65,8 +67,10 @@ export default function Pay() {
   const [activeTab, setActiveTab] = useState<'send' | 'receive'>('send')
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState<string>('')
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [note, setNote] = useState<string>('')
-  const [asset, setAsset] = useState('USDC')
+  const [asset, setAsset] = useState('USD')
   const [showScanner, setShowScanner] = useState(false)
   const [showQR, setShowQR] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -80,6 +84,48 @@ export default function Pay() {
     refetchOnWindowFocus: false,
   })
 
+  // Fetch recent transactions
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['recent-transactions-pay'],
+    queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 5 }),
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+
+  // Process recent transactions
+  const recentTransactions = transactionsData?.transactions.map((tx) => {
+    const direction = tx.direction || tx.tx_type.toLowerCase()
+    const from = direction === 'received' ? tx.source : undefined // Địa chỉ người gửi cho received
+    const to = direction === 'sent' ? tx.destination : undefined // Địa chỉ người nhận cho sent
+    
+    
+    return {
+      id: tx.id,
+      type: direction,
+      amount: tx.amount,
+      symbol: tx.asset_code,
+      to,
+      from,
+      time: new Date(tx.created_at).toLocaleDateString(),
+      status: tx.status.toLowerCase()
+    }
+  }) || []
+
+  // Fetch wallet address
+  const { data: walletAddress, isLoading: addressLoading, error: addressError } = useQuery({
+    queryKey: ['wallet-address-pay'],
+    queryFn: walletApi.getAddress,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+
+  // Auto-select first available asset when balances load
+  useEffect(() => {
+    if (balances && balances.length > 0 && !asset) {
+      setAsset(balances[0].asset_code)
+    }
+  }, [balances, asset])
+
   // Handlers (useCallback cho gọn)
   const handleRecipientChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setRecipient(e.target.value), [])
   const handleAmountChange    = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value), [])
@@ -91,12 +137,18 @@ export default function Pay() {
     { id: 'receive', label: t('pay.receive', 'Receive'), icon: ArrowDownLeft, description: t('pay.getQRCode', 'Get QR code') },
   ] as const), [t])
 
-  // Process real contacts from recent transactions (would come from backend in real app)
-  const recentContacts = [
-    { name: 'Alice Johnson', address: 'GBRP...HNKZ', avatar: 'AJ' },
-    { name: 'Bob Smith', address: 'GCXM...PLKJ', avatar: 'BS' },
-    { name: 'Carol Davis', address: 'GDTY...QWER', avatar: 'CD' },
-  ]
+  // Process real contacts from recent transactions - chỉ lấy địa chỉ của người khác
+  const recentContacts = transactionsData?.transactions
+    .filter(tx => tx.destination && tx.direction === 'sent') // Chỉ lấy transactions gửi đi (không phải nhận về)
+    .map(tx => ({
+      name: tx.destination?.substring(0, 8) + '...' + tx.destination?.substring(-4) || 'Unknown',
+      address: tx.destination || 'Unknown',
+      avatar: tx.destination?.substring(0, 2).toUpperCase() || 'U'
+    }))
+    .filter((contact, index, self) => 
+      index === self.findIndex(c => c.address === contact.address)
+    ) // Remove duplicates
+    .slice(0, 3) || [] // Limit to 3 contacts
 
   const quickAmounts = ['$10', '$25', '$50', '$100']
 
@@ -170,7 +222,7 @@ export default function Pay() {
     }
   }
 
-  const myAddress = 'GBRP...HNKZ4A2B'
+  const myAddress = walletAddress || 'GBRP...HNKZ4A2B'
 
   /* ---------------- Render ---------------- */
   return (
@@ -456,12 +508,57 @@ export default function Pay() {
               </SectionCard>
 
               <SectionCard dark={isDark} title={<span className="flex items-center gap-2"><Clock className="h-5 w-5 text-blue-400" />{t('activity.recentActivity','Recent Activity')}</span>}>
-                <div className="py-2 text-center">
-                  <div className={classNames('mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full', isDark ? 'bg-white/10' : 'bg-slate-200')}>
-                    <Clock className={classNames('h-6 w-6', isDark ? 'text-white/60' : 'text-slate-600')} />
+                {recentTransactions.length > 0 ? (
+                  <div className="space-y-3">
+                    {recentTransactions.map((tx) => (
+                      <div 
+                        key={tx.id} 
+                        onClick={() => {
+                          // Tìm transaction gốc từ API data
+                          const originalTx = transactionsData?.transactions.find(transaction => transaction.id === tx.id)
+                          if (originalTx) {
+                            setSelectedTransaction(originalTx)
+                            setIsModalOpen(true)
+                          }
+                        }}
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-white/10 transition-colors ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
+                            {tx.type === 'sent' ? <ArrowUpRight className="h-4 w-4 text-red-400" /> : 
+                             tx.type === 'received' ? <ArrowDownLeft className="h-4 w-4 text-green-400" /> : 
+                             <Clock className="h-4 w-4 text-blue-400" />}
+                          </div>
+                          <div>
+                            <p className={`text-sm font-medium capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              {tx.type}
+                            </p>
+                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                              {tx.type === 'sent' ? `To: ${tx.to || 'Unknown'}` : 
+                               tx.type === 'received' ? `From: ${tx.from || 'Unknown'}` : 
+                               `${tx.symbol}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`text-sm font-semibold ${
+                            tx.type === 'sent' ? 'text-red-400' : 'text-green-400'
+                          }`}>
+                            {tx.type === 'sent' ? '-' : '+'}{tx.amount} {tx.symbol}
+                          </p>
+                          <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <p className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('activity.noTransactions','No recent transactions')}</p>
-                </div>
+                ) : (
+                  <div className="py-2 text-center">
+                    <div className={classNames('mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full', isDark ? 'bg-white/10' : 'bg-slate-200')}>
+                      <Clock className={classNames('h-6 w-6', isDark ? 'text-white/60' : 'text-slate-600')} />
+                    </div>
+                    <p className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('activity.noTransactions','No recent transactions')}</p>
+                  </div>
+                )}
               </SectionCard>
             </div>
           </div>
@@ -535,12 +632,57 @@ export default function Pay() {
               </SectionCard>
 
               <SectionCard dark={isDark} title={<span className="flex items-center gap-2"><Clock className="h-5 w-5 text-blue-400" />{t('activity.recentActivity','Recent Activity')}</span>}>
-                <div className="py-2 text-center">
-                  <div className={classNames('mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full', isDark ? 'bg-white/10' : 'bg-slate-200')}>
-                    <Clock className={classNames('h-6 w-6', isDark ? 'text-white/60' : 'text-slate-600')} />
+                {recentTransactions.length > 0 ? (
+                  <div className="space-y-3">
+                    {recentTransactions.map((tx) => (
+                      <div 
+                        key={tx.id} 
+                        onClick={() => {
+                          // Tìm transaction gốc từ API data
+                          const originalTx = transactionsData?.transactions.find(transaction => transaction.id === tx.id)
+                          if (originalTx) {
+                            setSelectedTransaction(originalTx)
+                            setIsModalOpen(true)
+                          }
+                        }}
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-white/10 transition-colors ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
+                            {tx.type === 'sent' ? <ArrowUpRight className="h-4 w-4 text-red-400" /> : 
+                             tx.type === 'received' ? <ArrowDownLeft className="h-4 w-4 text-green-400" /> : 
+                             <Clock className="h-4 w-4 text-blue-400" />}
+                          </div>
+                          <div>
+                            <p className={`text-sm font-medium capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              {tx.type}
+                            </p>
+                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                              {tx.type === 'sent' ? `To: ${tx.to || 'Unknown'}` : 
+                               tx.type === 'received' ? `From: ${tx.from || 'Unknown'}` : 
+                               `${tx.symbol}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`text-sm font-semibold ${
+                            tx.type === 'sent' ? 'text-red-400' : 'text-green-400'
+                          }`}>
+                            {tx.type === 'sent' ? '-' : '+'}{tx.amount} {tx.symbol}
+                          </p>
+                          <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <p className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('activity.noTransactions','No recent transactions')}</p>
-                </div>
+                ) : (
+                  <div className="py-2 text-center">
+                    <div className={classNames('mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full', isDark ? 'bg-white/10' : 'bg-slate-200')}>
+                      <Clock className={classNames('h-6 w-6', isDark ? 'text-white/60' : 'text-slate-600')} />
+                    </div>
+                    <p className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('activity.noTransactions','No recent transactions')}</p>
+                  </div>
+                )}
               </SectionCard>
             </div>
           </div>
@@ -571,6 +713,16 @@ export default function Pay() {
           </div>
         </div>
       )}
+
+      {/* Transaction Detail Modal */}
+      <TransactionDetailModal
+        transaction={selectedTransaction}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedTransaction(null)
+        }}
+      />
     </div>
   )
 }

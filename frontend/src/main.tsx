@@ -7,6 +7,7 @@ import App from './app/App.tsx'
 import './index.css'
 import './i18n'
 import { initializeTheme } from './store/theme'
+import { useAuthStore } from './store/session'
 
 // Initialize theme
 initializeTheme()
@@ -23,6 +24,9 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+// Set query client in auth store
+useAuthStore.getState().setQueryClient(queryClient)
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

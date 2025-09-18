@@ -5,12 +5,18 @@ import { Activity, Filter, Search, ArrowUpRight, ArrowDownLeft, RefreshCw, Downl
 import { useThemeStore } from '@/store/theme'
 import { useNavigate } from 'react-router-dom'
 import { analyticsApi } from '@/api/analytics'
+import { transactionsApi, Transaction } from '@/api/transactions'
+import { useAuthStore } from '@/store/session'
+import TransactionDetailModal from '@/components/TransactionDetailModal'
 
 function ActivityPage() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
+  const { user } = useAuthStore()
   const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received' | 'swapped'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate()
 
   const filters = [
@@ -20,21 +26,21 @@ function ActivityPage() {
     { id: 'swapped', label: t('activity.swapped', 'Swapped'), icon: RefreshCw },
   ]
 
-  // Fetch real spending data for transaction summary
-  const { data: spendingData, isLoading: spendingLoading, error: spendingError } = useQuery({
-    queryKey: ['activity-spending'],
-    queryFn: analyticsApi.getSpendingSummary,
+  // Fetch real transaction summary data
+  const { data: transactionSummary, isLoading: summaryLoading, error: summaryError } = useQuery({
+    queryKey: ['activity-summary'],
+    queryFn: transactionsApi.getTransactionSummary,
     retry: 1,
     refetchOnWindowFocus: false,
   })
 
-  // Calculate transaction stats from real data
-  const transactionStats = spendingData ? {
-    totalSent: spendingData.total_spent,
-    totalReceived: 0, // Backend doesn't provide received data yet
-    totalTransactions: 0, // Backend doesn't provide transaction count yet
-    totalSwapped: 0, // Backend doesn't provide swap data yet
-    averageAmount: spendingData.total_spent > 0 ? Math.round(spendingData.total_spent / 10) : 0, // Estimate
+  // Calculate transaction stats from real data (fallback)
+  const transactionStats = transactionSummary ? {
+    totalSent: (transactionSummary.by_type['PAYMENT'] || 0) + (transactionSummary.by_type['P2P_TRANSFER'] || 0),
+    totalReceived: transactionSummary.by_type['EARN'] || 0,
+    totalTransactions: transactionSummary.total_transactions,
+    totalSwapped: transactionSummary.by_type['SWAP'] || 0,
+    averageAmount: transactionSummary.total_transactions > 0 ? Math.round(transactionSummary.total_amount / transactionSummary.total_transactions) : 0,
   } : {
     totalSent: 0,
     totalReceived: 0,
@@ -43,11 +49,44 @@ function ActivityPage() {
     averageAmount: 0,
   }
 
-  // No real transaction data from backend yet, show empty state
-  const transactions: any[] = []
+  // Fetch real transaction data from backend
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['activity-transactions'],
+    queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 50 }),
+    retry: 1,
+    refetchOnWindowFocus: false,
+  })
+
+  // Process real transaction data - sử dụng direction từ API
+  const transactions = transactionsData?.transactions.map((tx) => {
+    // Sử dụng direction từ API thay vì tự phân loại
+    const type = tx.direction || 'sent' // fallback nếu không có direction
+    
+    return {
+      id: tx.id,
+      type: type,
+      amount: tx.amount,
+      currency: tx.asset_code,
+      address: tx.destination || 'Unknown',
+      date: tx.created_at,
+      status: tx.status.toLowerCase(),
+      fee: '0.01', // Default fee
+      toAmount: tx.buy_asset ? tx.amount : undefined,
+      toCurrency: tx.buy_asset
+    }
+  }) || []
+
+  // Recalculate stats from actual transactions
+  const actualStats = {
+    totalSent: transactions.filter(tx => tx.type === 'sent').length,
+    totalReceived: transactions.filter(tx => tx.type === 'received').length,
+    totalSwapped: transactions.filter(tx => tx.type === 'swapped').length,
+    totalTransactions: transactions.length,
+    averageAmount: transactions.length > 0 ? Math.round(transactions.reduce((sum, tx) => sum + parseFloat(tx.amount), 0) / transactions.length) : 0,
+  }
 
   // Check for errors
-  const hasError = spendingError;
+  const hasError = summaryError || transactionsLoading;
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -161,7 +200,7 @@ function ActivityPage() {
       )}
 
       {/* Loading State */}
-      {spendingLoading && (
+      {(summaryLoading || transactionsLoading) && (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className={`h-24 backdrop-blur-sm rounded-2xl border animate-pulse ${
@@ -172,7 +211,7 @@ function ActivityPage() {
       )}
 
       {/* Transactions List */}
-      {!spendingLoading && !hasError && (
+      {!(summaryLoading || transactionsLoading) && !hasError && (
         <div className="space-y-4">
           {filteredTransactions.length > 0 ? (
             <>
@@ -196,6 +235,14 @@ function ActivityPage() {
                 {filteredTransactions.map((transaction) => (
                   <div
                     key={transaction.id}
+                    onClick={() => {
+                      // Tìm transaction gốc từ API data
+                      const originalTx = transactionsData?.transactions.find(tx => tx.id === transaction.id)
+                      if (originalTx) {
+                        setSelectedTransaction(originalTx)
+                        setIsModalOpen(true)
+                      }
+                    }}
                     className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border hover:border-white/30 transition-all duration-200 hover:shadow-lg cursor-pointer ${getTransactionBgColor(transaction.type)}`}
                   >
                     <div className="flex items-center justify-between">
@@ -286,7 +333,7 @@ function ActivityPage() {
       )}
 
       {/* Summary Stats */}
-      {!spendingLoading && !hasError && (
+      {!(summaryLoading || transactionsLoading) && !hasError && (
         <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border mt-6`}>
           <h3 className={`font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('activity.monthSummary', 'This Month Summary')}
@@ -298,7 +345,7 @@ function ActivityPage() {
               <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                 {t('activity.totalSent', 'Total Sent')}
               </p>
-              <p className="text-xl font-bold text-red-400">${transactionStats.totalSent.toLocaleString()}</p>
+              <p className="text-xl font-bold text-red-400">${actualStats.totalSent.toLocaleString()}</p>
             </div>
             
             <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/20">
@@ -306,7 +353,7 @@ function ActivityPage() {
               <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                 {t('activity.totalReceived', 'Total Received')}
               </p>
-              <p className="text-xl font-bold text-green-400">${transactionStats.totalReceived.toLocaleString()}</p>
+              <p className="text-xl font-bold text-green-400">${actualStats.totalReceived.toLocaleString()}</p>
             </div>
             
             <div className="text-center p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
@@ -314,11 +361,21 @@ function ActivityPage() {
               <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                 {t('activity.totalSwapped', 'Total Swapped')}
               </p>
-              <p className="text-xl font-bold text-blue-400">${transactionStats.totalSwapped.toLocaleString()}</p>
+              <p className="text-xl font-bold text-blue-400">${actualStats.totalSwapped.toLocaleString()}</p>
             </div>
           </div>
         </div>
       )}
+
+      {/* Transaction Detail Modal */}
+      <TransactionDetailModal
+        transaction={selectedTransaction}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          setSelectedTransaction(null)
+        }}
+      />
     </div>
   )
 }

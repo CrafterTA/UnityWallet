@@ -18,6 +18,11 @@ function QRCodeGenerator() {
     queryFn: walletApi.getBalances,
   })
 
+  const { data: walletAddress } = useQuery({
+    queryKey: ['wallet-address'],
+    queryFn: walletApi.getAddress,
+  })
+
   const handleGenerateQR = () => {
     if (!amount || parseFloat(amount) <= 0) {
       toast.error(t('qr.invalidAmount', 'Please enter a valid amount'))
@@ -26,7 +31,7 @@ function QRCodeGenerator() {
 
     // Create payment request payload
     const paymentRequest = {
-      destination: 'GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP', // Demo wallet
+      destination: walletAddress || 'GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP', // Use real wallet address
       asset_code: selectedAsset,
       amount: amount,
       memo: memo,

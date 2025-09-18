@@ -23,7 +23,7 @@ export const authApi = {
 
   async getProfile(): Promise<any> {
     try {
-      const response = await apiClient.get<any>('/auth/profile')
+      const response = await apiClient.get<any>('/auth/me')
       return response.data
     } catch (error) {
       throw new Error('Failed to fetch user profile')

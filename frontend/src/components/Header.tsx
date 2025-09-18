@@ -27,6 +27,7 @@ import {
 import { useAuthStore } from '@/store/session';
 import { useThemeStore } from '@/store/theme';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeSwitcher from './ThemeSwitcher';
 
 interface HeaderProps { variant?: 'landing' | 'app' }
 
@@ -34,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const { wallet, logout, isAuthenticated } = useAuthStore();
   const { isDark } = useThemeStore();
 
 
@@ -296,10 +297,14 @@ useEffect(() => {
             {/* Enhanced Right utilities */}
             <div className="flex items-center gap-3">
               
+              {/* Theme Switcher - Always visible */}
+              <ThemeSwitcher />
+              
               {/* Language Switcher - Desktop only */}
               <div className="hidden lg:block">
                 <LanguageSwitcher />
               </div>
+              
               {isAuthenticated ? (
                 <>
                   {/* Enhanced Wallet Button */}
@@ -334,31 +339,23 @@ useEffect(() => {
                        onClick={() => setShowUserMenu(!showUserMenu)}
                        className={`flex items-center p-1 rounded-xl border transition-all duration-200 group ${isDark ? 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20' : 'bg-slate-100/80 hover:bg-slate-200/80 border-slate-200 hover:border-slate-300'}`}
                      >
-                                              {user?.avatar ? (
-                          <img src={user.avatar} alt={user?.full_name || user?.username || 'User'} className={`h-8 w-8 rounded-full object-cover ring-1 ${isDark ? 'ring-white/10' : 'ring-slate-200'}`} />
-                        ) : (
-                        <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-sm font-semibold shadow-lg">
-                          {(user?.full_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
-                        </div>
-                      )}
+                      <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-sm font-semibold shadow-lg">
+                        {wallet?.public_key ? wallet.public_key.slice(0, 2).toUpperCase() : 'W'}
+                      </div>
                     </button>
 
                     {/* User Dropdown Menu */}
                     {showUserMenu && (
                                              <div className={`absolute right-0 top-full mt-3 w-64 rounded-2xl border backdrop-blur-2xl shadow-2xl z-50 ${isDark ? 'border-white/20 bg-slate-900/95' : 'border-slate-200 bg-white/95'}`} style={{minWidth: '256px', maxWidth: '256px', width: '256px'}}>
-                        {/* User Info Header */}
+                        {/* Wallet Info Header */}
                                                  <div className={`p-4 border-b bg-gradient-to-r from-red-500/10 to-yellow-500/10 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                           <div className="flex items-center gap-3">
-                                                        {user?.avatar ? (
-                              <img src={user.avatar} alt={user?.full_name || user?.username || 'User'} className={`h-12 w-12 rounded-full object-cover ring-2 flex-shrink-0 ${isDark ? 'ring-white/20' : 'ring-slate-200'}`} />
-                            ) : (
                               <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-white text-lg font-semibold shadow-lg flex items-center justify-center flex-shrink-0">
-                                {(user?.full_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
+                                {wallet?.public_key ? wallet.public_key.slice(0, 2).toUpperCase() : 'W'}
                               </div>
-                            )}
                                                                                  <div className="flex-1 min-w-0">
-                          <p className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{user?.full_name || user?.username || 'User'}</p>
-                          <p className={`text-xs truncate ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{user?.username || 'user'}</p>
+                          <p className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>Wallet</p>
+                          <p className={`text-xs truncate ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{wallet?.public_key ? `${wallet.public_key.slice(0, 8)}...${wallet.public_key.slice(-8)}` : 'No wallet'}</p>
                         </div>
                           </div>
                         </div>
@@ -409,18 +406,18 @@ useEffect(() => {
                 </>
               ) : (
                 <button
-                  onClick={() => go('/login')}
-                  className="group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-300 shadow-md hover:scale-105 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 hover:from-yellow-400 hover:via-orange-400 hover:to-red-700 text-white shadow-yellow-500/20 hover:shadow-yellow-500/30 relative overflow-hidden"
-                >
-                  {/* Subtle shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -skew-x-12 -translate-x-full group-hover:translate-x-full" />
-                  
-                  {/* Subtle glow effect */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-red-600/10 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                  
-                  <span className="relative z-10 drop-shadow-sm">{t('navigation.getStarted', 'Get Started')}</span>
-                  <ArrowRight className="h-4 w-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110 relative z-10 drop-shadow-sm" />
-                </button>
+                    onClick={() => go('/login')}
+                    className="group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-300 shadow-md hover:scale-105 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 hover:from-yellow-400 hover:via-orange-400 hover:to-red-700 text-white shadow-yellow-500/20 hover:shadow-yellow-500/30 relative overflow-hidden"
+                  >
+                    {/* Subtle shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -skew-x-12 -translate-x-full group-hover:translate-x-full" />
+                    
+                    {/* Subtle glow effect */}
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-red-600/10 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    
+                    <span className="relative z-10 drop-shadow-sm">{t('navigation.getWallet', 'Get Wallet')}</span>
+                    <ArrowRight className="h-4 w-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110 relative z-10 drop-shadow-sm" />
+                  </button>
               )}
             </div>
           </div>
