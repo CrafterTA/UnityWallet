@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'
+// Chain service configuration
+const CHAIN_API_BASE_URL = import.meta.env.VITE_CHAIN_API_BASE_URL || 'http://localhost:8000'
 
 interface ApiResponse<T = any> {
   data: T
@@ -19,20 +20,12 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
     
-    // Add auth token if available - get from session store
-    const authData = localStorage.getItem('unity-wallet-auth')
-    if (authData) {
-      try {
-        const parsed = JSON.parse(authData)
-        const token = parsed.state?.token
-        if (token) {
-          options.headers = {
-            ...options.headers,
-            'Authorization': `Bearer ${token}`,
-          }
-        }
-      } catch (error) {
-        console.error('Failed to parse auth data:', error)
+    // Add auth token if available
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      options.headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
       }
     }
 
@@ -46,11 +39,19 @@ class ApiClient {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        let errorMessage = `HTTP error! status: ${response.status}`
+        try {
+          const errorData = await response.json()
+          if (errorData.detail) {
+            errorMessage = errorData.detail
+          }
+        } catch {
+          // If can't parse error response, use status message
+        }
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()
-      // Backend returns data directly, not wrapped in {data: T}
       return { data, status: 'success' as const }
     } catch (error) {
       console.error('API request failed:', error)
@@ -82,4 +83,8 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL)
+// Chain API client for blockchain operations
+export const chainApiClient = new ApiClient(CHAIN_API_BASE_URL)
+
+// Legacy export for compatibility (now points to chain service)
+export const apiClient = chainApiClient

@@ -269,12 +269,17 @@ function Swap() {
              <div className="flex space-x-3">
                  <input
                 type="text"
-                value={quote?.to_amount || ''}
+                value={
+                  quoteLoading && fromAmount && parseFloat(fromAmount) > 0 
+                    ? 'Calculating...'
+                    : quote?.to_amount || ''
+                }
+                placeholder={fromAmount ? 'Estimated output' : 'Enter amount above'}
                 readOnly
                 className={`flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 border backdrop-blur-sm ${
                   isDark 
-                    ? 'bg-white/10 border-white/20 text-white/70' 
-                    : 'bg-slate-100/80 border-slate-300 text-slate-600'
+                    ? 'bg-white/10 border-white/20 text-white/70 placeholder-white/40' 
+                    : 'bg-slate-100/80 border-slate-300 text-slate-600 placeholder-slate-400'
                 }`}
               />
                

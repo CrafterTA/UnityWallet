@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from chain.services.stellar import tx_lookup
+from chain.services.stellar import tx_lookup, get_account_transactions, get_account_payments
+from typing import Optional
 
 router = APIRouter(prefix="/tx", tags=["tx"])
 
@@ -20,3 +21,19 @@ def lookup(hash: str):
         }
     except Exception as e:
         raise HTTPException(404, f"Transaction not found: {e}")
+
+@router.get("/history")
+def get_transaction_history(
+    public_key: str,
+    limit: int = 10,
+    cursor: Optional[str] = None,
+    type: str = "all"  # "all", "payments", "swaps"
+):
+    """Get transaction history for an account"""
+    try:
+        if type == "payments":
+            return get_account_payments(public_key, limit, cursor)
+        else:
+            return get_account_transactions(public_key, limit, cursor)
+    except Exception as e:
+        raise HTTPException(500, f"Failed to fetch transaction history: {e}")

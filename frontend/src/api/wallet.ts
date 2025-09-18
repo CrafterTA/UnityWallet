@@ -61,20 +61,21 @@ export const walletApi = {
     try {
       // Get wallet from store
       const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-      if (!wallet.wallet?.public_key) {
+      if (!wallet.state?.wallet?.public_key) {
         throw new Error('No wallet found. Please login first.')
       }
       
-      const response = await chainApi.getBalances(wallet.wallet.public_key)
+      const response = await chainApi.getBalances(wallet.state.wallet.public_key)
       
       // Convert chain service response to our format
       const balances: Balance[] = Object.entries(response.balances).map(([asset, amount]) => ({
-        asset_code: asset,
+        asset_code: asset === 'XLM' ? 'XLM' : asset.includes(':') ? asset.split(':')[0] : asset,
         amount: amount.toString()
       }))
       
       return balances
     } catch (error) {
+      console.error('Wallet balance error:', error)
       throw new Error('Failed to fetch wallet balances from chain service')
     }
   },
@@ -83,11 +84,11 @@ export const walletApi = {
     try {
       // Get wallet from store
       const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-      if (!wallet.wallet?.public_key) {
+      if (!wallet.state?.wallet?.public_key) {
         throw new Error('No wallet found. Please login first.')
       }
       
-      return wallet.wallet.public_key
+      return wallet.state.wallet.public_key
     } catch (error) {
       throw new Error('Failed to get wallet address')
     }
@@ -96,25 +97,25 @@ export const walletApi = {
   async payment(request: PaymentRequest): Promise<TransactionResult> {
     try {
       const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-      if (!wallet.wallet?.public_key) {
+      if (!wallet.state?.wallet?.public_key || !wallet.state?.wallet?.secret) {
         throw new Error('No wallet found. Please login first.')
       }
 
-      // Begin send transaction
-      const beginResponse = await chainApi.beginSend({
-        source_public: wallet.wallet.public_key,
+      // Use the old execute endpoint for now (requires secret key)
+      const response = await chainApi.executeSend({
+        secret: wallet.state.wallet.secret,
         destination: request.destination,
-        asset: { code: request.asset_code },
+        source: { code: request.asset_code },
         amount: request.amount
       })
 
-      // TODO: Sign transaction on frontend using Stellar SDK
-      // For now, we'll return a placeholder
       return {
-        hash: 'placeholder_hash',
-        status: 'pending' as const
+        hash: response.hash,
+        status: 'success' as const,
+        ledger: response.envelope_xdr ? 1 : undefined
       }
     } catch (error) {
+      console.error('Payment error:', error)
       throw new Error('Payment failed. Please try again.')
     }
   },
@@ -122,7 +123,7 @@ export const walletApi = {
   async swap(request: { selling_asset_code: string; buying_asset_code: string; amount: string }): Promise<TransactionResult> {
     try {
       const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-      if (!wallet.wallet?.public_key) {
+      if (!wallet.state?.wallet?.public_key || !wallet.state?.wallet?.secret) {
         throw new Error('No wallet found. Please login first.')
       }
 
@@ -132,27 +133,43 @@ export const walletApi = {
         source_asset: { code: request.selling_asset_code },
         dest_asset: { code: request.buying_asset_code },
         source_amount: request.amount,
-        source_account: wallet.wallet.public_key
+        source_account: wallet.state.wallet.public_key,
+        max_paths: 5,
+        slippage_bps: 200
       })
 
-      // Begin swap transaction
-      const beginResponse = await chainApi.beginSwap({
+      const destMin = quoteResponse.dest_min_suggest || quoteResponse.dest_amount || '0'
+
+      // Parse asset formats from quote response
+      const parseAsset = (assetStr: string) => {
+        if (assetStr === 'XLM' || !assetStr.includes(':')) {
+          return { code: assetStr }
+        }
+        const [code, issuer] = assetStr.split(':')
+        return { code, issuer }
+      }
+
+      const sourceAsset = parseAsset(quoteResponse.source_asset || `${request.selling_asset_code}`)
+      const destAsset = parseAsset(quoteResponse.dest_asset || `${request.buying_asset_code}`)
+
+      // Execute swap using the old execute endpoint
+      const swapResponse = await chainApi.executeSwap({
         mode: 'send',
-        source_public: wallet.wallet.public_key,
-        source_asset: { code: request.selling_asset_code },
-        dest_asset: { code: request.buying_asset_code },
+        secret: wallet.state.wallet.secret,
+        destination: wallet.state.wallet.public_key,
+        source_asset: sourceAsset,
+        dest_asset: destAsset,
         source_amount: request.amount,
-        dest_min: quoteResponse.dest_amount,
-        path: quoteResponse.path
+        dest_min: destMin,
+        path: quoteResponse.path || []
       })
 
-      // TODO: Sign transaction on frontend using Stellar SDK
-      // For now, we'll return a placeholder
       return {
-        hash: 'placeholder_hash',
-        status: 'pending' as const
+        hash: swapResponse.hash,
+        status: 'success' as const
       }
     } catch (error) {
+      console.error('Swap error:', error)
       throw new Error('Swap failed. Please try again.')
     }
   },
@@ -163,8 +180,15 @@ export const walletApi = {
     amount: string
   ): Promise<QuoteResponse> {
     try {
-      const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-      if (!wallet.wallet?.public_key) {
+      // Try different wallet storage keys
+      let publicKey = localStorage.getItem('stellar_public_key')
+      
+      if (!publicKey) {
+        const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
+        publicKey = wallet.state?.wallet?.public_key
+      }
+
+      if (!publicKey) {
         throw new Error('No wallet found. Please login first.')
       }
 
@@ -173,17 +197,20 @@ export const walletApi = {
         source_asset: { code: fromAsset },
         dest_asset: { code: toAsset },
         source_amount: amount,
-        source_account: wallet.wallet.public_key
+        source_account: publicKey,
+        max_paths: 5,
+        slippage_bps: 200
       })
 
+      // Map from chain service response structure
       return {
         quote_id: `quote-${Date.now()}`,
-        from_asset: response.source_asset,
-        to_asset: response.dest_asset,
-        from_amount: response.source_amount,
-        to_amount: response.dest_amount,
-        exchange_rate: response.price,
-        fee_amount: '0.00001', // Placeholder fee
+        from_asset: fromAsset,
+        to_asset: toAsset,
+        from_amount: amount,
+        to_amount: response.dest_min_suggest || response.destination_amount || '0',
+        exchange_rate: response.implied_price || response.price || '1',
+        fee_amount: response.network_fee_xlm || '0.00001',
         fee_percentage: '0.1',
         expires_at: new Date(Date.now() + 30000).toISOString(),
         created_at: new Date().toISOString(),
@@ -191,7 +218,7 @@ export const walletApi = {
       }
     } catch (error) {
       console.error('Quote error:', error)
-      throw new Error('Quote service unavailable. Please try again later.')
+      throw new Error('Quote service unavailable. Please ensure chain service is running.')
     }
   },
 }

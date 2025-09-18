@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { chainApiClient } from './client'
 
 // Chain API base URL - should be different from main backend
 const CHAIN_API_BASE_URL = import.meta.env.VITE_CHAIN_API_BASE_URL || 'http://localhost:8000'
@@ -50,7 +50,7 @@ class ChainApiClient {
   }
 }
 
-const chainApiClient = new ChainApiClient(CHAIN_API_BASE_URL)
+// Using imported chainApiClient from client.ts
 
 // Chain API interfaces
 export interface DexQuoteRequest {
@@ -198,6 +198,21 @@ export interface SendCompleteResponse {
   balances: Record<string, string>
 }
 
+export interface SendExecRequest {
+  secret: string
+  destination: string
+  source: { code: string; issuer?: string }
+  amount: string
+}
+
+export interface SendExecResponse {
+  hash: string
+  fee_charged?: string
+  envelope_xdr?: string
+  result_xdr?: string
+  balances: Record<string, string>
+}
+
 // Swap API Types
 export interface SwapQuoteRequest {
   mode: 'send' | 'receive'
@@ -219,6 +234,16 @@ export interface SwapQuoteResponse {
   price: string
   path: any[]
   raw: any
+  // Additional fields from chain service
+  dest_min_suggest?: string
+  destination_amount?: string
+  implied_price?: string
+  implied_price_inverse?: string
+  network_fee_xlm?: string
+  network_fee_stroops?: string
+  op_count_estimate?: number
+  path_assets?: string[]
+  execute_suggest?: any
 }
 
 export interface SwapBeginRequest {
@@ -253,6 +278,27 @@ export interface SwapCompleteResponse {
   balances: Record<string, string>
 }
 
+export interface SwapExecRequest {
+  mode: 'send' | 'receive'
+  secret: string
+  destination?: string
+  source_asset: { code: string; issuer?: string }
+  dest_asset: { code: string; issuer?: string }
+  source_amount?: string
+  dest_min?: string
+  dest_amount?: string
+  source_max?: string
+  path?: any[]
+}
+
+export interface SwapExecResponse {
+  hash: string
+  fee_charged?: string
+  envelope_xdr?: string
+  result_xdr?: string
+  balances: Record<string, string>
+}
+
 // Transaction API Types
 export interface TransactionLookupResponse {
   hash: string
@@ -264,6 +310,30 @@ export interface TransactionLookupResponse {
   envelope_xdr: string
   result_xdr: string
   horizon_link: string
+}
+
+export interface ChainTransaction {
+  id: string
+  hash: string
+  tx_type: 'PAYMENT' | 'SWAP'
+  direction: 'sent' | 'received'
+  asset_code: string
+  asset_issuer?: string
+  amount: string
+  source: string
+  destination: string
+  source_asset_code?: string
+  source_amount?: string
+  memo?: string
+  status: 'success' | 'failed'
+  created_at: string
+  ledger?: number
+  fee_charged?: string
+}
+
+export interface TransactionHistoryResponse {
+  transactions: ChainTransaction[]
+  next_cursor?: string
 }
 
 // Onboard API Types
@@ -332,6 +402,11 @@ export const chainApi = {
     return response.data
   },
 
+  async executeSend(request: SendExecRequest): Promise<SendExecResponse> {
+    const response = await chainApiClient.post<SendExecResponse>('/send/execute', request)
+    return response.data
+  },
+
   // Swap functions
   async getSwapQuote(request: SwapQuoteRequest): Promise<SwapQuoteResponse> {
     const response = await chainApiClient.post<SwapQuoteResponse>('/swap/quote', request)
@@ -348,9 +423,26 @@ export const chainApi = {
     return response.data
   },
 
+  async executeSwap(request: SwapExecRequest): Promise<SwapExecResponse> {
+    const response = await chainApiClient.post<SwapExecResponse>('/swap/execute', request)
+    return response.data
+  },
+
   // Transaction functions
   async lookupTransaction(hash: string): Promise<TransactionLookupResponse> {
     const response = await chainApiClient.get<TransactionLookupResponse>(`/tx/lookup?hash=${hash}`)
+    return response.data
+  },
+
+  async getTransactionHistory(publicKey: string, limit: number = 10, cursor?: string, type: string = 'all'): Promise<TransactionHistoryResponse> {
+    const params = new URLSearchParams({
+      public_key: publicKey,
+      limit: limit.toString(),
+      type
+    })
+    if (cursor) params.append('cursor', cursor)
+    
+    const response = await chainApiClient.get<TransactionHistoryResponse>(`/tx/history?${params.toString()}`)
     return response.data
   },
 

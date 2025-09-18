@@ -98,3 +98,103 @@ def tx_lookup(hash: str):
 
 def asset_to_str(a: Asset) -> str:
     return "XLM" if a.is_native() else f"{a.code}:{a.issuer}"
+
+def get_account_transactions(pub: str, limit: int = 10, cursor: Optional[str] = None):
+    """Get transaction history for an account from Stellar Horizon"""
+    try:
+        # Get transactions for this account
+        transactions_call = server.transactions().for_account(pub).limit(limit)
+        if cursor:
+            transactions_call = transactions_call.cursor(cursor)
+        
+        transactions_response = transactions_call.order(desc=True).call()
+        
+        processed_transactions = []
+        for tx in transactions_response.get('_embedded', {}).get('records', []):
+            # Get operations for this transaction to understand what happened
+            operations = server.operations().for_transaction(tx['hash']).call()
+            
+            for op in operations.get('_embedded', {}).get('records', []):
+                if op['type'] == 'payment':
+                    # Determine direction
+                    direction = 'received' if op['to'] == pub else 'sent'
+                    
+                    processed_transactions.append({
+                        'id': f"{tx['hash']}_{op['id']}",
+                        'hash': tx['hash'],
+                        'tx_type': 'PAYMENT',
+                        'direction': direction,
+                        'asset_code': op['asset_code'] if op['asset_type'] != 'native' else 'XLM',
+                        'asset_issuer': op.get('asset_issuer'),
+                        'amount': op['amount'],
+                        'source': op['from'],
+                        'destination': op['to'],
+                        'memo': tx.get('memo'),
+                        'status': 'success' if tx['successful'] else 'failed',
+                        'created_at': tx['created_at'],
+                        'ledger': tx['ledger'],
+                        'fee_charged': tx['fee_charged']
+                    })
+                elif op['type'] == 'path_payment_strict_send' or op['type'] == 'path_payment_strict_receive':
+                    # This is a swap/DEX trade
+                    direction = 'received' if op['to'] == pub else 'sent'
+                    
+                    processed_transactions.append({
+                        'id': f"{tx['hash']}_{op['id']}",
+                        'hash': tx['hash'],
+                        'tx_type': 'SWAP',
+                        'direction': direction,
+                        'asset_code': op['destination_asset_code'] if op['destination_asset_type'] != 'native' else 'XLM',
+                        'asset_issuer': op.get('destination_asset_issuer'),
+                        'amount': op['destination_amount'],
+                        'source': op['from'],
+                        'destination': op['to'],
+                        'source_asset_code': op['source_asset_code'] if op['source_asset_type'] != 'native' else 'XLM',
+                        'source_amount': op['source_amount'],
+                        'memo': tx.get('memo'),
+                        'status': 'success' if tx['successful'] else 'failed',
+                        'created_at': tx['created_at'],
+                        'ledger': tx['ledger'],
+                        'fee_charged': tx['fee_charged']
+                    })
+        
+        return {
+            'transactions': processed_transactions,
+            'next_cursor': transactions_response.get('_links', {}).get('next', {}).get('href', '').split('cursor=')[-1] if transactions_response.get('_links', {}).get('next') else None
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Failed to fetch transactions: {str(e)}")
+
+def get_account_payments(pub: str, limit: int = 10, cursor: Optional[str] = None):
+    """Get payment history for an account (simpler version focusing on payments only)"""
+    try:
+        payments_call = server.payments().for_account(pub).limit(limit)
+        if cursor:
+            payments_call = payments_call.cursor(cursor)
+        
+        payments_response = payments_call.order(desc=True).call()
+        
+        processed_payments = []
+        for payment in payments_response.get('_embedded', {}).get('records', []):
+            direction = 'received' if payment['to'] == pub else 'sent'
+            
+            processed_payments.append({
+                'id': payment['id'],
+                'hash': payment['transaction_hash'],
+                'tx_type': 'PAYMENT',
+                'direction': direction,
+                'asset_code': payment['asset_code'] if payment['asset_type'] != 'native' else 'XLM',
+                'asset_issuer': payment.get('asset_issuer'),
+                'amount': payment['amount'],
+                'source': payment['from'],
+                'destination': payment['to'],
+                'status': 'success',  # Horizon only returns successful operations
+                'created_at': payment['created_at']
+            })
+        
+        return {
+            'transactions': processed_payments,
+            'next_cursor': payments_response.get('_links', {}).get('next', {}).get('href', '').split('cursor=')[-1] if payments_response.get('_links', {}).get('next') else None
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Failed to fetch payments: {str(e)}")

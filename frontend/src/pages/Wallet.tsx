@@ -8,6 +8,7 @@ import { chainApi } from '@/api/chain';
 import { toast } from 'react-hot-toast';
 import * as StellarBase from 'stellar-base';
 import { Buffer } from 'buffer';
+import { getUSDValue, formatUSDValue, formatAssetAmount, fetchLiveRates, ExchangeRate, DEFAULT_RATES } from '@/lib/currency';
 
 // Polyfills
 if (!window.Buffer) window.Buffer = Buffer;
@@ -283,6 +284,9 @@ const WalletPage: React.FC = () => {
 
   // State for balances from API response
   const [apiBalances, setApiBalances] = useState<any>(null);
+  
+  // State for exchange rates
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRate>(DEFAULT_RATES);
 
   // Fetch real wallet balances
   const { data: balances, isLoading, error: balancesError, refetch: refetchBalances } = useQuery({
@@ -313,6 +317,23 @@ const WalletPage: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch live exchange rates
+  const { data: liveRates, isLoading: ratesLoading } = useQuery({
+    queryKey: ['exchange-rates'],
+    queryFn: () => fetchLiveRates(chainApi),
+    enabled: isAuthenticated && !!wallet?.public_key,
+    retry: 1,
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: false,
+  });
+
+  // Update exchange rates when live rates are fetched
+  useEffect(() => {
+    if (liveRates) {
+      setExchangeRates(liveRates);
+    }
+  }, [liveRates]);
+
   // Wallet data with real address from API
   const walletData = {
     address: walletAddress || wallet?.public_key || 'GB7TAYRUZGE6TVT7NHP5SMDJQSPJRTCZ5T3ZWSGDN7W7CJFMTZ5HJLQD'
@@ -327,19 +348,22 @@ const WalletPage: React.FC = () => {
       }))
     : [];
 
-  // Calculate total balance from API data
+  // Calculate total balance with live USD conversion
   const totalBalance = balancesArray?.reduce((sum: number, balance: any) => {
-    return sum + parseFloat(balance.amount);
+    return sum + getUSDValue(balance.asset_code, balance.amount, exchangeRates);
   }, 0) || 0;
 
   // Process balances for display (show only asset code like XLM, SYP, USDC)
-  const processedBalances = balancesArray?.map((balance: any) => ({
-    symbol: balance.short_code || balance.asset_code,
-    amount: balance.amount,
-    value: parseFloat(balance.amount), // 1:1 ratio for demo
-    change24h: 0, // No change data available yet
-    isPositive: true
-  })) || [];
+  const processedBalances = balancesArray?.map((balance: any) => {
+    const usdValue = getUSDValue(balance.asset_code, balance.amount, exchangeRates);
+    return {
+      symbol: balance.short_code || balance.asset_code,
+      amount: balance.amount,
+      value: usdValue, // USD value with live conversion rates
+      change24h: 0, // No change data available yet
+      isPositive: true
+    };
+  }) || [];
 
 
   // Mock empty transactions for now
@@ -432,7 +456,7 @@ const WalletPage: React.FC = () => {
             <div className="text-right">
               <div className="flex items-center gap-3 mb-2">
                 <div className="text-3xl font-bold">
-                  {showBalance ? `$${totalBalance.toFixed(2)}` : '••••••'}
+                  {showBalance ? formatUSDValue(totalBalance) : '••••••'}
                 </div>
                 <button 
                   onClick={() => setShowBalance(!showBalance)}
@@ -440,9 +464,12 @@ const WalletPage: React.FC = () => {
                 >
                   {showBalance ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </button>
+                {ratesLoading && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
               </div>
               <div className="text-red-100 text-sm">
-                {showBalance ? 'USD' : '••••'}
+                {showBalance ? (ratesLoading ? 'Updating rates...' : 'USD (Live)') : '••••'}
               </div>
           </div>
         </div>
@@ -481,10 +508,10 @@ const WalletPage: React.FC = () => {
                     </div>
                     <div className="text-right">
                     <p className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {showBalance ? (balance.amount || '0') : '••••'}
+                      {showBalance ? formatAssetAmount(balance.amount || '0') : '••••'}
                     </p>
                     <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-                      {showBalance ? `$${(balance.value || 0).toFixed(2)}` : '••••'}
+                      {showBalance ? formatUSDValue(balance.value || 0) : '••••'}
                     </p>
                       </div>
                     </div>
