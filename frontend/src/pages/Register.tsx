@@ -45,7 +45,7 @@ function Register() {
               <span className="text-white font-bold text-2xl">UW</span>
             </div>
             <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('auth.register.title', 'Create Account')}</h2>
-            <p className={`${isDark ? 'text-navy-300' : 'text-slate-600'}`}>{t('auth.register.subtitle', 'Join UnityWallet in minutes')}</p>
+            <p className={`${isDark ? 'text-navy-300' : 'text-slate-600'}`}>{t('auth.register.subtitle', 'Join SoviPay in minutes')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

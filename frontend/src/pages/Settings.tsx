@@ -10,7 +10,7 @@ function Settings() {
   const { t } = useTranslation()
   const [notifications, setNotifications] = useState(true)
   const [language, setLanguage] = useState('en')
-  const { user, logout } = useAuthStore()
+  const { wallet, logout } = useAuthStore()
   const { theme, setTheme, isDark } = useThemeStore()
   const navigate = useNavigate()
 
@@ -32,12 +32,12 @@ function Settings() {
        items: [
          {
            label: t('settings.profileInfo', 'Profile Information'),
-           value: user?.name || user?.full_name || 'Demo User',
+           value: wallet?.public_key ? `${wallet.public_key.slice(0, 8)}...${wallet.public_key.slice(-8)}` : 'Demo User',
            action: () => toast('Profile editing coming soon', { icon: 'ℹ️' }),
          },
          {
            label: t('settings.kycStatus', 'KYC Status'),
-           value: user?.kyc_status === 'VERIFIED' ? t('settings.verified', 'Verified') : t('settings.pending', 'Pending'),
+           value: wallet?.account_exists ? t('settings.verified', 'Verified') : t('settings.pending', 'Pending'),
            action: () => toast('KYC management coming soon', { icon: 'ℹ️' }),
          },
        ],
@@ -81,19 +81,14 @@ function Settings() {
          },
          {
            label: t('settings.appearance', 'Appearance'),
-                       value: theme === 'dark' ? t('settings.darkMode', 'Dark Mode') : 
-                   theme === 'light' ? t('settings.lightMode', 'Light Mode') : 
-                   t('settings.systemDefault', 'System Default'),
+           value: theme === 'dark' ? t('settings.darkMode', 'Dark Mode') : t('settings.lightMode', 'Light Mode'),
            action: () => {
-             const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
-             const currentIndex = themes.indexOf(theme)
-             const nextTheme = themes[(currentIndex + 1) % themes.length]
+             const nextTheme = theme === 'dark' ? 'light' : 'dark'
              setTheme(nextTheme)
              
              const themeNames = {
                light: t('settings.lightMode', 'Light Mode'),
-               dark: t('settings.darkMode', 'Dark Mode'),
-               system: t('settings.systemDefault', 'System Default')
+               dark: t('settings.darkMode', 'Dark Mode')
              }
              toast.success(`${t('settings.appearance', 'Appearance')}: ${themeNames[nextTheme]}`)
            },
@@ -117,25 +112,21 @@ function Settings() {
        <div className={`backdrop-blur-sm rounded-2xl p-6 border shadow-xl ${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'}`}>
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-xl flex items-center justify-center">
-            {user?.avatar ? (
-              <img
-                src={user.avatar}
-                alt={user?.name || user?.full_name || 'User'}
-                className="w-16 h-16 rounded-xl object-cover"
-              />
-            ) : (
-              <User className="w-8 h-8 text-white" />
-            )}
+            <User className="w-8 h-8 text-white" />
           </div>
                      <div>
-             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{user?.name || user?.full_name}</h3>
-             <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>{user?.email || user?.username}</p>
+             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+               {wallet?.public_key ? `${wallet.public_key.slice(0, 8)}...${wallet.public_key.slice(-8)}` : 'Demo User'}
+             </h3>
+             <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+               {wallet?.public_key ? 'Stellar Wallet' : 'Demo Account'}
+             </p>
              <div className="flex items-center space-x-2 mt-1">
                <div className={`w-2 h-2 rounded-full ${
-                 user?.kyc_status === 'VERIFIED' ? 'bg-green-400' : 'bg-yellow-400'
+                 wallet?.account_exists ? 'bg-green-400' : 'bg-yellow-400'
                }`} />
                <span className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                 {user?.kyc_status === 'VERIFIED' ? 'Verified Account' : 'Pending Verification'}
+                 {wallet?.account_exists ? 'Verified Account' : 'Pending Verification'}
                </span>
              </div>
            </div>
@@ -196,7 +187,7 @@ function Settings() {
         <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-yellow-500 rounded-xl flex items-center justify-center mx-auto mb-3">
           <span className="text-white font-bold">UW</span>
         </div>
-        <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>UnityWallet</h3>
+        <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>SoviPay</h3>
         <p className={`text-sm mb-3 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>Version 1.0.0</p>
         <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
           Powered by Stellar Blockchain • Built for Hackathon Demo

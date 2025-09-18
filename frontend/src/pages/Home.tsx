@@ -868,7 +868,7 @@ export default function Web3ModernLayout() {
             <div className="text-center md:text-left">
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.cta.title', 'Ready to start your digital journey?')}</h3>
               <p className={`mt-2 text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                {t('home.cta.subtitle', 'Join thousands of users managing their digital assets with UnityWallet. Secure, fast, and user-friendly.')}
+                {t('home.cta.subtitle', 'Join thousands of users managing their digital assets with SoviPay. Secure, fast, and user-friendly.')}
               </p>
               <div className="mt-4 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <button 
@@ -911,7 +911,7 @@ export default function Web3ModernLayout() {
         <div className="text-center space-y-8 sm:space-y-12">
           <div className="text-reveal">
             <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              {t('home.whyChoose.title', 'Why Choose')} <span className="bg-gradient-to-r from-red-400 to-yellow-400 bg-clip-text text-transparent">UnityWallet?</span>
+              {t('home.whyChoose.title', 'Why Choose')} <span className="bg-gradient-to-r from-red-400 to-yellow-400 bg-clip-text text-transparent">SoviPay?</span>
             </h2>
             <p className={`text-base sm:text-lg max-w-2xl mx-auto px-4 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
               {t('home.whyChoose.subtitle', 'Experience the next generation of digital finance with cutting-edge security and seamless user experience.')}
@@ -956,7 +956,7 @@ export default function Web3ModernLayout() {
         <div className="grid gap-6 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 text-reveal">
                      <div className="col-span-1 sm:col-span-2 md:col-span-1 text-center sm:text-left">
              <div className={`mb-3 flex items-center justify-center sm:justify-start gap-2 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-               <Wallet className="h-4 w-4" /> UnityWallet
+               <img src="/images/logo.png" alt="SoviPay" className="h-4 w-4 rounded-sm" /> SoviPay
              </div>
              <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>{t('home.footer.description', 'Secure, fast, and delightful digital wallet experience.')}</p>
            </div>
@@ -987,7 +987,7 @@ export default function Web3ModernLayout() {
            </div>
         </div>
                  <div className={`mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t pt-4 text-xs gap-2 text-center sm:text-left ${isDark ? 'border-white/10 text-white/50' : 'border-slate-200 text-slate-500'}`}>
-           <span>© {new Date().getFullYear()} UnityWallet Labs</span>
+           <span>© {new Date().getFullYear()} SoviPay Labs</span>
            <div className="flex items-center justify-center sm:justify-start gap-3">
              <a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.privacy', 'Privacy')}</a>
              <a href="#" className={`hover:transition-colors ${isDark ? 'hover:text-white' : 'hover:text-slate-700'}`}>{t('home.footer.terms', 'Terms')}</a>

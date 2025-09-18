@@ -273,7 +273,7 @@ const Login: React.FC = () => {
             <div></div>
             <ThemeSwitcher />
           </div>
-          <h1 className="text-3xl font-bold mb-2 text-white">UnityWallet</h1>
+          <h1 className="text-3xl font-bold mb-2 text-white">SoviPay</h1>
           <p className="text-white/70">Your Digital Wallet</p>
         </div>
 
@@ -465,7 +465,7 @@ const Login: React.FC = () => {
           {!createdWallet && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2 text-white">Welcome to UnityWallet</h2>
+                <h2 className="text-2xl font-bold mb-2 text-white">Welcome to SoviPay</h2>
                 <p className="text-white/70">Create a new wallet or import an existing one</p>
               </div>
 

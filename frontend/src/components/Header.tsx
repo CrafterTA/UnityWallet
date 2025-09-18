@@ -1,4 +1,4 @@
-// Header.tsx — Enhanced Neon Glass header matching UnityWallet style
+// Header.tsx — Enhanced Neon Glass header matching SoviPay style
 // - Center segmented nav with sliding indicator (desktop only)
 // - Glass/gradient background that intensifies on scroll
 // - SPA navigation with useNavigate (requires <BrowserRouter>)
@@ -225,12 +225,16 @@ useEffect(() => {
                     {/* Animated Background Pattern */}
                     <div className="absolute inset-0 bg-gradient-to-br from-red-400/20 via-yellow-400/20 to-red-600/20 animate-pulse rounded-3xl"></div>
                     
-                    {/* Premium Wallet Icon */}
+                    {/* Premium Logo */}
                     <div className="relative z-10 transform transition-all duration-300 group-hover:scale-110">
                 <div className="relative">
-                        <Wallet className="h-6 w-6 text-white drop-shadow-lg" />
-                        {/* Icon Glow */}
-                        <div className="absolute inset-0 h-6 w-6 bg-white/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
+                        <img 
+                          src="/images/logo.png" 
+                          alt="SoviPay Logo" 
+                          className="h-6 w-6 drop-shadow-lg rounded-sm"
+                        />
+                        {/* Logo Glow */}
+                        <div className="absolute inset-0 h-6 w-6 bg-white/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-sm"></div>
                       </div>
                     </div>
                     
@@ -253,8 +257,8 @@ useEffect(() => {
                 {/* Premium Brand Name */}
                 <div className="flex flex-col items-start">
                   <span className={`hidden sm:block font-black text-2xl tracking-tight transition-all duration-300 ${isDark ? 'text-white group-hover:text-red-200' : 'text-slate-900 group-hover:text-red-600'}`}>
-                    Unity
-                    <span className="bg-gradient-to-r from-red-500 via-red-400 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">Wallet</span>
+                    Sovi
+                    <span className="bg-gradient-to-r from-red-500 via-red-400 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">Pay</span>
                   </span>
                 </div>
               </button>

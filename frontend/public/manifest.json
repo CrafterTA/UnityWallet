@@ -1,7 +1,7 @@
 {
-  "name": "UnityWallet - Your Digital Wallet",
-  "short_name": "UnityWallet",
-  "description": "Transform loyalty points into digital assets with UnityWallet - powered by Stellar blockchain",
+  "name": "SoviPay - Your Digital Wallet",
+  "short_name": "SoviPay",
+  "description": "Transform loyalty points into digital assets with SoviPay - powered by Stellar blockchain",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,9 +9,9 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/vite.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
