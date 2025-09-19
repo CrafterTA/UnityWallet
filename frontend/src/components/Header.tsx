@@ -59,6 +59,11 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
   ]), [t]);
 
   const activeIndex = useMemo(() => {
+    // Nếu đang ở /wallet thì không có nav item nào active
+    if (location.pathname === '/wallet') {
+      return -1;
+    }
+    
     const idx = links.findIndex(l => {
       if (l.path === '/') {
         // Only match exact '/' for home, not '/wallet' or other paths
@@ -92,7 +97,15 @@ useEffect(() => {
     if (!list || !pill) return;
     const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[data-nav-item]'));
     const target = items[activeIndex];
-    if (!target) return;
+    if (!target) {
+      // Ẩn indicator khi không có active item
+      gsap.to(pill, { 
+        opacity: 0,
+        duration: 0.3, 
+        ease: 'power2.out'
+      });
+      return;
+    }
     const listBox = list.getBoundingClientRect();
     const box = target.getBoundingClientRect();
     const x = box.left - listBox.left;
@@ -100,6 +113,7 @@ useEffect(() => {
     gsap.to(pill, { 
       x, 
       width: w, 
+      opacity: 1,
       duration: 0.4, 
       ease: 'back.out(1.7)'
     });

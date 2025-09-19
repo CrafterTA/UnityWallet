@@ -5,6 +5,7 @@ import { useThemeStore } from '@/store/theme';
 import { useAuthStore } from '@/store/session';
 import { walletApi } from '@/api/wallet';
 import { chainApi } from '@/api/chain';
+import { transactionsApi } from '@/api/transactions';
 import { toast } from 'react-hot-toast';
 import * as StellarBase from 'stellar-base';
 import { Buffer } from 'buffer';
@@ -59,6 +60,7 @@ const WalletPage: React.FC = () => {
   
   // Refs for animations
   const walletRef = useRef<HTMLDivElement>(null);
+  const quickActionsRef = useRef<HTMLDivElement>(null);
   const assetsRef = useRef<HTMLDivElement>(null);
   
   // State
@@ -323,7 +325,7 @@ const WalletPage: React.FC = () => {
     queryFn: () => fetchLiveRates(chainApi),
     enabled: isAuthenticated && !!wallet?.public_key,
     retry: 1,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 120000, // Refresh every 2 minutes (giảm từ 30s)
     refetchOnWindowFocus: false,
   });
 
@@ -366,8 +368,38 @@ const WalletPage: React.FC = () => {
   }) || [];
 
 
-  // Mock empty transactions for now
-  const recentTransactions: Transaction[] = [];
+  // Fetch recent transactions
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['recent-transactions-wallet'],
+    queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 5 }),
+    retry: 1,
+    refetchOnWindowFocus: false, // Tắt refetch khi focus để giảm refresh
+  })
+
+  // Process recent transactions (exclude swap transactions, take first 5)
+  const recentTransactions = transactionsData?.transactions
+    .filter((tx) => tx.tx_type !== 'SWAP') // Bỏ qua swap transactions
+    .slice(0, 5) // Lấy 5 giao dịch gần nhất (không phải swap)
+    .map((tx) => {
+      let type = 'sent' // default fallback
+      
+      if (tx.tx_type === 'SWAP') {
+        type = 'swapped'
+      } else if (tx.tx_type === 'PAYMENT') {
+        type = tx.direction === 'received' ? 'received' : 'sent'
+      }
+      
+      return {
+        id: tx.id,
+        type: type,
+        amount: tx.amount,
+        symbol: tx.asset_code,
+        to: tx.destination,
+        from: tx.source,
+        time: new Date(tx.created_at).toLocaleDateString(),
+        status: tx.status.toLowerCase()
+      }
+    }) || []
 
   // GSAP animations
   useEffect(() => {
@@ -378,13 +410,41 @@ const WalletPage: React.FC = () => {
         { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
       );
 
+      // Quick Actions animation
+      gsap.fromTo(quickActionsRef.current,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.8, delay: 0.2, ease: "power2.out" }
+      );
+
       // Assets animation
       gsap.fromTo(assetsRef.current,
         { opacity: 0, y: 30 },
         { opacity: 1, y: 0, duration: 0.8, delay: 0.4, ease: "power2.out" }
       );
 
-      // Scroll animations
+      // Quick Actions buttons animation
+      gsap.utils.toArray('.quick-action-btn').forEach((btn: any, index) => {
+        gsap.fromTo(btn,
+          { opacity: 0, scale: 0.8 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.5,
+            delay: 0.1 * index,
+            ease: "back.out(1.7)"
+          }
+        );
+      });
+
+    });
+
+    return () => ctx.revert();
+  }, []); // Chỉ chạy 1 lần khi component mount
+
+  // Separate useEffect for scroll animations when data changes
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Scroll animations for assets
       gsap.utils.toArray('.asset-card').forEach((card: any, index) => {
         gsap.fromTo(card,
           { opacity: 0, x: -50 },
@@ -426,7 +486,7 @@ const WalletPage: React.FC = () => {
     });
 
     return () => ctx.revert();
-  }, [processedBalances, recentTransactions]);
+  }, [processedBalances, recentTransactions]); // Chỉ chạy khi data thay đổi
 
   if (!isAuthenticated) {
     return (
@@ -490,6 +550,68 @@ const WalletPage: React.FC = () => {
       </div>
           </div>
 
+        {/* Quick Actions */}
+        <div ref={quickActionsRef} className="mb-8">
+          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Send */}
+            <button
+              onClick={() => window.location.href = '/pay'}
+              className={`quick-action-btn group relative overflow-hidden rounded-xl p-6 border transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/80 border-slate-200 hover:bg-slate-100'}`}
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <ArrowUpRight className="w-6 h-6 text-white" />
+                </div>
+                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Send</h4>
+                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Transfer assets</p>
+              </div>
+            </button>
+
+            {/* Receive */}
+            <button
+              onClick={() => window.location.href = '/pay'}
+              className={`quick-action-btn group relative overflow-hidden rounded-xl p-6 border transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/80 border-slate-200 hover:bg-slate-100'}`}
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <ArrowDownLeft className="w-6 h-6 text-white" />
+                </div>
+                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Receive</h4>
+                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Get QR code</p>
+              </div>
+            </button>
+
+            {/* Swap */}
+            <button
+              onClick={() => window.location.href = '/swap'}
+              className={`quick-action-btn group relative overflow-hidden rounded-xl p-6 border transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/80 border-slate-200 hover:bg-slate-100'}`}
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <Send className="w-6 h-6 text-white" />
+                </div>
+                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Swap</h4>
+                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Exchange assets</p>
+              </div>
+            </button>
+
+            {/* Activity */}
+            <button
+              onClick={() => window.location.href = '/activity'}
+              className={`quick-action-btn group relative overflow-hidden rounded-xl p-6 border transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/80 border-slate-200 hover:bg-slate-100'}`}
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <Coins className="w-6 h-6 text-white" />
+                </div>
+                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Activity</h4>
+                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>View history</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Assets */}
         <div ref={assetsRef} className="mb-8">
           <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Assets</h3>
@@ -530,7 +652,12 @@ const WalletPage: React.FC = () => {
         <div className="mb-8">
           <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Transactions</h3>
         <div className="space-y-3">
-          {recentTransactions.length > 0 ? (
+          {transactionsLoading ? (
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>Loading transactions...</p>
+            </div>
+          ) : recentTransactions.length > 0 ? (
             recentTransactions.map((tx) => (
               <div 
                 key={tx.id} 
