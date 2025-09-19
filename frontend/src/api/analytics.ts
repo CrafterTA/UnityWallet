@@ -257,5 +257,98 @@ export const analyticsApi = {
       console.error('Failed to fetch insights:', error)
       throw new Error('Unable to load insights. Please ensure you have a wallet connected and chain service is running.')
     }
+  },
+
+  // ====== Gemini AI Assistant ======
+  async askAssistant(message: string): Promise<{ answer: string }> {
+    try {
+      // Get wallet context
+      const authData = localStorage.getItem('unity-wallet-auth')
+      if (!authData) {
+        throw new Error('No wallet connected')
+      }
+      
+      const wallet = JSON.parse(authData)
+      const publicKey = wallet.state?.wallet?.public_key
+      if (!publicKey) {
+        throw new Error('No wallet public key found')
+      }
+
+      // Get recent transaction context
+      const transactions = await chainApi.getTransactionHistory(publicKey, 10)
+      const balances = await chainApi.getBalances(publicKey)
+      
+      // Prepare context for Gemini
+      const context = {
+        wallet: {
+          publicKey,
+          balances: balances?.balances || []
+        },
+        transactions: transactions?.transactions?.slice(0, 5) || [],
+        message
+      }
+
+      // Call Gemini API directly from frontend
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+      const model = import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.0-flash'
+      
+      if (!apiKey) {
+        throw new Error('Gemini API key not configured. Please set VITE_GEMINI_API_KEY in your .env file.')
+      }
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are a friendly AI assistant for SoviPay - a Stellar blockchain wallet. 
+
+WALLET CONTEXT (use when user asks about wallet/transactions):
+- Public Key: ${context.wallet.publicKey}
+- Balances: ${JSON.stringify(context.wallet.balances, null, 2)}
+- Recent Transactions: ${JSON.stringify(context.transactions, null, 2)}
+
+USER QUESTION: ${context.message}
+
+INSTRUCTIONS:
+1. If user asks about wallet, transactions, balances, or financial data → Use the wallet context above
+2. If user asks general questions (greetings, weather, general knowledge) → Answer normally without wallet context
+3. If user asks about crypto/blockchain in general → Provide helpful information
+4. Always be friendly, helpful, and concise (under 200 words)
+5. For wallet questions, explain in simple terms
+6. For Vietnamese questions, respond in Vietnamese
+7. For English questions, respond in English
+8. IMPORTANT: Format your response with proper line breaks:
+   - Use bullet points (•) for lists
+   - Each main point on a new line
+   - Use **bold** for important terms
+   - Keep paragraphs short and readable
+
+FORMATTING EXAMPLES:
+- "Chào bạn" → "Xin chào! Tôi là trợ lý AI của SoviPay.\n\nTôi có thể giúp bạn:\n• Kiểm tra số dư\n• Xem giao dịch\n• Giải thích về crypto\n\nBạn cần giúp gì?"
+- "How much XLM do I have?" → "**Số dư XLM của bạn:**\n\n• XLM: [amount] XLM\n• Giá trị: $[usd_value]\n\nBạn có thể gửi, nhận hoặc swap XLM này."
+- "What is blockchain?" → "**Blockchain là gì?**\n\nBlockchain là một công nghệ lưu trữ dữ liệu:\n• **Phi tập trung:** Không có cơ quan trung ương\n• **Bảo mật:** Dữ liệu được mã hóa\n• **Minh bạch:** Mọi giao dịch đều công khai\n• **Bất biến:** Không thể thay đổi dữ liệu cũ"`
+            }]
+          }]
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Gemini API request failed')
+      }
+
+      const data = await response.json()
+      const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not process your request at the moment.'
+
+      return { answer }
+    } catch (error) {
+      console.error('Gemini API error:', error)
+      // Fallback response
+      return { 
+        answer: 'I apologize, but I\'m having trouble connecting to the AI service right now. Please try again later or contact support if the issue persists.' 
+      }
+    }
   }
 }

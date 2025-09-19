@@ -20,7 +20,7 @@ function Assistant() {
     {
       id: '1',
       type: 'assistant',
-      content: 'Hi! I\'m your financial assistant. I can help you understand your spending patterns, find savings opportunities, and answer questions about your finances. What would you like to know?',
+      content: 'Xin chào! Tôi là trợ lý AI của SoviPay.\n\nTôi có thể giúp bạn:\n• Kiểm tra số dư và giao dịch\n• Giải thích về blockchain và crypto\n• Trả lời câu hỏi thường\n• Hỗ trợ sử dụng ví\n\nBạn cần giúp gì?',
       timestamp: new Date(),
     },
   ])
@@ -31,18 +31,18 @@ function Assistant() {
   const quickQuestions = [
     {
       icon: TrendingUp,
-      text: 'How much did I spend on travel this month?',
-      query: 'travel spending',
+      text: 'Tôi có bao nhiêu XLM?',
+      query: 'Tôi có bao nhiêu XLM?',
     },
     {
       icon: DollarSign,
-      text: 'How can I save money?',
-      query: 'save money',
+      text: 'Giao dịch gần đây của tôi',
+      query: 'Giao dịch gần đây của tôi',
     },
     {
       icon: Lightbulb,
-      text: 'What\'s my credit score?',
-      query: 'credit score',
+      text: 'Blockchain là gì?',
+      query: 'Blockchain là gì?',
     },
   ]
 
@@ -81,6 +81,7 @@ function Assistant() {
 
       setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
+      console.error('Assistant error:', error)
       toast.error('Failed to get response from assistant')
       
       const errorMessage: Message = {
@@ -199,7 +200,43 @@ function Assistant() {
                       </div>
                     )}
                     
-                    <p className="leading-relaxed">{message.content}</p>
+                    <div className="leading-relaxed whitespace-pre-wrap">
+                      {message.content.split('\n').map((line, index) => {
+                        // Handle bullet points
+                        if (line.trim().startsWith('•')) {
+                          return (
+                            <div key={index} className="flex items-start gap-2 mb-1">
+                              <span className="text-red-500 dark:text-red-400 mt-1 flex-shrink-0">•</span>
+                              <span className="flex-1">{line.replace('•', '').trim()}</span>
+                            </div>
+                          )
+                        }
+                        // Handle bold text
+                        if (line.includes('**')) {
+                          const parts = line.split(/(\*\*.*?\*\*)/g)
+                          return (
+                            <div key={index} className="mb-2">
+                              {parts.map((part, partIndex) => {
+                                if (part.startsWith('**') && part.endsWith('**')) {
+                                  return (
+                                    <strong key={partIndex} className="font-bold text-slate-900 dark:text-slate-100">
+                                      {part.slice(2, -2)}
+                                    </strong>
+                                  )
+                                }
+                                return <span key={partIndex}>{part}</span>
+                              })}
+                            </div>
+                          )
+                        }
+                        // Regular lines
+                        return (
+                          <div key={index} className={line.trim() ? 'mb-2' : 'mb-1'}>
+                            {line}
+                          </div>
+                        )
+                      })}
+                    </div>
                     
                     <p className={`text-xs mt-2 ${
                       message.type === 'user' ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'
@@ -258,7 +295,7 @@ function Assistant() {
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything..."
+                  placeholder="Hỏi tôi bất cứ điều gì..."
                   className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 h-10"
                   disabled={isLoading}
                 />
