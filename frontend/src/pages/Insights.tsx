@@ -1541,14 +1541,43 @@ export default function Insights() {
                               ? 'bg-white/10 text-white border border-white/20'
                               : 'bg-white text-slate-900 border border-slate-200'
                         }`}>
-                          <div 
-                            className="text-sm leading-relaxed whitespace-pre-wrap"
-                            dangerouslySetInnerHTML={{
-                              __html: message.content
-                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                .replace(/•/g, '<span class="text-blue-400">•</span>')
-                            }}
-                          />
+                          <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {message.content.split('\n').map((line, index) => {
+                              // Handle bullet points
+                              if (line.trim().startsWith('•')) {
+                                return (
+                                  <div key={index} className="flex items-start gap-2 mb-1">
+                                    <span className="text-blue-400 dark:text-blue-400 mt-1 flex-shrink-0">•</span>
+                                    <span className="flex-1">{line.replace('•', '').trim()}</span>
+                                  </div>
+                                )
+                              }
+                              // Handle bold text
+                              if (line.includes('**')) {
+                                const parts = line.split(/(\*\*.*?\*\*)/g)
+                                return (
+                                  <div key={index} className="mb-2">
+                                    {parts.map((part, partIndex) => {
+                                      if (part.startsWith('**') && part.endsWith('**')) {
+                                        return (
+                                          <strong key={partIndex} className="font-bold text-slate-900 dark:text-slate-100">
+                                            {part.slice(2, -2)}
+                                          </strong>
+                                        )
+                                      }
+                                      return <span key={partIndex}>{part}</span>
+                                    })}
+                                  </div>
+                                )
+                              }
+                              // Regular lines
+                              return (
+                                <div key={index} className={line.trim() ? 'mb-2' : 'mb-1'}>
+                                  {line}
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
                       </div>
                     ))}
