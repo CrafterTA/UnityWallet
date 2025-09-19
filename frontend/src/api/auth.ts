@@ -92,21 +92,6 @@ export const authApi = {
     }
   },
 
-  async register(payload: { username: string; full_name: string; password: string }): Promise<{ ok: true }> {
-    try {
-      // Simple registration - store user profile
-      const userProfile: UserProfile = {
-        username: payload.username,
-        full_name: payload.full_name,
-        stellar_public_key: localStorage.getItem('stellar_public_key') || undefined
-      }
-      localStorage.setItem('user_profile', JSON.stringify(userProfile))
-      
-      return { ok: true }
-    } catch (error) {
-      throw new Error('Registration failed. Please try again.')
-    }
-  },
 
   // Helper method to check if user is authenticated
   isAuthenticated(): boolean {

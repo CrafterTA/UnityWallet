@@ -14,7 +14,7 @@ interface LayoutProps {
 function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const { isDark } = useThemeStore()
-  const hideNavOnRoutes = ['/login', '/register']
+  const hideNavOnRoutes = ['/login']
   const shouldHideNav = hideNavOnRoutes.includes(location.pathname)
   
   // Use landing variant for home page

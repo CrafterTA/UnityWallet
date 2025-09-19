@@ -3,7 +3,6 @@ import { useAuthStore } from '@/store/session'
 // Use alias path to avoid any moduleResolution quirks with relative specifier
 import Layout from '@/app/Layout'
 import Login from '@/pages/Login'
-import Register from '@/pages/Register'
 import Home from '@/pages/Home'
 import Wallet from '@/pages/Wallet'
 import Pay from '@/pages/Pay'
@@ -22,7 +21,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout><Home /></Layout>} />
         <Route path="/login" element={<Login />} />
-  <Route path="/register" element={<Register />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )

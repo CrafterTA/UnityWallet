@@ -105,18 +105,18 @@ export default function Pay() {
       
       const from = type === 'received' ? tx.source : undefined // Địa chỉ người gửi cho received
       const to = type === 'sent' ? tx.destination : undefined // Địa chỉ người nhận cho sent
-      
-      return {
-        id: tx.id,
+    
+    return {
+      id: tx.id,
         type: type,
-        amount: tx.amount,
-        symbol: tx.asset_code,
-        to,
-        from,
-        time: new Date(tx.created_at).toLocaleDateString(),
-        status: tx.status.toLowerCase()
-      }
-    }) || []
+      amount: tx.amount,
+      symbol: tx.asset_code,
+      to,
+      from,
+      time: new Date(tx.created_at).toLocaleDateString(),
+      status: tx.status.toLowerCase()
+    }
+  }) || []
 
   // Fetch wallet address
   const { data: walletAddress, isLoading: addressLoading, error: addressError } = useQuery({
