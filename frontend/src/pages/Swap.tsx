@@ -175,7 +175,7 @@ function Swap() {
                        <div className="flex items-center justify-between">
                <label className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{t('swap.from', 'From')}</label>
                <span className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                 {t('swap.balance', 'Balance')}: {formatBalance(getAssetBalance(fromAsset).toString(), 2)}
+                 {t('swap.balance', 'Balance')}: {formatBalance(getAssetBalance(fromAsset).toString(), 3)}
                </span>
              </div>
             
@@ -235,7 +235,7 @@ function Swap() {
                               : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
                           } ${balance.asset_code === fromAsset ? 'font-semibold' : ''}`}
                         >
-                          {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)})
+                          {balance.asset_code} ({parseFloat(balance.amount).toFixed(3)})
                         </button>
                       ))}
                   </div>
@@ -321,7 +321,7 @@ function Swap() {
                                : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
                            } ${balance.asset_code === toAsset ? 'font-semibold' : ''}`}
                          >
-                           {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)})
+                           {balance.asset_code} ({parseFloat(balance.amount).toFixed(3)})
                          </button>
                        ))}
                    </div>

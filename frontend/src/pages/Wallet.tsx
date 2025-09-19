@@ -508,7 +508,7 @@ const WalletPage: React.FC = () => {
                     </div>
                     <div className="text-right">
                     <p className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {showBalance ? formatAssetAmount(balance.amount || '0') : '••••'}
+                      {showBalance ? formatAssetAmount(balance.amount || '0', 3) : '••••'}
                     </p>
                     <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
                       {showBalance ? formatUSDValue(balance.value || 0) : '••••'}

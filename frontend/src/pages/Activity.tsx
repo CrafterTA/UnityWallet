@@ -12,7 +12,7 @@ import TransactionDetailModal from '@/components/TransactionDetailModal'
 function ActivityPage() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
-  const { user } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
   const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received' | 'swapped'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
@@ -82,7 +82,7 @@ function ActivityPage() {
     totalReceived: transactions.filter(tx => tx.type === 'received').length,
     totalSwapped: transactions.filter(tx => tx.type === 'swapped').length,
     totalTransactions: transactions.length,
-    averageAmount: transactions.length > 0 ? Math.round(transactions.reduce((sum, tx) => sum + parseFloat(tx.amount), 0) / transactions.length) : 0,
+    averageAmount: transactions.length > 0 ? parseFloat((transactions.reduce((sum, tx) => sum + parseFloat(tx.amount), 0) / transactions.length).toFixed(3)) : 0,
   }
 
   // Check for errors
@@ -286,17 +286,17 @@ function ActivityPage() {
                           'text-blue-400'
                         }`}>
                           {transaction.type === 'sent' ? '-' : transaction.type === 'received' ? '+' : ''}
-                          {transaction.amount} {transaction.currency}
+                          {parseFloat(transaction.amount).toFixed(3)} {transaction.currency}
                         </p>
                         
                         {transaction.type === 'swapped' && (
                           <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                            → {transaction.toAmount} {transaction.toCurrency}
+                            → {transaction.toAmount ? parseFloat(transaction.toAmount).toFixed(3) : '0.000'} {transaction.toCurrency}
                           </p>
                         )}
                         
                         <p className={`text-xs mt-1 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
-                          Fee: {transaction.fee} USD
+                          Fee: {parseFloat(transaction.fee).toFixed(3)} USD
                         </p>
                       </div>
                     </div>

@@ -1,4 +1,5 @@
 import { chainApi } from './chain'
+import { mlApi } from './ml'
 
 export interface SpendingAnalytics {
   total_spent: number
@@ -33,12 +34,38 @@ export interface Insights {
 
 export const analyticsApi = {
   async getSpendingAnalytics(): Promise<SpendingAnalytics> {
+    // Get wallet public key
+    const authData = localStorage.getItem('unity-wallet-auth')
+    if (!authData) {
+      throw new Error('No wallet connected')
+    }
+    
+    const wallet = JSON.parse(authData)
+    const publicKey = wallet.state?.wallet?.public_key
+    if (!publicKey) {
+      throw new Error('No wallet public key found')
+    }
+
+    // Try ML service first, fallback to chain service calculation
     try {
-      // Get transactions from chain service to calculate analytics
-      const publicKey = localStorage.getItem('stellar_public_key')
-      if (!publicKey) {
-        throw new Error('No wallet connected')
+      const walletAnalytics = await mlApi.getWalletAnalytics(publicKey, 90)
+      // Convert ML analytics to SpendingAnalytics format
+      return {
+        total_spent: walletAnalytics.spending_patterns?.total_spent || 0,
+        by_category: walletAnalytics.spending_patterns || {},
+        by_merchant: {},
+        monthly_trends: [],
+        top_categories: []
       }
+    } catch (mlError) {
+      console.warn('ML service unavailable, using chain service fallback:', mlError)
+      // Fallback to chain service calculation
+      return this.getSpendingAnalyticsFromChain(publicKey)
+    }
+  },
+
+  async getSpendingAnalyticsFromChain(publicKey: string): Promise<SpendingAnalytics> {
+    try {
 
       const transactionHistory = await chainApi.getTransactionHistory(publicKey, 100)
       const transactions = transactionHistory.transactions || []
@@ -110,6 +137,40 @@ export const analyticsApi = {
   },
 
   async getInsights(): Promise<Insights> {
+    // Get wallet public key
+    const authData = localStorage.getItem('unity-wallet-auth')
+    if (!authData) {
+      throw new Error('No wallet connected')
+    }
+    
+    const wallet = JSON.parse(authData)
+    const publicKey = wallet.state?.wallet?.public_key
+    if (!publicKey) {
+      throw new Error('No wallet public key found')
+    }
+
+    // Try ML service first, fallback to chain service calculation
+    try {
+      const walletAnalytics = await mlApi.getWalletAnalytics(publicKey, 90)
+      // Convert ML analytics to Insights format
+      return {
+        spending_insights: walletAnalytics.insights || [],
+        recommendations: [],
+        anomalies: [],
+        credit_score: {
+          score: Math.max(0, 10 - walletAnalytics.risk_score) * 100, // Convert risk to credit score
+          grade: walletAnalytics.risk_score < 3 ? 'Excellent' : walletAnalytics.risk_score < 7 ? 'Good' : 'Fair',
+          factors: walletAnalytics.features || {}
+        }
+      }
+    } catch (mlError) {
+      console.warn('ML service unavailable, using chain service fallback:', mlError)
+      // Fallback to chain service calculation
+      return this.getInsightsFromChain()
+    }
+  },
+
+  async getInsightsFromChain(): Promise<Insights> {
     try {
       // Get spending analytics to generate insights
       const analytics = await this.getSpendingAnalytics().catch(() => ({
@@ -125,7 +186,7 @@ export const analyticsApi = {
 
       // Generate insights based on spending data
       if (analytics.total_spent > 0) {
-        insights.push(`You've spent ${analytics.total_spent.toFixed(2)} XLM in recent transactions`)
+        insights.push(`You've spent ${analytics.total_spent.toFixed(3)} XLM in recent transactions`)
         
         const topCategory = analytics.top_categories[0]
         if (topCategory) {
@@ -137,10 +198,10 @@ export const analyticsApi = {
           const prevMonth = analytics.monthly_trends[analytics.monthly_trends.length - 2]
           const change = lastMonth.amount - prevMonth.amount
           if (change > 0) {
-            insights.push(`Your spending increased by ${change.toFixed(2)} XLM last month`)
+            insights.push(`Your spending increased by ${change.toFixed(3)} XLM last month`)
             recommendations.push('Consider setting a monthly spending limit')
           } else {
-            insights.push(`Your spending decreased by ${Math.abs(change).toFixed(2)} XLM last month`)
+            insights.push(`Your spending decreased by ${Math.abs(change).toFixed(3)} XLM last month`)
             recommendations.push('Great job managing your expenses!')
           }
         }

@@ -1,5 +1,7 @@
 // Chain service configuration
 const CHAIN_API_BASE_URL = import.meta.env.VITE_CHAIN_API_BASE_URL || 'http://localhost:8000'
+// ML service configuration
+const ML_API_BASE_URL = import.meta.env.VITE_ML_API_BASE_URL || 'http://localhost:8001'
 
 interface ApiResponse<T = any> {
   data: T
@@ -85,6 +87,9 @@ class ApiClient {
 
 // Chain API client for blockchain operations
 export const chainApiClient = new ApiClient(CHAIN_API_BASE_URL)
+
+// ML API client for analytics and insights
+export const mlApiClient = new ApiClient(ML_API_BASE_URL)
 
 // Legacy export for compatibility (now points to chain service)
 export const apiClient = chainApiClient

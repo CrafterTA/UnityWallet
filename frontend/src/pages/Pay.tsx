@@ -121,10 +121,14 @@ export default function Pay() {
 
   // Auto-select first available asset when balances load
   useEffect(() => {
-    if (balances && balances.length > 0 && !asset) {
-      setAsset(balances[0].asset_code)
+    if (balances && balances.length > 0) {
+      // Check if current asset exists in balances, if not select first available
+      const currentAssetExists = balances.some(b => b.asset_code === asset)
+      if (!currentAssetExists) {
+        setAsset(balances[0].asset_code)
+      }
     }
-  }, [balances, asset])
+  }, [balances, asset]) // Add asset back to dependencies
 
   // Handlers (useCallback cho gọn)
   const handleRecipientChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setRecipient(e.target.value), [])
@@ -141,7 +145,7 @@ export default function Pay() {
   const recentContacts = transactionsData?.transactions
     .filter(tx => tx.destination && tx.direction === 'sent') // Chỉ lấy transactions gửi đi (không phải nhận về)
     .map(tx => ({
-      name: tx.destination?.substring(0, 8) + '...' + tx.destination?.substring(-4) || 'Unknown',
+      name: tx.destination?.substring(0, 8) + '...' + tx.destination?.slice(-4) || 'Unknown',
       address: tx.destination || 'Unknown',
       avatar: tx.destination?.substring(0, 2).toUpperCase() || 'U'
     }))
@@ -346,12 +350,7 @@ export default function Pay() {
                 <div className="grid gap-4 sm:grid-cols-[1fr,180px]">
                   <div>
                     <FieldLabel dark={isDark}>
-                      {t('pay.amount','Amount')} 
-                      {availableBalance > 0 && (
-                        <span className={`ml-2 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-                          ({t('pay.available', 'Available')}: {availableBalance.toFixed(2)} {asset})
-                        </span>
-                      )}
+                      {t('pay.amount','Amount')}
                     </FieldLabel>
                     <div className="relative">
                       <input
@@ -361,10 +360,12 @@ export default function Pay() {
                         max={availableBalance}
                         value={amount}
                         onChange={handleAmountChange}
-                        placeholder="0.00"
+                        placeholder={balancesLoading ? t('pay.loadingBalance', 'Loading balance...') : "0.00"}
+                        disabled={balancesLoading}
                         className={classNames(
                           'w-full rounded-xl px-4 py-3 text-xl font-semibold outline-none ring-1 focus:ring-2',
-                          parseFloat(amount) > availableBalance && amount ? 'ring-red-500' : '',
+                          parseFloat(amount) > availableBalance && amount && !balancesLoading ? 'ring-red-500' : '',
+                          balancesLoading ? 'opacity-50 cursor-not-allowed' : '',
                           isDark ? 'bg-white/10 ring-white/20 text-white placeholder-white/40 focus:ring-red-500'
                                  : 'bg-slate-100/80 ring-slate-300 text-slate-900 placeholder-slate-500 focus:ring-red-500'
                         )}
@@ -372,7 +373,13 @@ export default function Pay() {
                       <span className={classNames('pointer-events-none absolute right-4 top-3 font-medium', isDark ? 'text-white/70' : 'text-slate-600')}>{asset}</span>
                     </div>
                     
-                    {parseFloat(amount) > availableBalance && amount && (
+                    {balancesLoading && amount && (
+                      <p className="text-blue-500 text-sm mt-1 flex items-center gap-2">
+                        <Pulse />
+                        {t('pay.loadingBalance', 'Loading balance...')}
+                      </p>
+                    )}
+                    {!balancesLoading && parseFloat(amount) > availableBalance && amount && (
                       <p className="text-red-500 text-sm mt-1">{t('pay.insufficientBalance', 'Insufficient balance')}</p>
                     )}
                     
@@ -415,7 +422,7 @@ export default function Pay() {
                           value={balance.asset_code} 
                           className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
                         >
-                          {balance.asset_code} ({parseFloat(balance.amount).toFixed(2)})
+                          {balance.asset_code} ({parseFloat(balance.amount).toFixed(3)})
                         </option>
                       )) || (
                         <option value="" className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>
@@ -446,10 +453,10 @@ export default function Pay() {
                 <div className="mt-8 flex justify-end">
                   <button
                     onClick={handleSend}
-                    disabled={!recipient || !amount || isSubmitting || !!balancesError || parseFloat(amount) > availableBalance}
+                    disabled={!recipient || !amount || isSubmitting || balancesLoading || !!balancesError || parseFloat(amount) > availableBalance}
                     className={classNames(
                       'inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 shadow-lg',
-                      (!recipient || !amount || isSubmitting || !!balancesError || parseFloat(amount) > availableBalance)
+                      (!recipient || !amount || isSubmitting || balancesLoading || !!balancesError || parseFloat(amount) > availableBalance)
                         ? 'opacity-60 cursor-not-allowed'
                         : 'hover:scale-[1.02]',
                       isDark ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/30' : 'bg-yellow-400 text-slate-900 hover:bg-yellow-500'
@@ -483,7 +490,7 @@ export default function Pay() {
                       </div>
                       <div className="flex-1">
                         <div className={classNames('font-medium', isDark ? 'text-white' : 'text-slate-900')}>{c.name}</div>
-                        <div className={classNames('font-mono text-xs', isDark ? 'text-white/60' : 'text-slate-600')}>{c.address}</div>
+                        <div className={classNames('font-mono text-xs truncate', isDark ? 'text-white/60' : 'text-slate-600')}>{c.address}</div>
                       </div>
                       <ArrowUpRight className={classNames('h-4 w-4 transition-colors', isDark ? 'text-white/60 group-hover:text-white/80' : 'text-slate-600 group-hover:text-slate-800')} />
                     </button>
@@ -534,8 +541,8 @@ export default function Pay() {
                               {tx.type}
                             </p>
                             <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
-                              {tx.type === 'sent' ? `To: ${tx.to || 'Unknown'}` : 
-                               tx.type === 'received' ? `From: ${tx.from || 'Unknown'}` : 
+                              {tx.type === 'sent' ? `To: ${tx.to ? `${tx.to.substring(0, 8)}...${tx.to.slice(-4)}` : 'Unknown'}` : 
+                               tx.type === 'received' ? `From: ${tx.from ? `${tx.from.substring(0, 8)}...${tx.from.slice(-4)}` : 'Unknown'}` : 
                                `${tx.symbol}`}
                             </p>
                           </div>
@@ -544,7 +551,7 @@ export default function Pay() {
                           <p className={`text-sm font-semibold ${
                             tx.type === 'sent' ? 'text-red-400' : 'text-green-400'
                           }`}>
-                            {tx.type === 'sent' ? '-' : '+'}{tx.amount} {tx.symbol}
+                            {tx.type === 'sent' ? '-' : '+'}{parseFloat(tx.amount).toFixed(3)} {tx.symbol}
                           </p>
                           <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
                         </div>
@@ -658,8 +665,8 @@ export default function Pay() {
                               {tx.type}
                             </p>
                             <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
-                              {tx.type === 'sent' ? `To: ${tx.to || 'Unknown'}` : 
-                               tx.type === 'received' ? `From: ${tx.from || 'Unknown'}` : 
+                              {tx.type === 'sent' ? `To: ${tx.to ? `${tx.to.substring(0, 8)}...${tx.to.slice(-4)}` : 'Unknown'}` : 
+                               tx.type === 'received' ? `From: ${tx.from ? `${tx.from.substring(0, 8)}...${tx.from.slice(-4)}` : 'Unknown'}` : 
                                `${tx.symbol}`}
                             </p>
                           </div>
@@ -668,7 +675,7 @@ export default function Pay() {
                           <p className={`text-sm font-semibold ${
                             tx.type === 'sent' ? 'text-red-400' : 'text-green-400'
                           }`}>
-                            {tx.type === 'sent' ? '-' : '+'}{tx.amount} {tx.symbol}
+                            {tx.type === 'sent' ? '-' : '+'}{parseFloat(tx.amount).toFixed(3)} {tx.symbol}
                           </p>
                           <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
                         </div>

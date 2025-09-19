@@ -394,8 +394,8 @@ export default function Web3ModernLayout() {
               balance.asset_code === 'USDC' ? 'USD Coin' :
               balance.asset_code === 'XLM' ? 'Stellar Lumens' : balance.asset_code,
         symbol: balance.asset_code,
-        balance: parseFloat(balance.amount).toFixed(2),
-        value: parseFloat(balance.amount).toFixed(2), // 1:1 ratio for demo
+        balance: parseFloat(balance.amount).toFixed(3),
+        value: parseFloat(balance.amount).toFixed(3), // 1:1 ratio for demo
       })) || [])
     : [
         {

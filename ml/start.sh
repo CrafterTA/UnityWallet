@@ -4,11 +4,14 @@
 
 echo "🚀 Starting UnityWallet ML Service..."
 
-# Check if we're in the right directory
-if [ ! -f "main.py" ]; then
-    echo "❌ Error: main.py not found. Please run from ml/ directory"
+# Check if we're in the right directory (should be project root)
+if [ ! -d "ml" ]; then
+    echo "❌ Error: ml/ directory not found. Please run from project root directory"
     exit 1
 fi
+
+# Change to ml directory for dependency installation
+cd ml
 
 # Create virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
@@ -37,5 +40,6 @@ echo "📖 API Documentation will be available at: http://localhost:8001/docs"
 echo "🛑 Press Ctrl+C to stop the service"
 echo ""
 
-# Run with auto-reload for development
-python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+# Go back to project root and run with auto-reload for development
+cd ..
+python -m uvicorn ml.main:app --host 0.0.0.0 --port 8001 --reload
