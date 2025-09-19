@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from '@tanstack/react-query'
@@ -6,6 +6,8 @@ import { useThemeStore } from "@/store/theme";
 import { useAuthStore } from "@/store/session";
 import { walletApi } from '@/api/wallet'
 import { analyticsApi } from '@/api/analytics'
+import { formatAssetAmount, formatUSDValue, getUSDValue, fetchLiveRates, ExchangeRate, DEFAULT_RATES } from '@/lib/currency'
+import { chainApi } from '@/api/chain'
 import LightModeBackground from "@/components/LightModeBackground";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -199,7 +201,7 @@ const TokenRow = ({ name, symbol, balance, value }: any) => {
       </div>
     </div>
     <div className={`col-span-3 text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{balance}</div>
-    <div className={`col-span-4 text-right text-sm ${isDark ? 'text-white/80' : 'text-slate-600'}`}>${value}</div>
+    <div className={`col-span-4 text-right text-sm ${isDark ? 'text-white/80' : 'text-slate-600'}`}>{formatUSDValue(value)}</div>
   </div>
   );
 };
@@ -381,43 +383,68 @@ export default function Web3ModernLayout() {
     refetchOnWindowFocus: false,
   })
 
-  // Calculate total balance and assets - use real data if authenticated, demo data if not
-  const totalBalance = isAuthenticated 
-    ? (balances?.reduce((sum, balance) => sum + parseFloat(balance.amount), 0) || 0)
-    : 12345.67; // Demo balance for unauthenticated users
+  // Fetch live exchange rates like Wallet
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRate>(DEFAULT_RATES);
+  
+  const { data: liveRates, isLoading: ratesLoading } = useQuery({
+    queryKey: ['exchange-rates'],
+    queryFn: () => fetchLiveRates(chainApi),
+    enabled: isAuthenticated,
+    retry: 1,
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: false,
+  });
 
-  // Process balance data for display
+  // Update exchange rates when live rates are fetched
+  useEffect(() => {
+    if (liveRates) {
+      setExchangeRates(liveRates);
+    }
+  }, [liveRates]);
+
+  // Calculate total balance and assets - use real data if authenticated, demo data if not
+  // Calculate total balance with USD conversion like Wallet
+  const totalBalance = isAuthenticated 
+    ? (balances?.reduce((sum, balance) => {
+        return sum + getUSDValue(balance.asset_code, balance.amount, exchangeRates);
+      }, 0) || 0)
+    : 15450.00; // Demo balance for unauthenticated users
+
+  // Process balance data for display with USD conversion
   const assets = isAuthenticated 
-    ? (balances?.map((balance, index) => ({
-        id: index + 1,
-        name: balance.asset_code === 'SYP' ? 'Stellar Yield Points' : 
-              balance.asset_code === 'USDC' ? 'USD Coin' :
-              balance.asset_code === 'XLM' ? 'Stellar Lumens' : balance.asset_code,
-        symbol: balance.asset_code,
-        balance: parseFloat(balance.amount).toFixed(3),
-        value: parseFloat(balance.amount).toFixed(3), // 1:1 ratio for demo
-      })) || [])
+    ? (balances?.map((balance, index) => {
+        const usdValue = getUSDValue(balance.asset_code, balance.amount, exchangeRates);
+        return {
+          id: index + 1,
+          name: balance.asset_code === 'SYP' ? 'Stellar Yield Points' : 
+                balance.asset_code === 'USDC' ? 'USD Coin' :
+                balance.asset_code === 'XLM' ? 'Stellar Lumens' : balance.asset_code,
+          symbol: balance.asset_code,
+          balance: formatAssetAmount(balance.amount || '0', 3),
+          value: usdValue, // Real USD value with live conversion rates
+        };
+      }) || [])
     : [
         {
           id: 1,
           name: 'Stellar Yield Points',
           symbol: 'SYP',
-          balance: '8500.00',
-          value: '8500.00'
+          balance: '450.000',
+          value: 450.00 // USD value
         },
         {
           id: 2,
           name: 'USD Coin',
           symbol: 'USDC',
-          balance: '2845.67',
-          value: '2845.67'
+          balance: '5,000.000',
+          value: 5000.00 // USD value
         },
         {
           id: 3,
           name: 'Stellar Lumens',
           symbol: 'XLM',
-          balance: '1000.00',
-          value: '1000.00'
+          balance: '10,000.000',
+          value: 1100.00 // USD value (10,000 * 0.11 rate)
         }
       ];
 
@@ -646,7 +673,7 @@ export default function Web3ModernLayout() {
                   <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
                     {isAuthenticated && creditScore && (
                       <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300 animate-pulse group-hover:bg-emerald-400/25 transition-colors duration-300">
-                        Score: {creditScore?.credit_score?.score || 'N/A'}
+                        Score: {Math.round(creditScore?.credit_score?.score || 0)}
                       </span>
                     )}
                     <span className={`rounded-full px-2 py-0.5 transition-colors duration-300 ${isDark ? 'bg-white/10 group-hover:bg-white/15' : 'bg-slate-200 group-hover:bg-slate-300'}`}>
@@ -734,7 +761,7 @@ export default function Web3ModernLayout() {
                           </div>
                           <div className="text-right">
                             <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{asset.balance}</p>
-                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>${asset.value}</p>
+                            <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{formatUSDValue(asset.value)}</p>
                           </div>
                         </div>
                       )) : (
@@ -777,19 +804,19 @@ export default function Web3ModernLayout() {
                   <StatCard 
                     icon={Coins} 
                     label={t('dashboard.balance', 'Total Balance')} 
-                    value={`$${totalBalance.toLocaleString()}`} 
+                    value={formatUSDValue(totalBalance)} 
                     sub={isAuthenticated ? t('dashboard.realTimeData', 'Real-time data') : 'Demo data'} 
                   />
                   <StatCard 
                     icon={Shield} 
                     label={t('dashboard.security', 'Security')} 
-                    value={isAuthenticated ? (creditScore?.credit_score ? creditScore.credit_score.grade : 'Good') : 'Excellent'} 
+                    value={isAuthenticated ? (creditScore?.credit_score ? `${Math.round(creditScore.credit_score.score || 0)} - ${creditScore.credit_score.grade}` : 'Good') : '85 - Excellent'} 
                     sub={isAuthenticated ? (creditScore?.credit_score ? 'Credit Score' : t('dashboard.checkingSecurity', 'Checking...')) : 'Demo security score'} 
                   />
                   <StatCard 
                     icon={LineChart} 
                     label={t('dashboard.spending', 'Monthly Spending')} 
-                    value={isAuthenticated ? (spendingData ? `$${spendingData.total_spent}` : 'N/A') : '$2,847'} 
+                    value={isAuthenticated ? (spendingData ? formatUSDValue(spendingData.total_spent) : 'N/A') : '$2,847.00'} 
                     sub={isAuthenticated ? (spendingData ? t('dashboard.thisMonth', 'This month') : t('dashboard.loadingSpending', 'Loading...')) : 'Demo spending'} 
                   />
                 </div>

@@ -301,7 +301,7 @@ export default function Insights() {
   }
 
   if (hasError) {
-    return (
+  return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'text-white' : 'text-slate-900'}`}>
         <div className="text-center space-y-4">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
@@ -313,8 +313,8 @@ export default function Insights() {
           >
             Retry
           </button>
+          </div>
         </div>
-      </div>
     )
   }
 
@@ -327,16 +327,16 @@ export default function Insights() {
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
                 <Brain className="w-6 h-6 text-white" />
-              </div>
-              <div>
+                  </div>
+                  <div>
                 <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   AI Wallet Insights
                 </h1>
                 <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                   Machine learning powered analytics
                 </p>
-              </div>
-            </div>
+                  </div>
+                </div>
 
             <div className="flex items-center gap-3">
               {/* Timeframe Selector */}
@@ -377,8 +377,8 @@ export default function Insights() {
               >
                 <Settings className="w-4 h-4" />
               </button>
-            </div>
-          </div>
+                </div>
+              </div>
 
           {/* Tab Navigation */}
           <div className="flex gap-1 mt-4">
@@ -405,9 +405,9 @@ export default function Insights() {
                 {label}
               </button>
             ))}
-          </div>
-        </div>
+                </div>
               </div>
+            </div>
 
       {/* ====== Content ====== */}
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
@@ -438,7 +438,7 @@ export default function Insights() {
           </div>
 
                     <div className="flex items-center gap-6">
-                      <div>
+            <div>
                         <div className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                           {(riskScore * 100).toFixed(1)}%
               </div>
@@ -455,8 +455,8 @@ export default function Insights() {
                           Last Check: {anomalyData ? new Date((anomalyData as AnomalyCheckResponse).checked_at).toLocaleTimeString() : 'N/A'}
             </div>
             </div>
+            </div>
           </div>
-        </div>
 
                   {/* Risk Gauge Chart */}
                   <div className="w-32 h-32">
@@ -480,10 +480,10 @@ export default function Insights() {
                         </Pie>
                       </PieChart>
                     </ResponsiveContainer>
-                  </div>
-                </div>
               </div>
             </div>
+            </div>
+          </div>
 
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -519,88 +519,369 @@ export default function Insights() {
                 color="from-orange-500 to-red-500"
                 isDark={isDark}
               />
+        </div>
+
+            {/* Enhanced Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Enhanced Asset Distribution */}
+              {assetDistribution.length > 0 && (
+                <div className={`group relative overflow-hidden rounded-2xl border transition-all duration-500 hover:shadow-2xl ${
+                  isDark ? 'bg-white/5 border-white/10 hover:border-white/20' : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}>
+                  {/* Background Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="relative p-6">
+              <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg">
+                        <PieChartIcon className="w-5 h-5 text-white" />
+                </div>
+                      <div>
+                        <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          Asset Portfolio
+                        </h3>
+                        <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                          Your asset distribution
+                        </p>
+                      </div>
               </div>
               
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Asset Distribution */}
-              {assetDistribution.length > 0 && (
-                <ChartCard title="Asset Distribution" icon={PieChartIcon} isDark={isDark}>
-                  <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={320}>
                   <PieChart>
-                    <Pie
-                        data={assetDistribution}
+                        <defs>
+                          {assetDistribution.map((entry, index) => (
+                            <linearGradient key={`gradient-${index}`} id={`gradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor={entry.color} stopOpacity={0.8} />
+                              <stop offset="100%" stopColor={entry.color} stopOpacity={0.6} />
+                            </linearGradient>
+                          ))}
+                        </defs>
+                        <Pie
+                          data={assetDistribution}
                       cx="50%"
                       cy="50%"
-                        outerRadius={100}
-                        innerRadius={40}
-                      fill="#8884d8"
+                      outerRadius={120}
+                          innerRadius={60}
+                          paddingAngle={2}
                       dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {assetDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
+                          animationBegin={0}
+                          animationDuration={1500}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                          labelLine={false}
+                        >
+                          {assetDistribution.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={`url(#gradient-${index})`}
+                              stroke={isDark ? '#1F2937' : '#FFFFFF'}
+                              strokeWidth={2}
+                            />
                       ))}
                     </Pie>
-                      <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Balance']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartCard>
-              )}
+                    <Tooltip 
+                      contentStyle={{
+                            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            border: 'none',
+                        borderRadius: '12px',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                            color: isDark ? '#FFFFFF' : '#000000',
+                            backdropFilter: 'blur(16px)'
+                          }}
+                          formatter={(value) => [
+                            <span className="font-semibold">{formatCurrency(Number(value))}</span>, 
+                            'Balance'
+                          ]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
 
-              {/* Transaction Types */}
+                    {/* Asset Legend */}
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      {assetDistribution.slice(0, 4).map((entry, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full shadow-sm"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className={`text-xs font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                            {entry.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+              </div>
+            </div>
+          )}
+
+              {/* Enhanced Transaction Types */}
               {transactionTypeData.length > 0 && (
-                <ChartCard title="Transaction Types" icon={BarChart3} isDark={isDark}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={transactionTypeData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#e2e8f0'} />
-                      <XAxis dataKey="name" stroke={isDark ? '#9CA3AF' : '#64748B'} fontSize={12} />
-                      <YAxis stroke={isDark ? '#9CA3AF' : '#64748B'} fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
-                          border: isDark ? '1px solid #374151' : '1px solid #E5E7EB',
-                          borderRadius: '8px',
-                          color: isDark ? '#FFFFFF' : '#000000'
-                        }}
-                      />
-                      <Bar dataKey="value" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartCard>
+                <div className={`group relative overflow-hidden rounded-2xl border transition-all duration-500 hover:shadow-2xl ${
+                  isDark ? 'bg-white/5 border-white/10 hover:border-white/20' : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}>
+                  {/* Background Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="relative p-6">
+              <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-blue-500 shadow-lg">
+                  <BarChart3 className="w-5 h-5 text-white" />
+                </div>
+                      <div>
+                        <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          Activity Breakdown
+                        </h3>
+                        <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                          Transaction type analysis
+                        </p>
+                      </div>
+              </div>
+              
+                    <ResponsiveContainer width="100%" height={320}>
+                      <BarChart data={transactionTypeData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={CHART_COLORS.primary} stopOpacity={0.8} />
+                            <stop offset="100%" stopColor={CHART_COLORS.primary} stopOpacity={0.3} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid 
+                          strokeDasharray="3 3" 
+                          stroke={isDark ? '#374151' : '#e2e8f0'} 
+                          strokeOpacity={0.3}
+                        />
+                    <XAxis 
+                          dataKey="name" 
+                          stroke={isDark ? '#9CA3AF' : '#64748B'} 
+                          fontSize={11}
+                          fontWeight={500}
+                          axisLine={false}
+                          tickLine={false}
+                    />
+                    <YAxis 
+                          stroke={isDark ? '#9CA3AF' : '#64748B'} 
+                          fontSize={11}
+                          fontWeight={500}
+                          axisLine={false}
+                          tickLine={false}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            border: 'none',
+                        borderRadius: '12px',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                            color: isDark ? '#FFFFFF' : '#000000',
+                            backdropFilter: 'blur(16px)'
+                      }}
+                          formatter={(value) => [
+                            <span className="font-semibold">{value} transactions</span>, 
+                            'Count'
+                          ]}
+                    />
+                    <Bar
+                          dataKey="value" 
+                          fill="url(#barGradient)"
+                          radius={[8, 8, 0, 0]}
+                          animationBegin={300}
+                          animationDuration={1200}
+                        >
+                          {transactionTypeData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+
+                    {/* Transaction Stats */}
+                    <div className="mt-4 flex justify-between text-xs">
+                      <div className={isDark ? 'text-white/60' : 'text-slate-500'}>
+                        Total: {transactionTypeData.reduce((sum, item) => sum + item.value, 0)} transactions
+                      </div>
+                      <div className={isDark ? 'text-white/60' : 'text-slate-500'}>
+                        {selectedTimeframe} days period
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* Balance History Chart */}
+            {/* Enhanced Balance History Chart */}
             {balanceHistoryData.length > 0 && (
-              <ChartCard title="Balance History Trend" icon={LineChartIcon} isDark={isDark}>
-                <ResponsiveContainer width="100%" height={400}>
-                  <AreaChart data={balanceHistoryData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#e2e8f0'} />
-                    <XAxis dataKey="date" stroke={isDark ? '#9CA3AF' : '#64748B'} fontSize={12} />
-                    <YAxis stroke={isDark ? '#9CA3AF' : '#64748B'} fontSize={12} />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
-                        border: isDark ? '1px solid #374151' : '1px solid #E5E7EB',
-                        borderRadius: '8px',
-                        color: isDark ? '#FFFFFF' : '#000000'
-                      }}
-                    />
-                    {Object.keys(analytics?.balance_history || {}).map((asset, index) => (
-                      <Area
-                        key={asset}
-                        type="monotone"
-                        dataKey={asset}
-                        stackId="1"
-                        stroke={COLORS[index % COLORS.length]}
-                        fill={COLORS[index % COLORS.length]}
-                        fillOpacity={0.6}
+              <div className={`group relative overflow-hidden rounded-2xl border transition-all duration-500 hover:shadow-2xl ${
+                isDark ? 'bg-white/5 border-white/10 hover:border-white/20' : 'bg-white border-slate-200 hover:border-slate-300'
+              }`}>
+                {/* Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-lg">
+                        <LineChartIcon className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          Balance Evolution
+                        </h3>
+                        <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                          Historical balance trends
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Chart Controls */}
+                    <div className="flex items-center gap-2">
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        isDark ? 'bg-white/10 text-white/70' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {selectedTimeframe}D
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'
+                      }`}>
+                        Live Data
+                      </div>
+                    </div>
+                  </div>
+
+                  <ResponsiveContainer width="100%" height={450}>
+                    <AreaChart data={balanceHistoryData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                      <defs>
+                        {Object.keys(analytics?.balance_history || {}).map((asset, index) => (
+                          <linearGradient key={`areaGradient-${index}`} id={`areaGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.8} />
+                            <stop offset="50%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.4} />
+                            <stop offset="100%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.1} />
+                          </linearGradient>
+                        ))}
+                        
+                        {/* Glow Effect */}
+                        <filter id="glow">
+                          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                          <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      
+                      <CartesianGrid 
+                        strokeDasharray="1 3" 
+                        stroke={isDark ? '#374151' : '#e2e8f0'} 
+                        strokeOpacity={0.2}
+                        vertical={false}
                       />
-                    ))}
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartCard>
+                      
+                      <XAxis 
+                        dataKey="date" 
+                        stroke={isDark ? '#9CA3AF' : '#64748B'} 
+                        fontSize={11}
+                        fontWeight={500}
+                        axisLine={false}
+                        tickLine={false}
+                        tickMargin={10}
+                      />
+                      
+                      <YAxis 
+                        stroke={isDark ? '#9CA3AF' : '#64748B'} 
+                        fontSize={11}
+                        fontWeight={500}
+                        axisLine={false}
+                        tickLine={false}
+                        tickMargin={10}
+                        tickFormatter={(value) => formatCurrency(value, '').split(' ')[0]}
+                      />
+                      
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          border: 'none',
+                          borderRadius: '16px',
+                          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                          color: isDark ? '#FFFFFF' : '#000000',
+                          backdropFilter: 'blur(16px)',
+                          padding: '12px 16px'
+                        }}
+                        labelStyle={{ 
+                          color: isDark ? '#E2E8F0' : '#475569',
+                          fontWeight: 600,
+                          marginBottom: '8px'
+                        }}
+                        formatter={(value, name) => [
+                          <div key={name} className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: COLORS[Object.keys(analytics?.balance_history || {}).indexOf(name as string) % COLORS.length] }}
+                            />
+                            <span className="font-semibold">{formatCurrency(Number(value))}</span>
+                          </div>, 
+                          name
+                        ]}
+                      />
+
+                      {Object.keys(analytics?.balance_history || {}).map((asset, index) => (
+                        <Area
+                          key={asset}
+                          type="monotone"
+                          dataKey={asset}
+                          stackId="1"
+                          stroke={COLORS[index % COLORS.length]}
+                          fill={`url(#areaGradient-${index})`}
+                          strokeWidth={3}
+                          dot={false}
+                          activeDot={{ 
+                            r: 6, 
+                            fill: COLORS[index % COLORS.length],
+                            stroke: isDark ? '#1F2937' : '#FFFFFF',
+                            strokeWidth: 2,
+                            filter: 'url(#glow)'
+                          }}
+                          animationBegin={600}
+                          animationDuration={2000}
+                        />
+                      ))}
+                    </AreaChart>
+                  </ResponsiveContainer>
+
+                  {/* Balance Summary */}
+                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(analytics?.balance_history || {}).slice(0, 4).map(([asset, data], index) => {
+                      const currentValue = (data as any).values?.[(data as any).values?.length - 1] || 0
+                      const previousValue = (data as any).values?.[(data as any).values?.length - 2] || 0
+                      const change = currentValue - previousValue
+                      const changePercent = previousValue > 0 ? (change / previousValue) * 100 : 0
+                      
+                        return (
+                        <div key={asset} className={`p-3 rounded-xl border ${
+                          isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'
+                        }`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                            />
+                            <span className={`text-xs font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                              {asset}
+                            </span>
+                          </div>
+                          <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {formatCurrency(currentValue)}
+                          </div>
+                          <div className={`text-xs flex items-center gap-1 ${
+                            change >= 0 
+                              ? 'text-emerald-400' 
+                              : 'text-red-400'
+                          }`}>
+                            {change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            {Math.abs(changePercent).toFixed(1)}%
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
             )}
           </>
         )}
@@ -702,9 +983,9 @@ export default function Insights() {
                       </div>
                     </div>
                   ))}
-                </div>
               </div>
-            )}
+            </div>
+          )}
           </>
         )}
 
@@ -724,7 +1005,7 @@ export default function Insights() {
                 <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                   Critical anomalies detected
                 </p>
-              </div>
+        </div>
 
               <div className={`p-6 rounded-2xl border ${isDark ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-yellow-50 border-yellow-200'}`}>
                 <div className="flex items-center gap-3 mb-4">
@@ -752,7 +1033,7 @@ export default function Insights() {
                 </p>
               </div>
             </div>
-
+            
             {/* Anomaly Timeline */}
             {anomalies.length > 0 && (
               <div className={`p-6 rounded-2xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
@@ -763,7 +1044,7 @@ export default function Insights() {
                   {anomalies.slice(0, 10).map((anomaly, index) => (
                     <AnomalyCard key={index} anomaly={anomaly} isDark={isDark} />
                   ))}
-              </div>
+                    </div>
             </div>
           )}
 
@@ -813,7 +1094,7 @@ export default function Insights() {
                 <div className="space-y-2">
                   <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     Types Detected:
-                  </h4>
+                      </h4>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(mockAnomalyHistory?.summary?.by_type || {}).map(([type, count]) => (
                       <span 
@@ -821,11 +1102,11 @@ export default function Insights() {
                         className={`px-3 py-1 rounded-full text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white/80' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                       >
                         {type.replace('_', ' ')}: {count as number}
-                      </span>
+                        </span>
                     ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
             )}
           </>
         )}
@@ -841,7 +1122,7 @@ export default function Insights() {
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     AI Assistant Summary
                   </h3>
-            </div>
+                </div>
             
                 <p className={`text-lg mb-6 ${isDark ? 'text-white/90' : 'text-slate-800'}`}>
                   {quickStats.summary}
@@ -880,9 +1161,9 @@ export default function Insights() {
                       Account Age (Days)
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
+            </div>
+          </div>
+        )}
 
             {/* Chat Suggestions */}
             {chatSuggestions && !chatSuggestionsError ? (
@@ -892,7 +1173,7 @@ export default function Insights() {
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     Suggested Questions
                   </h3>
-                </div>
+            </div>
                 <p className={`mb-4 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                   Try asking the AI assistant about these topics:
                 </p>
@@ -910,10 +1191,10 @@ export default function Insights() {
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-blue-500" />
                         <span className="text-sm">{suggestion}</span>
-                      </div>
+            </div>
                     </button>
                   ))}
-                </div>
+          </div>
               </div>
             ) : (
               <div className={`p-6 rounded-2xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
@@ -948,9 +1229,9 @@ export default function Insights() {
                         <Sparkles className="w-4 h-4 text-blue-500" />
                         <span className="text-sm">{suggestion}</span>
                       </div>
-                    </button>
+          </button>
               ))}
-            </div>
+        </div>
           </div>
         )}
 
