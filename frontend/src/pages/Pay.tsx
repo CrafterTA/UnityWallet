@@ -87,29 +87,36 @@ export default function Pay() {
   // Fetch recent transactions
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
     queryKey: ['recent-transactions-pay'],
-    queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 5 }),
+    queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 20 }), // Lấy nhiều hơn để có đủ 5 non-swap
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   })
 
-  // Process recent transactions
-  const recentTransactions = transactionsData?.transactions.map((tx) => {
-    const direction = tx.direction || tx.tx_type.toLowerCase()
-    const from = direction === 'received' ? tx.source : undefined // Địa chỉ người gửi cho received
-    const to = direction === 'sent' ? tx.destination : undefined // Địa chỉ người nhận cho sent
-    
-    
-    return {
-      id: tx.id,
-      type: direction,
-      amount: tx.amount,
-      symbol: tx.asset_code,
-      to,
-      from,
-      time: new Date(tx.created_at).toLocaleDateString(),
-      status: tx.status.toLowerCase()
-    }
-  }) || []
+  // Process recent transactions (exclude swap transactions, take first 5)
+  const recentTransactions = transactionsData?.transactions
+    .filter((tx) => tx.tx_type !== 'SWAP') // Bỏ qua swap transactions
+    .slice(0, 5) // Lấy 5 giao dịch gần nhất (không phải swap)
+    .map((tx) => {
+      let type = 'sent' // default fallback
+      
+      if (tx.tx_type === 'PAYMENT') {
+        type = tx.direction === 'received' ? 'received' : 'sent'
+      }
+      
+      const from = type === 'received' ? tx.source : undefined // Địa chỉ người gửi cho received
+      const to = type === 'sent' ? tx.destination : undefined // Địa chỉ người nhận cho sent
+      
+      return {
+        id: tx.id,
+        type: type,
+        amount: tx.amount,
+        symbol: tx.asset_code,
+        to,
+        from,
+        time: new Date(tx.created_at).toLocaleDateString(),
+        status: tx.status.toLowerCase()
+      }
+    }) || []
 
   // Fetch wallet address
   const { data: walletAddress, isLoading: addressLoading, error: addressError } = useQuery({

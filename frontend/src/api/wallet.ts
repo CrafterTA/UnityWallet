@@ -127,6 +127,7 @@ export const walletApi = {
         throw new Error('No wallet found. Please login first.')
       }
 
+
       // Get swap quote first
       const quoteResponse = await chainApi.getSwapQuote({
         mode: 'send',
@@ -137,6 +138,7 @@ export const walletApi = {
         max_paths: 5,
         slippage_bps: 200
       })
+      
 
       const destMin = quoteResponse.dest_min_suggest || quoteResponse.dest_amount || '0'
 
@@ -152,6 +154,9 @@ export const walletApi = {
       const sourceAsset = parseAsset(quoteResponse.source_asset || `${request.selling_asset_code}`)
       const destAsset = parseAsset(quoteResponse.dest_asset || `${request.buying_asset_code}`)
 
+      // Use path from quote response
+      const swapPath = quoteResponse.raw?.path || quoteResponse.path || []
+
       // Execute swap using the old execute endpoint
       const swapResponse = await chainApi.executeSwap({
         mode: 'send',
@@ -161,7 +166,7 @@ export const walletApi = {
         dest_asset: destAsset,
         source_amount: request.amount,
         dest_min: destMin,
-        path: quoteResponse.path || []
+        path: swapPath
       })
 
       return {

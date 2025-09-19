@@ -38,26 +38,31 @@ def quote(body: QuoteBody):
 def exec_swap_unified(body: ExecuteSwapReq):
     try:
         kp = Keypair.from_secret(body.secret)
-    except Exception:
-        raise HTTPException(400, "Invalid secret")
+    except Exception as e:
+        raise HTTPException(400, f"Invalid secret: {str(e)}")
 
     destination = body.destination or kp.public_key
     if not valid_pub(destination):
         raise HTTPException(400, "Invalid destination")
 
-    if body.mode == "send":
-        if not body.source_amount or not body.dest_min:
-            raise HTTPException(400, "source_amount và dest_min là bắt buộc cho mode=send")
-        return exec_send(body.secret, destination, body.source_asset,
-                         body.source_amount, body.dest_asset, body.dest_min, body.path)
+    try:
+        if body.mode == "send":
+            if not body.source_amount or not body.dest_min:
+                raise HTTPException(400, "source_amount và dest_min là bắt buộc cho mode=send")
+            return exec_send(body.secret, destination, body.source_asset,
+                             body.source_amount, body.dest_asset, body.dest_min, body.path)
 
-    if body.mode == "receive":
-        if not body.dest_amount or not body.source_max:
-            raise HTTPException(400, "dest_amount và source_max là bắt buộc cho mode=receive")
-        return exec_receive(body.secret, destination, body.dest_asset, body.dest_amount,
-                            body.source_asset, body.source_max, body.path)
+        if body.mode == "receive":
+            if not body.dest_amount or not body.source_max:
+                raise HTTPException(400, "dest_amount và source_max là bắt buộc cho mode=receive")
+            return exec_receive(body.secret, destination, body.dest_asset, body.dest_amount,
+                                body.source_asset, body.source_max, body.path)
 
-    raise HTTPException(400, "mode phải là 'send' hoặc 'receive'")
+        raise HTTPException(400, "mode phải là 'send' hoặc 'receive'")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Swap execution failed: {str(e)}")
 
 # NEW: 2-bước FE ký
 @router.post("/begin")

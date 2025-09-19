@@ -111,52 +111,90 @@ def get_account_transactions(pub: str, limit: int = 10, cursor: Optional[str] = 
         
         processed_transactions = []
         for tx in transactions_response.get('_embedded', {}).get('records', []):
-            # Get operations for this transaction to understand what happened
-            operations = server.operations().for_transaction(tx['hash']).call()
-            
-            for op in operations.get('_embedded', {}).get('records', []):
-                if op['type'] == 'payment':
-                    # Determine direction
-                    direction = 'received' if op['to'] == pub else 'sent'
-                    
-                    processed_transactions.append({
-                        'id': f"{tx['hash']}_{op['id']}",
-                        'hash': tx['hash'],
-                        'tx_type': 'PAYMENT',
-                        'direction': direction,
-                        'asset_code': op['asset_code'] if op['asset_type'] != 'native' else 'XLM',
-                        'asset_issuer': op.get('asset_issuer'),
-                        'amount': op['amount'],
-                        'source': op['from'],
-                        'destination': op['to'],
-                        'memo': tx.get('memo'),
-                        'status': 'success' if tx['successful'] else 'failed',
-                        'created_at': tx['created_at'],
-                        'ledger': tx['ledger'],
-                        'fee_charged': tx['fee_charged']
-                    })
-                elif op['type'] == 'path_payment_strict_send' or op['type'] == 'path_payment_strict_receive':
-                    # This is a swap/DEX trade
-                    direction = 'received' if op['to'] == pub else 'sent'
-                    
-                    processed_transactions.append({
-                        'id': f"{tx['hash']}_{op['id']}",
-                        'hash': tx['hash'],
-                        'tx_type': 'SWAP',
-                        'direction': direction,
-                        'asset_code': op['destination_asset_code'] if op['destination_asset_type'] != 'native' else 'XLM',
-                        'asset_issuer': op.get('destination_asset_issuer'),
-                        'amount': op['destination_amount'],
-                        'source': op['from'],
-                        'destination': op['to'],
-                        'source_asset_code': op['source_asset_code'] if op['source_asset_type'] != 'native' else 'XLM',
-                        'source_amount': op['source_amount'],
-                        'memo': tx.get('memo'),
-                        'status': 'success' if tx['successful'] else 'failed',
-                        'created_at': tx['created_at'],
-                        'ledger': tx['ledger'],
-                        'fee_charged': tx['fee_charged']
-                    })
+            try:
+                # Get operations for this transaction to understand what happened
+                operations = server.operations().for_transaction(tx['hash']).call()
+                
+                for op in operations.get('_embedded', {}).get('records', []):
+                    if op['type'] == 'payment':
+                        # Determine direction
+                        direction = 'received' if op['to'] == pub else 'sent'
+                        
+                        # Safe field access with fallbacks
+                        asset_type = op.get('asset_type', 'native')
+                        
+                        processed_transactions.append({
+                            'id': f"{tx['hash']}_{op['id']}",
+                            'hash': tx['hash'],
+                            'tx_type': 'PAYMENT',
+                            'direction': direction,
+                            'asset_code': op.get('asset_code', 'XLM') if asset_type != 'native' else 'XLM',
+                            'asset_issuer': op.get('asset_issuer'),
+                            'amount': op.get('amount', '0'),
+                            'source': op.get('from', ''),
+                            'destination': op.get('to', ''),
+                            'memo': tx.get('memo'),
+                            'status': 'success' if tx['successful'] else 'failed',
+                            'created_at': tx['created_at'],
+                            'ledger': tx['ledger'],
+                            'fee_charged': tx['fee_charged']
+                        })
+                    elif op['type'] == 'path_payment_strict_send' or op['type'] == 'path_payment_strict_receive':
+                        # This is a swap/DEX trade
+                        direction = 'received' if op['to'] == pub else 'sent'
+                        
+                        # Safe field access with fallbacks
+                        # For path_payment_strict_send, the main fields are:
+                        # - asset_type, asset_code, asset_issuer, amount (destination)
+                        # - source_asset_type, source_amount (source)
+                        dest_asset_type = op.get('asset_type', 'native')
+                        source_asset_type = op.get('source_asset_type', 'native')
+                        
+                        # For path_payment_strict_send, destination amount is in 'amount' field
+                        dest_amount = op.get('amount', '0')
+                        
+                        # Source amount is in 'source_amount' field
+                        source_amount = op.get('source_amount', '0')
+                        
+                        # For assets, we need to check both asset_code and asset_issuer
+                        # Check if destination asset is native (XLM) or custom asset
+                        dest_asset_code = 'XLM'
+                        dest_asset_issuer = None
+                        if dest_asset_type == 'native':
+                            dest_asset_code = 'XLM'
+                        else:
+                            dest_asset_code = op.get('asset_code', 'XLM')
+                            dest_asset_issuer = op.get('asset_issuer')
+                            
+                        source_asset_code = 'XLM'
+                        source_asset_issuer = None
+                        if source_asset_type == 'native':
+                            source_asset_code = 'XLM'
+                        else:
+                            source_asset_code = op.get('source_asset_code', 'XLM')
+                            source_asset_issuer = op.get('source_asset_issuer')
+                        
+                        processed_transactions.append({
+                            'id': f"{tx['hash']}_{op['id']}",
+                            'hash': tx['hash'],
+                            'tx_type': 'SWAP',
+                            'direction': direction,
+                            'asset_code': dest_asset_code,
+                            'asset_issuer': dest_asset_issuer,
+                            'amount': dest_amount,
+                            'source': op.get('from', ''),
+                            'destination': op.get('to', ''),
+                            'source_asset_code': source_asset_code,
+                            'source_amount': source_amount,
+                            'memo': tx.get('memo'),
+                            'status': 'success' if tx['successful'] else 'failed',
+                            'created_at': tx['created_at'],
+                            'ledger': tx['ledger'],
+                            'fee_charged': tx['fee_charged']
+                        })
+            except Exception as tx_error:
+                # Log the error but continue processing other transactions
+                continue
         
         return {
             'transactions': processed_transactions,

@@ -92,7 +92,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
   const formatAmount = (amount: string, symbol: string) => {
     const num = parseFloat(amount)
-    return `${num >= 0 ? '+' : ''}${num.toFixed(7)} ${symbol}`
+    return `${num.toFixed(7)} ${symbol}`
   }
 
   const formatStellarHash = (hash: string) => {
@@ -151,26 +151,45 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           <div className="text-center">
             <div className={`
               inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
-              ${transaction.direction === 'sent' ? 'bg-red-100 text-red-700' : 
+              ${transaction.tx_type === 'SWAP' ? 'bg-blue-100 text-blue-700' :
+                transaction.direction === 'sent' ? 'bg-red-100 text-red-700' : 
                 transaction.direction === 'received' ? 'bg-green-100 text-green-700' :
-                'bg-blue-100 text-blue-700'}
+                'bg-gray-100 text-gray-700'}
             `}>
-              {getTransactionIcon(transaction.direction)}
-              {transaction.direction.toUpperCase()}
+              {getTransactionIcon(transaction.tx_type === 'SWAP' ? 'swapped' : transaction.direction)}
+              {transaction.tx_type === 'SWAP' ? 'SWAPPED' : transaction.direction.toUpperCase()}
             </div>
-            <div className={`
-              mt-3 text-3xl font-bold
-              ${transaction.direction === 'sent' ? 'text-red-400' : 
-                transaction.direction === 'received' ? 'text-green-400' :
-                'text-blue-400'}
-            `}>
-              {formatAmount(transaction.amount, transaction.asset_code)}
-            </div>
+            {transaction.tx_type === 'SWAP' ? (
+              <div className="mt-3 space-y-2">
+                <div className={`
+                  text-2xl font-bold text-red-400
+                `}>
+                  -{formatAmount(transaction.source_amount || '0', transaction.source_asset_code || 'XLM')}
+                </div>
+                <div className="text-gray-400">→</div>
+                <div className={`
+                  text-2xl font-bold text-green-400
+                `}>
+                  +{formatAmount(transaction.amount, transaction.asset_code)}
+                </div>
+              </div>
+            ) : (
+              <div className={`
+                mt-3 text-3xl font-bold
+                ${transaction.direction === 'sent' ? 'text-red-400' : 
+                  transaction.direction === 'received' ? 'text-green-400' :
+                  'text-blue-400'}
+              `}>
+                {formatAmount(transaction.amount, transaction.asset_code)}
+              </div>
+            )}
             <div className={`
               mt-1 text-sm
               ${isDark ? 'text-gray-400' : 'text-gray-600'}
             `}>
-              {transaction.asset_code}
+              {transaction.tx_type === 'SWAP' ? 
+                `${transaction.source_asset_code || 'XLM'} → ${transaction.asset_code}` : 
+                transaction.asset_code}
             </div>
           </div>
 

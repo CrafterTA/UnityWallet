@@ -50,29 +50,36 @@ function ActivityPage() {
   }
 
   // Fetch real transaction data from backend
-  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+  const { data: transactionsData, isLoading: transactionsLoading, error: transactionsError } = useQuery({
     queryKey: ['activity-transactions'],
     queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 50 }),
     retry: 1,
     refetchOnWindowFocus: false,
   })
 
-  // Process real transaction data - sử dụng direction từ API
-  const transactions = transactionsData?.transactions.map((tx) => {
-    // Sử dụng direction từ API thay vì tự phân loại
-    const type = tx.direction || 'sent' // fallback nếu không có direction
+  // Process real transaction data - sử dụng tx_type từ API
+  const transactions = transactionsData?.transactions?.map((tx) => {
+    // Map tx_type từ backend thành type cho UI
+    let type = 'sent' // default fallback
+    
+    if (tx.tx_type === 'SWAP') {
+      type = 'swapped'
+    } else if (tx.tx_type === 'PAYMENT') {
+      // Sử dụng direction để phân biệt sent/received cho payment
+      type = tx.direction === 'received' ? 'received' : 'sent'
+    }
     
     return {
       id: tx.id,
       type: type,
-      amount: tx.amount,
-      currency: tx.asset_code,
+      amount: tx.tx_type === 'SWAP' ? tx.source_amount : tx.amount,
+      currency: tx.tx_type === 'SWAP' ? tx.source_asset_code : tx.asset_code,
       address: tx.destination || 'Unknown',
       date: tx.created_at,
       status: tx.status.toLowerCase(),
       fee: '0.01', // Default fee
-      toAmount: tx.buy_asset ? tx.amount : undefined,
-      toCurrency: tx.buy_asset
+      toAmount: tx.tx_type === 'SWAP' ? tx.amount : (tx.buy_asset ? tx.amount : undefined),
+      toCurrency: tx.tx_type === 'SWAP' ? tx.asset_code : tx.buy_asset
     }
   }) || []
 
@@ -82,11 +89,11 @@ function ActivityPage() {
     totalReceived: transactions.filter(tx => tx.type === 'received').length,
     totalSwapped: transactions.filter(tx => tx.type === 'swapped').length,
     totalTransactions: transactions.length,
-    averageAmount: transactions.length > 0 ? parseFloat((transactions.reduce((sum, tx) => sum + parseFloat(tx.amount), 0) / transactions.length).toFixed(3)) : 0,
+    averageAmount: transactions.length > 0 ? parseFloat((transactions.reduce((sum, tx) => sum + parseFloat(tx.amount || '0'), 0) / transactions.length).toFixed(3)) : 0,
   }
 
   // Check for errors
-  const hasError = summaryError || transactionsLoading;
+  const hasError = summaryError || transactionsError;
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -237,7 +244,7 @@ function ActivityPage() {
                     key={transaction.id}
                     onClick={() => {
                       // Tìm transaction gốc từ API data
-                      const originalTx = transactionsData?.transactions.find(tx => tx.id === transaction.id)
+                      const originalTx = transactionsData?.transactions?.find(tx => tx.id === transaction.id)
                       if (originalTx) {
                         setSelectedTransaction(originalTx)
                         setIsModalOpen(true)
@@ -280,18 +287,23 @@ function ActivityPage() {
 
                       {/* Right: Amount */}
                       <div className="text-right">
-                        <p className={`font-bold text-lg ${
-                          transaction.type === 'sent' ? 'text-red-400' : 
-                          transaction.type === 'received' ? 'text-green-400' : 
-                          'text-blue-400'
-                        }`}>
-                          {transaction.type === 'sent' ? '-' : transaction.type === 'received' ? '+' : ''}
-                          {parseFloat(transaction.amount).toFixed(3)} {transaction.currency}
-                        </p>
-                        
-                        {transaction.type === 'swapped' && (
-                          <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                            → {transaction.toAmount ? parseFloat(transaction.toAmount).toFixed(3) : '0.000'} {transaction.toCurrency}
+                        {transaction.type === 'swapped' ? (
+                          <div>
+                            <p className={`font-bold text-lg text-blue-400`}>
+                              {parseFloat(transaction.amount || '0').toFixed(3)} {transaction.currency || 'XLM'}
+                            </p>
+                            <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                              → {transaction.toAmount ? parseFloat(transaction.toAmount).toFixed(3) : '0.000'} {transaction.toCurrency || 'XLM'}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className={`font-bold text-lg ${
+                            transaction.type === 'sent' ? 'text-red-400' : 
+                            transaction.type === 'received' ? 'text-green-400' : 
+                            'text-blue-400'
+                          }`}>
+                            {transaction.type === 'sent' ? '-' : transaction.type === 'received' ? '+' : ''}
+                            {parseFloat(transaction.amount || '0').toFixed(3)} {transaction.currency || 'XLM'}
                           </p>
                         )}
                         

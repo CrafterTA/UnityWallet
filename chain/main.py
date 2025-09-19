@@ -12,7 +12,7 @@ app.add_middleware(
         "http://localhost:5173", 
         "http://127.0.0.1:5173"
     ],
-    allow_credentials=False,      # bật True nếu bạn dùng cookie/session
+    allow_credentials=True,       # Bật True để hỗ trợ credentials
     allow_methods=["*"],          # quan trọng cho preflight
     allow_headers=["*"],          # quan trọng cho preflight (Content-Type)
     expose_headers=["*"],
