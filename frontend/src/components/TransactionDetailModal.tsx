@@ -1,7 +1,8 @@
-import React from 'react'
-import { X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, DollarSign } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { X, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, DollarSign, ExternalLink, Copy, Check } from 'lucide-react'
 import { Transaction } from '../api/transactions'
 import { useThemeStore } from '../store/theme'
+import { chainApi } from '../api/chain'
 
 interface TransactionDetailModalProps {
   transaction: Transaction | null
@@ -15,6 +16,40 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   onClose
 }) => {
   const { isDark } = useThemeStore()
+  const [txDetails, setTxDetails] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [copied, setCopied] = useState<string | null>(null)
+
+  // Fetch detailed transaction info from Stellar
+  useEffect(() => {
+    if (isOpen && transaction?.stellar_tx_hash) {
+      setLoading(true)
+      chainApi.lookupTransaction(transaction.stellar_tx_hash)
+        .then(details => {
+          setTxDetails(details)
+        })
+        .catch(error => {
+          console.error('Failed to fetch transaction details:', error)
+        })
+        .finally(() => {
+          setLoading(false)
+        })
+    }
+  }, [isOpen, transaction?.stellar_tx_hash])
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(type)
+      setTimeout(() => setCopied(null), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }
+
+  const openInStellarExpert = (hash: string) => {
+    window.open(`https://stellar.expert/explorer/testnet/tx/${hash}`, '_blank')
+  }
 
   if (!isOpen || !transaction) return null
 
@@ -60,10 +95,14 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     return `${num >= 0 ? '+' : ''}${num.toFixed(7)} ${symbol}`
   }
 
-  const generateHashFromId = (id: string) => {
-    // Generate a hash-like string from transaction ID
-    const hash = btoa(id).replace(/[+/=]/g, '').substring(0, 32)
-    return `0x${hash}${Math.random().toString(16).substring(2, 8)}`
+  const formatStellarHash = (hash: string) => {
+    if (!hash) return 'N/A'
+    return `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}`
+  }
+
+  const formatStellarAddress = (address: string) => {
+    if (!address) return 'N/A'
+    return `${address.substring(0, 8)}...${address.substring(address.length - 8)}`
   }
 
   return (
@@ -76,7 +115,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       
       {/* Modal */}
       <div className={`
-        relative w-full max-w-md mx-4 rounded-2xl shadow-2xl
+        relative w-full max-w-lg mx-4 rounded-2xl shadow-2xl
         ${isDark ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'}
         transform transition-all duration-300 ease-out
         ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
@@ -107,7 +146,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
           {/* Transaction Type & Amount */}
           <div className="text-center">
             <div className={`
@@ -169,8 +208,8 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               </span>
             </div>
 
-            {/* Transaction Hash/ID */}
-            {(transaction.stellar_tx_hash || transaction.id) && (
+            {/* Transaction Hash */}
+            {transaction.stellar_tx_hash && (
               <div className="flex justify-between items-center">
                 <span className={` 
                   text-sm font-medium
@@ -178,11 +217,97 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 `}>
                   Transaction Hash
                 </span>
-                <span className={` 
-                  text-xs font-mono break-all text-right max-w-48
-                  ${isDark ? 'text-gray-400' : 'text-gray-700'}
-                `}>
-                  {transaction.stellar_tx_hash || generateHashFromId(transaction.id)}
+                <div className="flex items-center gap-2">
+                  <span className={` 
+                    text-xs font-mono
+                    ${isDark ? 'text-gray-400' : 'text-gray-700'}
+                  `}>
+                    {formatStellarHash(transaction.stellar_tx_hash)}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(transaction.stellar_tx_hash!, 'hash')}
+                    className={`p-1 rounded transition-colors ${
+                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    {copied === 'hash' ? (
+                      <Check className="h-3 w-3 text-green-400" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-gray-400" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => openInStellarExpert(transaction.stellar_tx_hash!)}
+                    className={`p-1 rounded transition-colors ${
+                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    <ExternalLink className="h-3 w-3 text-blue-400" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Stellar Details */}
+            {txDetails && (
+              <>
+                <div className="flex justify-between items-center">
+                  <span className={` 
+                    text-sm font-medium
+                    ${isDark ? 'text-gray-300' : 'text-gray-600'}
+                  `}>
+                    Ledger
+                  </span>
+                  <span className={` 
+                    text-sm font-mono
+                    ${isDark ? 'text-gray-400' : 'text-gray-700'}
+                  `}>
+                    #{txDetails.ledger}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className={` 
+                    text-sm font-medium
+                    ${isDark ? 'text-gray-300' : 'text-gray-600'}
+                  `}>
+                    Fee Charged
+                  </span>
+                  <span className={` 
+                    text-sm font-mono
+                    ${isDark ? 'text-gray-400' : 'text-gray-700'}
+                  `}>
+                    {txDetails.fee_charged} stroops
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className={` 
+                    text-sm font-medium
+                    ${isDark ? 'text-gray-300' : 'text-gray-600'}
+                  `}>
+                    Operations
+                  </span>
+                  <span className={` 
+                    text-sm
+                    ${isDark ? 'text-gray-400' : 'text-gray-700'}
+                  `}>
+                    {txDetails.operation_count}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {/* Loading state */}
+            {loading && (
+              <div className="flex justify-center items-center py-4">
+                <div className={`animate-spin rounded-full h-6 w-6 border-b-2 ${
+                  isDark ? 'border-white' : 'border-gray-900'
+                }`} />
+                <span className={`ml-2 text-sm ${
+                  isDark ? 'text-gray-400' : 'text-gray-600'
+                }`}>
+                  Loading Stellar details...
                 </span>
               </div>
             )}
@@ -196,12 +321,26 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 `}>
                   To
                 </span>
-                <span className={`
-                  text-sm font-mono break-all text-right max-w-48
-                  ${isDark ? 'text-gray-400' : 'text-gray-700'}
-                `}>
-                  {transaction.destination}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`
+                    text-sm font-mono
+                    ${isDark ? 'text-gray-400' : 'text-gray-700'}
+                  `}>
+                    {formatStellarAddress(transaction.destination)}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(transaction.destination!, 'destination')}
+                    className={`p-1 rounded transition-colors ${
+                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    {copied === 'destination' ? (
+                      <Check className="h-3 w-3 text-green-400" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-gray-400" />
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -213,12 +352,26 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 `}>
                   From
                 </span>
-                <span className={`
-                  text-sm font-mono break-all text-right max-w-48
-                  ${isDark ? 'text-gray-400' : 'text-gray-700'}
-                `}>
-                  {transaction.source}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`
+                    text-sm font-mono
+                    ${isDark ? 'text-gray-400' : 'text-gray-700'}
+                  `}>
+                    {formatStellarAddress(transaction.source)}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(transaction.source!, 'source')}
+                    className={`p-1 rounded transition-colors ${
+                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    {copied === 'source' ? (
+                      <Check className="h-3 w-3 text-green-400" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-gray-400" />
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -289,6 +442,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 )}
               </>
             )}
+
           </div>
         </div>
 
@@ -297,18 +451,35 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           p-6 border-t
           ${isDark ? 'border-gray-700' : 'border-gray-200'}
         `}>
-          <button
-            onClick={onClose}
-            className={`
-              w-full py-3 px-4 rounded-xl font-medium transition-colors
-              ${isDark 
-                ? 'bg-gray-800 text-white hover:bg-gray-700' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }
-            `}
-          >
-            Close
-          </button>
+          <div className="flex gap-3">
+            {transaction.stellar_tx_hash && (
+              <button
+                onClick={() => openInStellarExpert(transaction.stellar_tx_hash!)}
+                className={`
+                  flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2
+                  ${isDark 
+                    ? 'bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 border border-blue-500/30' 
+                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'
+                  }
+                `}
+              >
+                <ExternalLink className="h-4 w-4" />
+                View on Stellar Expert
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className={`
+                flex-1 py-3 px-4 rounded-xl font-medium transition-colors
+                ${isDark 
+                  ? 'bg-gray-800 text-white hover:bg-gray-700' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }
+              `}
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

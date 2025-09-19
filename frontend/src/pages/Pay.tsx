@@ -617,18 +617,22 @@ export default function Pay() {
             <div className="lg:col-span-2 space-y-6">
               <SectionCard dark={isDark} title={t('pay.yourAddress','Your Address')}>
                 <div className={classNames('rounded-xl border p-4', isDark ? 'border-white/20 bg-white/10' : 'border-slate-200 bg-slate-100/80')}>
-                  <div className="flex items-center justify-between gap-3">
-                    <span className={classNames('font-mono text-sm tracking-wide', isDark ? 'text-white/80' : 'text-slate-700')}>{myAddress}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <span className={classNames('font-mono text-sm tracking-wide break-all', isDark ? 'text-white/80' : 'text-slate-700')}>
+                        {myAddress}
+                      </span>
+                    </div>
                     <button
                       onClick={() => copyAddress(myAddress)}
                       type="button"
-                      className={classNames('inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors', isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-yellow-400 text-slate-900 hover:bg-yellow-500')}
+                      className={classNames('inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors flex-shrink-0', isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-yellow-400 text-slate-900 hover:bg-yellow-500')}
                     >
                       <Copy className="h-4 w-4" />
                       {copied ? (
                         <span className="inline-flex items-center gap-1"><Check className="h-4 w-4" /> {t('pay.copied','Copied')}</span>
                       ) : (
-                        <span>{t('pay.copyAddress','Copy Address')}</span>
+                        <span className="hidden sm:inline">{t('pay.copyAddress','Copy Address')}</span>
                       )}
                     </button>
                   </div>

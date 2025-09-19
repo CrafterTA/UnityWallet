@@ -3,7 +3,7 @@
  * Comprehensive analytics dashboard with ML-driven insights
  */
 
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { 
@@ -49,6 +49,67 @@ const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`
 const maskAddress = (address: string) => 
   address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Unknown'
 
+const formatChatResponse = (content: string) => {
+  // Clean up the content first
+  let cleaned = content
+    .replace(/SYP:GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL:/g, 'SYP:')
+    .replace(/USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5:/g, 'USDC:')
+    .replace(/GAFV4WZIFH76JEGW5R5GQZKBO27EY46C2BSAQONBKQC5XTTCPNDM6LIF/g, 'GAFV4WZIF...M6LIF')
+    .replace(/\[Asset Address\]/g, '')
+    .replace(/\[Address\]/g, '')
+    .replace(/\[Recipient Address\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  // Format with proper line breaks and structure
+  let formatted = cleaned
+
+  // Balance information formatting
+  if (formatted.includes('Số dư trung bình')) {
+    formatted = formatted
+      .replace(/Số dư trung bình của bạn:/g, '**Số dư trung bình của bạn:**\n')
+      .replace(/- (SYP|USDC|XLM):\s*([\d.]+)/g, '  • $1: $2\n')
+      .replace(/Tài sản có biến động cao:/g, '\n**Tài sản có biến động cao:**')
+      .replace(/:\s*(SYP|USDC|XLM)/g, ': $1')
+  }
+
+  // Spending analysis formatting
+  if (formatted.includes('Tổng chi tiêu')) {
+    formatted = formatted
+      .replace(/Tổng chi tiêu: ([\d.]+)/g, '**Tổng chi tiêu:** $1\n')
+      .replace(/Chi tiết theo tài sản:/g, '**Chi tiết theo tài sản:**\n')
+      .replace(/- (SYP|USDC|XLM):\s*([\d.]+)\s*\(([\d.]+)%\)/g, '  • $1: $2 ($3%)\n')
+      .replace(/Bạn thường gửi tiền cho:/g, '\n**Bạn thường gửi tiền cho:**\n')
+      .replace(/(GAFV4WZIF[^:]*)/g, '  • $1\n')
+  }
+
+  // Anomaly detection formatting
+  if (formatted.includes('Phát hiện') || formatted.includes('bất thường')) {
+    formatted = formatted
+      .replace(/Phát hiện (\d+) hoạt động bất thường:/g, '**Phát hiện $1 hoạt động bất thường:**\n')
+      .replace(/- ([^:]+):\s*([^.\n]+)/g, '  • $1: $2\n')
+      .replace(/Khuyến nghị:/g, '\n**Khuyến nghị:**\n')
+  }
+
+  // Pattern analysis formatting
+  if (formatted.includes('Pattern số tròn') || formatted.includes('Xu hướng')) {
+    formatted = formatted
+      .replace(/Pattern số tròn: (\d+) trường hợp/g, '**Pattern số tròn:** $1 trường hợp\n')
+      .replace(/Xu hướng giao dịch số tròn bất thường:/g, '**Xu hướng giao dịch số tròn bất thường:**\n')
+      .replace(/(\d+\/\d+ giao dịch)/g, '$1\n')
+  }
+
+  // General formatting improvements
+  formatted = formatted
+    .replace(/(\d+)\s*giao dịch/g, '$1 giao dịch')
+    .replace(/(\d+)\s*transactions/g, '$1 transactions')
+    .replace(/\n\s*\n/g, '\n') // Remove multiple empty lines
+    .replace(/\n$/, '') // Remove trailing newline
+    .trim()
+
+  return formatted
+}
+
 const getRiskColor = (riskScore: number) => {
   if (riskScore < 0.3) return 'text-green-400 bg-green-500/20 border-green-500/30'
   if (riskScore < 0.7) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30'
@@ -84,6 +145,13 @@ export default function Insights() {
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'anomalies' | 'chat'>('overview')
+  
+  // Chat state
+  const [chatMessage, setChatMessage] = useState('')
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([])
+  const [isChatLoading, setIsChatLoading] = useState(false)
+  const [hasInitialQuestion, setHasInitialQuestion] = useState(false)
+  const chatEndRef = React.useRef<HTMLDivElement>(null)
 
   // ====== Data Fetching ======
   const queryConfig = { 
@@ -202,12 +270,30 @@ export default function Insights() {
   // Chart data preparation
   const assetDistribution = useMemo(() => {
     if (!summary?.current_balances) return []
+    
+    const totalBalance = Object.values(summary.current_balances)
+      .reduce((sum, balance) => sum + Number(balance), 0)
+    
     return Object.entries(summary.current_balances)
-      .map(([asset, balance], index) => ({
-        name: asset,
-        value: Number(balance),
-        color: COLORS[index % COLORS.length]
-      }))
+      .map(([asset, balance], index) => {
+        const value = Number(balance)
+        const percentage = totalBalance > 0 ? (value / totalBalance) * 100 : 0
+        
+        // Format asset name for display
+        let displayName = asset
+        if (asset.includes(':')) {
+          // For assets with issuer, show just the code
+          displayName = asset.split(':')[0]
+        }
+        
+        return {
+          name: `${displayName} ${percentage.toFixed(1)}%`,
+          value: value,
+          color: COLORS[index % COLORS.length],
+          originalName: asset,
+          percentage: percentage
+        }
+      })
       .filter(item => item.value > 0.001)
       .sort((a, b) => b.value - a.value)
   }, [summary])
@@ -258,6 +344,87 @@ export default function Insights() {
   }, [features])
 
   // ====== Event Handlers ======
+  const handleSendMessage = useCallback(async () => {
+    if (!chatMessage.trim() || isChatLoading) return
+    
+    const userMessage = chatMessage.trim()
+    setChatMessage('')
+    setIsChatLoading(true)
+    
+    // Add user message
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    
+    try {
+      const response = await mlApi.askChatbot({
+        public_key: publicKey,
+        message: userMessage,
+        context: {
+          analytics: analytics,
+          summary: summary,
+          features: features
+        }
+      })
+      
+      // Add assistant response
+      setChatMessages(prev => [...prev, { role: 'assistant', content: formatChatResponse(response.response) }])
+    } catch (error) {
+      console.error('Chat error:', error)
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Xin lỗi, tôi không thể trả lời câu hỏi này lúc này. Vui lòng thử lại sau.' 
+      }])
+    } finally {
+      setIsChatLoading(false)
+    }
+  }, [chatMessage, isChatLoading, publicKey, analytics, summary, features])
+
+  // Auto-send initial question when switching to chat tab
+  useEffect(() => {
+    if (activeTab === 'chat' && !hasInitialQuestion && publicKey && !isChatLoading) {
+      setHasInitialQuestion(true)
+      const initialQuestion = 'Xin chào! Hãy cho tôi biết tổng quan về tài khoản của tôi.'
+      setChatMessage(initialQuestion)
+      
+      // Auto-send the question
+      setTimeout(async () => {
+        const userMessage = initialQuestion
+        setChatMessage('')
+        setIsChatLoading(true)
+        
+        // Add user message
+        setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+        
+        try {
+          const response = await mlApi.askChatbot({
+            public_key: publicKey,
+            message: userMessage,
+            context: {
+              analytics: analytics,
+              summary: summary,
+              features: features
+            }
+          })
+          
+          // Add assistant response
+          setChatMessages(prev => [...prev, { role: 'assistant', content: formatChatResponse(response.response) }])
+        } catch (error) {
+          console.error('Chat error:', error)
+          setChatMessages(prev => [...prev, { 
+            role: 'assistant', 
+            content: 'Xin lỗi, tôi không thể trả lời câu hỏi này lúc này. Vui lòng thử lại sau.' 
+          }])
+        } finally {
+          setIsChatLoading(false)
+        }
+      }, 500)
+    }
+  }, [activeTab, hasInitialQuestion, publicKey, isChatLoading, analytics, summary, features])
+
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatMessages, isChatLoading])
+
   const handleRefreshAll = useCallback(async () => {
     await Promise.all([
       refetchAnalytics(),
@@ -321,67 +488,24 @@ export default function Insights() {
   return (
     <div className={`min-h-screen ${isDark ? 'text-white' : 'text-slate-900'}`}>
       {/* ====== Header ====== */}
-      <div className="sticky top-0 z-10 backdrop-blur-xl border-b border-white/10 px-6 py-4">
-        <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  AI Wallet Insights
-                </h1>
-                <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                  Machine learning powered analytics
-                </p>
-                  </div>
-                </div>
+      <div className="mb-8 text-center">
+        <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Brain className="w-8 h-8 text-white" />
+        </div>
+        <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          AI Wallet Insights
+        </h1>
+        <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+          Machine learning powered analytics
+        </p>
+      </div>
 
-            <div className="flex items-center gap-3">
-              {/* Timeframe Selector */}
-              <select
-                value={selectedTimeframe}
-                onChange={(e) => setSelectedTimeframe(Number(e.target.value) as 30 | 60 | 90)}
-                className={`px-3 py-2 rounded-lg border text-sm ${
-                  isDark 
-                    ? 'bg-white/5 border-white/10 text-white' 
-                    : 'bg-white border-slate-200 text-slate-900'
-                }`}
-              >
-                <option value={30}>Last 30 Days</option>
-                <option value={60}>Last 60 Days</option>
-                <option value={90}>Last 90 Days</option>
-              </select>
-
-              {/* Refresh Button */}
-              <button
-                onClick={handleRefreshAll}
-                className={`p-2 rounded-lg border transition-colors ${
-                  isDark 
-                    ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
-                    : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-900'
-                }`}
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-
-              {/* Settings Button */}
-              <button
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className={`p-2 rounded-lg border transition-colors ${
-                  isDark 
-                    ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
-                    : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-900'
-                }`}
-              >
-                <Settings className="w-4 h-4" />
-              </button>
-                </div>
-              </div>
-
-          {/* Tab Navigation */}
-          <div className="flex gap-1 mt-4">
+      {/* ====== Content ====== */}
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        
+        {/* Tab Navigation with Controls */}
+        <div className="flex items-center justify-between">
+          <div className="flex gap-1">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'analytics', label: 'Analytics', icon: TrendingUp },
@@ -405,12 +529,65 @@ export default function Insights() {
                 {label}
               </button>
             ))}
-                </div>
-              </div>
-            </div>
+          </div>
 
-      {/* ====== Content ====== */}
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+          {/* Controls on the right */}
+          <div className="flex items-center gap-3">
+            {/* Timeframe Selector */}
+            <select
+              value={selectedTimeframe}
+              onChange={(e) => setSelectedTimeframe(Number(e.target.value) as 30 | 60 | 90)}
+              className={`px-3 py-2 rounded-lg border text-sm ${
+                isDark 
+                  ? 'bg-white/5 border-white/10 text-white' 
+                  : 'bg-white border-slate-200 text-slate-900'
+              }`}
+            >
+              <option 
+                value={30} 
+                className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
+              >
+                Last 30 Days
+              </option>
+              <option 
+                value={60} 
+                className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
+              >
+                Last 60 Days
+              </option>
+              <option 
+                value={90} 
+                className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
+              >
+                Last 90 Days
+              </option>
+            </select>
+
+            {/* Refresh Button */}
+            <button
+              onClick={handleRefreshAll}
+              className={`p-2 rounded-lg border transition-colors ${
+                isDark 
+                  ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
+                  : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-900'
+              }`}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+
+            {/* Settings Button */}
+            <button
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className={`p-2 rounded-lg border transition-colors ${
+                isDark 
+                  ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
+                  : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-900'
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
         
         {/* Overview Tab */}
         {activeTab === 'overview' && (
@@ -426,15 +603,15 @@ export default function Insights() {
                     <div className="flex items-center gap-3">
                       <div className={`p-3 rounded-xl ${getRiskColor(riskScore).replace('text-', 'bg-').replace('bg-green-400', 'bg-green-500').replace('bg-yellow-400', 'bg-yellow-500').replace('bg-red-400', 'bg-red-500')}/20`}>
                         <Shield className="w-6 h-6 text-current" />
-            </div>
-            <div>
+                        </div>
+                          <div>
                         <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                           Security Risk Assessment
                         </h2>
                         <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                           AI-powered security analysis
-              </p>
-            </div>
+                        </p>
+                </div>
           </div>
 
                     <div className="flex items-center gap-6">
@@ -566,7 +743,11 @@ export default function Insights() {
                       dataKey="value"
                           animationBegin={0}
                           animationDuration={1500}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                          label={({ name, percent }) => {
+                            // Extract just the asset code from the name (remove percentage)
+                            const assetCode = name.split(' ')[0]
+                            return `${assetCode} ${(percent * 100).toFixed(1)}%`
+                          }}
                           labelLine={false}
                         >
                           {assetDistribution.map((entry, index) => (
@@ -580,17 +761,24 @@ export default function Insights() {
                     </Pie>
                     <Tooltip 
                       contentStyle={{
-                            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                            border: 'none',
+                        backgroundColor: isDark ? 'rgba(2, 6, 23, 0.92)' : 'rgba(255, 255, 255, 0.95)',
+                        border: isDark ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(226,232,240,1)',
                         borderRadius: '12px',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                            color: isDark ? '#FFFFFF' : '#000000',
-                            backdropFilter: 'blur(16px)'
-                          }}
-                          formatter={(value) => [
-                            <span className="font-semibold">{formatCurrency(Number(value))}</span>, 
-                            'Balance'
-                          ]}
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                        color: isDark ? '#F8FAFC' : '#0F172A', // màu chữ mặc định
+                        backdropFilter: 'blur(16px)',
+                      }}
+                      itemStyle={{
+                        color: isDark ? '#F8FAFC' : '#0F172A', // màu chữ cho items
+                        fontWeight: 600,
+                      }}
+                      labelStyle={{
+                        color: isDark ? '#E2E8F0' : '#334155', // màu label (tiêu đề)
+                        fontWeight: 600,
+                        marginBottom: 6,
+                      }}
+                      formatter={(value: any) => [`${formatCurrency(Number(value))}`, 'Balance']}
+                      cursor={false}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -604,7 +792,7 @@ export default function Insights() {
                             style={{ backgroundColor: entry.color }}
                           />
                           <span className={`text-xs font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                            {entry.name}
+                            {entry.originalName?.includes(':') ? entry.originalName.split(':')[0] : entry.originalName}
                           </span>
                         </div>
                       ))}
@@ -677,6 +865,7 @@ export default function Insights() {
                             <span className="font-semibold">{value} transactions</span>, 
                             'Count'
                           ]}
+                          cursor={false}
                     />
                     <Bar
                           dataKey="value" 
@@ -706,19 +895,26 @@ export default function Insights() {
               )}
             </div>
 
-            {/* Enhanced Balance History Chart */}
+            {/* ===== Balance Evolution (NEW) ===== */}
             {balanceHistoryData.length > 0 && (
-              <div className={`group relative overflow-hidden rounded-2xl border transition-all duration-500 hover:shadow-2xl ${
-                isDark ? 'bg-white/5 border-white/10 hover:border-white/20' : 'bg-white border-slate-200 hover:border-slate-300'
-              }`}>
-                {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
+              <div
+                className={`group relative overflow-hidden rounded-2xl border transition-all duration-500 hover:shadow-2xl ${
+                  isDark
+                    ? 'bg-white/5 border-white/10 hover:border-white/20'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {/* Overlay nhẹ khi hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-cyan-500/5 to-blue-500/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
                 <div className="relative p-6">
+                  {/* Header */}
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-lg">
-                        <LineChartIcon className="w-5 h-5 text-white" />
+                        <svg width="20" height="20" viewBox="0 0 24 24" className="text-white">
+                          <path fill="currentColor" d="M3 3h2v18H3V3Zm16 3H9v2h10V6Zm0 5H9v2h10v-2Zm0 5H9v2h10v-2Z" />
+                        </svg>
                       </div>
                       <div>
                         <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -730,159 +926,160 @@ export default function Insights() {
                       </div>
                     </div>
 
-                    {/* Chart Controls */}
-                    <div className="flex items-center gap-2">
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        isDark ? 'bg-white/10 text-white/70' : 'bg-slate-100 text-slate-600'
-                      }`}>
+                    {/* Tags nhỏ bên phải */}
+                    <div className="hidden sm:flex items-center gap-2">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          isDark ? 'bg-white/10 text-white/70' : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
                         {selectedTimeframe}D
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'
-                      }`}>
+                      </span>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+                        }`}
+                      >
                         Live Data
-                      </div>
+                      </span>
                     </div>
                   </div>
 
-                  <ResponsiveContainer width="100%" height={450}>
-                    <AreaChart data={balanceHistoryData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  {/* Chart */}
+                  <ResponsiveContainer width="100%" height={420}>
+                    <AreaChart data={balanceHistoryData} margin={{ top: 10, right: 24, left: 12, bottom: 10 }}>
+                      {/* Gradients & glow */}
                       <defs>
-                        {Object.keys(analytics?.balance_history || {}).map((asset, index) => (
-                          <linearGradient key={`areaGradient-${index}`} id={`areaGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.8} />
-                            <stop offset="50%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.4} />
-                            <stop offset="100%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.1} />
+                        {Object.keys(analytics?.balance_history || {}).map((asset, i) => (
+                          <linearGradient key={`be-grad-${i}`} id={`be-grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0.55} />
+                            <stop offset="60%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0.22} />
+                            <stop offset="100%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0.06} />
                           </linearGradient>
                         ))}
-                        
-                        {/* Glow Effect */}
-                        <filter id="glow">
-                          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                          <feMerge> 
-                            <feMergeNode in="coloredBlur"/>
-                            <feMergeNode in="SourceGraphic"/>
+                        <filter id="be-soft-glow">
+                          <feGaussianBlur stdDeviation="2.5" result="b" />
+                          <feMerge>
+                            <feMergeNode in="b" />
+                            <feMergeNode in="SourceGraphic" />
                           </feMerge>
                         </filter>
                       </defs>
-                      
-                      <CartesianGrid 
-                        strokeDasharray="1 3" 
-                        stroke={isDark ? '#374151' : '#e2e8f0'} 
-                        strokeOpacity={0.2}
+
+                      <CartesianGrid
+                        stroke={isDark ? 'rgba(148,163,184,.18)' : 'rgba(100,116,139,.18)'}
+                        strokeDasharray="2 6"
                         vertical={false}
                       />
-                      
-                      <XAxis 
-                        dataKey="date" 
-                        stroke={isDark ? '#9CA3AF' : '#64748B'} 
-                        fontSize={11}
-                        fontWeight={500}
+
+                      <XAxis
+                        dataKey="date"
+                        tickMargin={8}
                         axisLine={false}
                         tickLine={false}
-                        tickMargin={10}
-                      />
-                      
-                      <YAxis 
-                        stroke={isDark ? '#9CA3AF' : '#64748B'} 
+                        stroke={isDark ? '#A3AED0' : '#475569'}
                         fontSize={11}
-                        fontWeight={500}
+                      />
+                      <YAxis
+                        width={64}
+                        tickMargin={8}
                         axisLine={false}
                         tickLine={false}
-                        tickMargin={10}
-                        tickFormatter={(value) => formatCurrency(value, '').split(' ')[0]}
+                        stroke={isDark ? '#A3AED0' : '#475569'}
+                        fontSize={11}
+                        domain={['dataMin - 5%', 'dataMax + 10%']} // nới biên để dot/đỉnh không chạm trần
+                        tickFormatter={(v) => Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(v as number)}
                       />
-                      
-                      <Tooltip 
+
+                      <Tooltip
+                        cursor={{ stroke: isDark ? 'rgba(148,163,184,.35)' : 'rgba(100,116,139,.35)', strokeWidth: 1.2 }}
                         contentStyle={{
-                          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                          border: 'none',
-                          borderRadius: '16px',
-                          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                          color: isDark ? '#FFFFFF' : '#000000',
-                          backdropFilter: 'blur(16px)',
-                          padding: '12px 16px'
+                          backgroundColor: isDark ? 'rgba(2,6,23,.94)' : 'rgba(255,255,255,.98)',
+                          border: isDark ? '1px solid rgba(148,163,184,.2)' : '1px solid rgba(226,232,240,1)',
+                          borderRadius: 14,
+                          color: isDark ? '#F8FAFC' : '#0F172A',
+                          boxShadow: '0 20px 45px -16px rgba(0,0,0,.35)',
+                          backdropFilter: 'blur(10px)',
+                          padding: '10px 12px',
                         }}
-                        labelStyle={{ 
-                          color: isDark ? '#E2E8F0' : '#475569',
-                          fontWeight: 600,
-                          marginBottom: '8px'
-                        }}
-                        formatter={(value, name) => [
-                          <div key={name} className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: COLORS[Object.keys(analytics?.balance_history || {}).indexOf(name as string) % COLORS.length] }}
-                            />
-                            <span className="font-semibold">{formatCurrency(Number(value))}</span>
-                          </div>, 
-                          name
+                        labelStyle={{ color: isDark ? '#E2E8F0' : '#334155', fontWeight: 700, marginBottom: 6 }}
+                        itemStyle={{ color: isDark ? '#F8FAFC' : '#0F172A', fontWeight: 600 }}
+                        formatter={(v: any, name: any) => [
+                          `${Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(Number(v))} XLM`,
+                          (name as string).includes(':') ? (name as string).split(':')[0] : (name as string),
                         ]}
                       />
 
-                      {Object.keys(analytics?.balance_history || {}).map((asset, index) => (
+                      {Object.keys(analytics?.balance_history || {}).map((asset, i) => (
                         <Area
                           key={asset}
                           type="monotone"
                           dataKey={asset}
-                          stackId="1"
-                          stroke={COLORS[index % COLORS.length]}
-                          fill={`url(#areaGradient-${index})`}
+                          connectNulls
+                          baseValue={0}
+                          stroke={COLORS[i % COLORS.length]}
+                          fill={`url(#be-grad-${i})`}
                           strokeWidth={3}
+                          strokeOpacity={0.95}
+                          fillOpacity={0.6}
                           dot={false}
-                          activeDot={{ 
-                            r: 6, 
-                            fill: COLORS[index % COLORS.length],
-                            stroke: isDark ? '#1F2937' : '#FFFFFF',
+                          activeDot={{
+                            r: 6,
                             strokeWidth: 2,
-                            filter: 'url(#glow)'
+                            stroke: isDark ? '#0B1220' : '#FFFFFF',
+                            fill: COLORS[i % COLORS.length],
+                            filter: 'url(#be-soft-glow)',
                           }}
-                          animationBegin={600}
-                          animationDuration={2000}
+                          animationDuration={900}
                         />
                       ))}
                     </AreaChart>
                   </ResponsiveContainer>
 
-                  {/* Balance Summary */}
-                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(analytics?.balance_history || {}).slice(0, 4).map(([asset, data], index) => {
-                      const currentValue = (data as any).values?.[(data as any).values?.length - 1] || 0
-                      const previousValue = (data as any).values?.[(data as any).values?.length - 2] || 0
-                      const change = currentValue - previousValue
-                      const changePercent = previousValue > 0 ? (change / previousValue) * 100 : 0
-                      
+                  {/* Mini summary dưới chart */}
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {Object.entries(analytics?.balance_history || {})
+                      .slice(0, 3)
+                      .map(([asset, data], i) => {
+                        const d = data as any
+                        const vals = d?.values ?? []
+                        const curr = vals[vals.length - 1] ?? 0
+                        const prev = vals[vals.length - 2] ?? 0
+                        const diffPct = prev ? ((curr - prev) / prev) * 100 : 0
+                        const up = diffPct >= 0
+                        const label = asset.includes(':') ? asset.split(':')[0] : asset
                         return (
-                        <div key={asset} className={`p-3 rounded-xl border ${
-                          isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'
-                        }`}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <div 
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                            />
-                            <span className={`text-xs font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                              {asset}
-                            </span>
+                          <div
+                            key={asset}
+                            className={`p-4 rounded-xl border ${
+                              isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                                />
+                                <span className={`text-xs font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                                  {label}
+                                </span>
+                              </div>
+                              <span className={`text-xs ${up ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {up ? '▲' : '▼'} {Math.abs(diffPct).toFixed(1)}%
+                              </span>
+                            </div>
+                            <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              {`${curr.toFixed(3)} XLM`}
+                            </div>
                           </div>
-                          <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {formatCurrency(currentValue)}
-                          </div>
-                          <div className={`text-xs flex items-center gap-1 ${
-                            change >= 0 
-                              ? 'text-emerald-400' 
-                              : 'text-red-400'
-                          }`}>
-                            {change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                            {Math.abs(changePercent).toFixed(1)}%
-                          </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
                   </div>
                 </div>
               </div>
             )}
+
           </>
         )}
 
@@ -1182,6 +1379,39 @@ export default function Insights() {
                   {(chatSuggestions as any)?.suggestions?.map((suggestion: string, index: number) => (
                     <button
                       key={index}
+                      onClick={async () => {
+                        if (isChatLoading) return
+                        
+                        const userMessage = suggestion
+                        setChatMessage('')
+                        setIsChatLoading(true)
+                        
+                        // Add user message
+                        setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+                        
+                        try {
+                          const response = await mlApi.askChatbot({
+                            public_key: publicKey,
+                            message: userMessage,
+                            context: {
+                              analytics: analytics,
+                              summary: summary,
+                              features: features
+                            }
+                          })
+                          
+                          // Add assistant response
+                          setChatMessages(prev => [...prev, { role: 'assistant', content: formatChatResponse(response.response) }])
+                        } catch (error) {
+                          console.error('Chat error:', error)
+                          setChatMessages(prev => [...prev, { 
+                            role: 'assistant', 
+                            content: 'Xin lỗi, tôi không thể trả lời câu hỏi này lúc này. Vui lòng thử lại sau.' 
+                          }])
+                        } finally {
+                          setIsChatLoading(false)
+                        }
+                      }}
                       className={`p-3 rounded-lg text-left transition-colors border ${
                         isDark 
                           ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white/90' 
@@ -1191,7 +1421,7 @@ export default function Insights() {
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-blue-500" />
                         <span className="text-sm">{suggestion}</span>
-            </div>
+                      </div>
                     </button>
                   ))}
           </div>
@@ -1219,6 +1449,39 @@ export default function Insights() {
                   ].map((suggestion, index) => (
                     <button
                       key={index}
+                      onClick={async () => {
+                        if (isChatLoading) return
+                        
+                        const userMessage = suggestion
+                        setChatMessage('')
+                        setIsChatLoading(true)
+                        
+                        // Add user message
+                        setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+                        
+                        try {
+                          const response = await mlApi.askChatbot({
+                            public_key: publicKey,
+                            message: userMessage,
+                            context: {
+                              analytics: analytics,
+                              summary: summary,
+                              features: features
+                            }
+                          })
+                          
+                          // Add assistant response
+                          setChatMessages(prev => [...prev, { role: 'assistant', content: formatChatResponse(response.response) }])
+                        } catch (error) {
+                          console.error('Chat error:', error)
+                          setChatMessages(prev => [...prev, { 
+                            role: 'assistant', 
+                            content: 'Xin lỗi, tôi không thể trả lời câu hỏi này lúc này. Vui lòng thử lại sau.' 
+                          }])
+                        } finally {
+                          setIsChatLoading(false)
+                        }
+                      }}
                       className={`p-3 rounded-lg text-left transition-colors border ${
                         isDark 
                           ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white/90' 
@@ -1229,28 +1492,188 @@ export default function Insights() {
                         <Sparkles className="w-4 h-4 text-blue-500" />
                         <span className="text-sm">{suggestion}</span>
                       </div>
-          </button>
-              ))}
+                    </button>
+                  ))}
         </div>
           </div>
         )}
 
-            {/* Chat Interface Placeholder */}
-            <div className={`p-6 rounded-2xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
-              <div className="text-center space-y-4">
-                <Bot className="w-16 h-16 text-blue-500 mx-auto" />
-                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  AI Assistant Coming Soon
-                </h3>
-                <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                  Interactive chat with your personal financial AI assistant will be available in the next update.
-                </p>
-                <div className="flex justify-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+            {/* Chat Interface */}
+            <div className={`p-6 rounded-2xl border ${isDark ? 'bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-white/10' : 'bg-gradient-to-br from-white to-slate-50 border-slate-200'}`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`p-2 rounded-full ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+                  <Bot className="w-6 h-6 text-blue-500" />
                 </div>
-            </div>
+                <div>
+                  <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    AI Assistant
+                  </h3>
+                  <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                    Your personal financial advisor
+                  </p>
+                </div>
+              </div>
+
+              {/* Chat Messages */}
+              <div className={`h-96 overflow-y-auto mb-6 p-4 rounded-xl ${isDark ? 'bg-slate-900/50 backdrop-blur-sm' : 'bg-slate-50/80 backdrop-blur-sm'}`}>
+                {chatMessages.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+                      <Bot className="w-8 h-8 text-blue-500" />
+                    </div>
+                    <p className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      Welcome to AI Assistant!
+                    </p>
+                    <p className={`${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                      Ask me anything about your wallet activity
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {chatMessages.map((message, index) => (
+                      <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                          message.role === 'user'
+                            ? isDark 
+                              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white' 
+                              : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                            : isDark
+                              ? 'bg-white/10 text-white border border-white/20'
+                              : 'bg-white text-slate-900 border border-slate-200'
+                        }`}>
+                          <div 
+                            className="text-sm leading-relaxed whitespace-pre-wrap"
+                            dangerouslySetInnerHTML={{
+                              __html: message.content
+                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                .replace(/•/g, '<span class="text-blue-400">•</span>')
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {isChatLoading && (
+                      <div className="flex justify-start">
+                        <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                          isDark ? 'bg-white/10 text-white border border-white/20' : 'bg-white text-slate-900 border border-slate-200'
+                        }`}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
+                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                            <span className="text-xs ml-2">AI is thinking...</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Chat Input */}
+              <div className="flex gap-3">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Ask about your wallet activity..."
+                    className={`w-full px-4 py-3 pr-12 rounded-xl border transition-all duration-200 ${
+                      isDark 
+                        ? 'bg-slate-800/50 border-white/20 text-white placeholder-white/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20' 
+                        : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                    } focus:outline-none`}
+                    disabled={isChatLoading}
+                  />
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <MessageSquare className={`w-5 h-5 ${isDark ? 'text-white/40' : 'text-slate-400'}`} />
+                  </div>
+                </div>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!chatMessage.trim() || isChatLoading}
+                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
+                    !chatMessage.trim() || isChatLoading
+                      ? isDark
+                        ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                      : isDark
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg hover:shadow-blue-500/25'
+                        : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-blue-500/25'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  <span className="hidden sm:inline">Send</span>
+                </button>
+              </div>
+
+              {/* Quick Questions */}
+              <div className="mt-6">
+                <p className={`text-sm font-medium mb-4 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                  Quick questions:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    'Số dư hiện tại của tôi là bao nhiêu?',
+                    'Có hoạt động bất thường nào không?',
+                    'Phân tích chi tiêu của tôi',
+                    'Tôi thường giao dịch vào giờ nào?'
+                  ].map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={async () => {
+                        if (isChatLoading) return
+                        
+                        const userMessage = question
+                        setChatMessage('')
+                        setIsChatLoading(true)
+                        
+                        // Add user message
+                        setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+                        
+                        try {
+                          const response = await mlApi.askChatbot({
+                            public_key: publicKey,
+                            message: userMessage,
+                            context: {
+                              analytics: analytics,
+                              summary: summary,
+                              features: features
+                            }
+                          })
+                          
+                          // Add assistant response
+                          setChatMessages(prev => [...prev, { role: 'assistant', content: formatChatResponse(response.response) }])
+                        } catch (error) {
+                          console.error('Chat error:', error)
+                          setChatMessages(prev => [...prev, { 
+                            role: 'assistant', 
+                            content: 'Xin lỗi, tôi không thể trả lời câu hỏi này lúc này. Vui lòng thử lại sau.' 
+                          }])
+                        } finally {
+                          setIsChatLoading(false)
+                        }
+                      }}
+                      className={`p-3 rounded-xl text-left transition-all duration-200 border ${
+                        isDark 
+                          ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white/90 hover:border-white/20' 
+                          : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-800 hover:border-slate-300'
+                      } group`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-1.5 rounded-lg ${isDark ? 'bg-blue-500/20 group-hover:bg-blue-500/30' : 'bg-blue-100 group-hover:bg-blue-200'}`}>
+                          <Sparkles className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <span className="text-sm font-medium">{question}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         )}
