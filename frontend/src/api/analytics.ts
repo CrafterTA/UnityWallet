@@ -50,12 +50,23 @@ export const analyticsApi = {
     try {
       const walletAnalytics = await mlApi.getWalletAnalytics(publicKey, 90)
       // Convert ML analytics to SpendingAnalytics format
+      // Use transaction_summary for spending patterns
+      const assetDistribution = walletAnalytics.transaction_summary?.asset_distribution || {}
+      const totalSpent = Object.values(assetDistribution).reduce((sum, amount) => sum + amount, 0)
+      
       return {
-        total_spent: walletAnalytics.spending_patterns?.total_spent || 0,
-        by_category: walletAnalytics.spending_patterns || {},
+        total_spent: totalSpent,
+        by_category: assetDistribution,
         by_merchant: {},
         monthly_trends: [],
-        top_categories: []
+        top_categories: Object.entries(assetDistribution)
+          .sort(([,a], [,b]) => b - a)
+          .slice(0, 5)
+          .map(([category, amount]) => ({ 
+            category, 
+            amount, 
+            percentage: totalSpent > 0 ? (amount / totalSpent) * 100 : 0 
+          }))
       }
     } catch (mlError) {
       console.warn('ML service unavailable, using chain service fallback:', mlError)
@@ -153,14 +164,36 @@ export const analyticsApi = {
     try {
       const walletAnalytics = await mlApi.getWalletAnalytics(publicKey, 90)
       // Convert ML analytics to Insights format
+      // Calculate risk score from anomalies
+      const riskScore = walletAnalytics.anomalies.length > 0 
+        ? walletAnalytics.anomalies.reduce((sum, a) => sum + a.confidence_score, 0) / walletAnalytics.anomalies.length 
+        : 0
+      
       return {
-        spending_insights: walletAnalytics.insights || [],
-        recommendations: [],
-        anomalies: [],
+        spending_insights: [
+          `You have ${walletAnalytics.features.total_transactions} transactions in total`,
+          `Your monthly transaction average is ${walletAnalytics.features.transactions_per_month.toFixed(1)}`,
+          `Peak activity hours: ${walletAnalytics.features.peak_transaction_hours.join(', ')}`
+        ],
+        recommendations: [
+          'Consider diversifying your transaction patterns',
+          'Monitor your transaction frequency',
+          'Review large transactions regularly'
+        ],
+        anomalies: walletAnalytics.anomalies.map(a => ({
+          type: a.anomaly_type,
+          description: a.description,
+          amount: 0, // Default amount since ML doesn't provide this
+          date: a.timestamp
+        })),
         credit_score: {
-          score: Math.max(0, 10 - walletAnalytics.risk_score) * 100, // Convert risk to credit score
-          grade: walletAnalytics.risk_score < 3 ? 'Excellent' : walletAnalytics.risk_score < 7 ? 'Good' : 'Fair',
-          factors: walletAnalytics.features || {}
+          score: Math.max(0, (1 - riskScore) * 100), // Convert risk to credit score
+          grade: riskScore < 0.3 ? 'Excellent' : riskScore < 0.7 ? 'Good' : 'Fair',
+          factors: {
+            transaction_count: walletAnalytics.features.total_transactions,
+            monthly_average: walletAnalytics.features.transactions_per_month,
+            large_transactions: walletAnalytics.features.large_transaction_count
+          }
         }
       }
     } catch (mlError) {

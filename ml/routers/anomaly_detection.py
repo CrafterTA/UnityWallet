@@ -227,3 +227,96 @@ async def get_anomaly_types():
             "pattern_analysis"
         ]
     }
+
+@router.get("/history/{public_key}")
+async def get_anomaly_history(
+    public_key: str,
+    days_back: int = Query(default=30, ge=1, le=90),
+    anomaly_type: Optional[str] = Query(default=None),
+    min_confidence: float = Query(default=0.5, ge=0.0, le=1.0)
+):
+    """
+    Lấy lịch sử các anomalies đã phát hiện
+    """
+    try:
+        if not public_key.startswith('G') or len(public_key) != 56:
+            raise HTTPException(400, "Invalid Stellar public key format")
+        
+        transactions = await stellar_collector.collect_full_history(
+            account=public_key,
+            days_back=days_back,
+            max_records=2000
+        )
+        
+        if not transactions:
+            return {
+                "account": public_key,
+                "period": f"{days_back} days",
+                "anomalies": [],
+                "summary": {"total": 0, "by_type": {}, "by_day": {}}
+            }
+        
+        balances = await stellar_collector.get_account_balances(public_key)
+        
+        features = feature_service.calculate_features(
+            transactions=transactions,
+            balances=balances,
+            period_days=days_back
+        )
+        
+        anomalies = anomaly_service.detect_anomalies(
+            transactions=transactions,
+            features=features
+        )
+        
+        # Filter anomalies
+        filtered_anomalies = []
+        for anomaly in anomalies:
+            if anomaly.confidence_score >= min_confidence:
+                if not anomaly_type or anomaly.anomaly_type == anomaly_type:
+                    filtered_anomalies.append(anomaly)
+        
+        # Create summary
+        summary = _create_anomaly_summary(filtered_anomalies)
+        
+        return {
+            "account": public_key,
+            "period": f"{days_back} days",
+            "filters": {
+                "anomaly_type": anomaly_type,
+                "min_confidence": min_confidence
+            },
+            "anomalies": filtered_anomalies,
+            "summary": summary
+        }
+        
+    except Exception as e:
+        raise HTTPException(500, f"History retrieval failed: {str(e)}")
+
+def _create_anomaly_summary(anomalies: List[AnomalyDetection]) -> Dict[str, Any]:
+    """Create summary statistics for anomalies"""
+    from collections import Counter
+    
+    if not anomalies:
+        return {"total": 0, "by_type": {}, "by_day": {}}
+    
+    # Count by type
+    by_type = Counter(anomaly.anomaly_type for anomaly in anomalies)
+    
+    # Count by day
+    by_day = Counter(
+        anomaly.timestamp.date().isoformat() 
+        for anomaly in anomalies
+    )
+    
+    # Average confidence
+    avg_confidence = sum(a.confidence_score for a in anomalies) / len(anomalies)
+    
+    return {
+        "total": len(anomalies),
+        "by_type": dict(by_type),
+        "by_day": dict(by_day),
+        "average_confidence": round(avg_confidence, 3),
+        "highest_confidence": max(a.confidence_score for a in anomalies),
+        "latest_anomaly": max(anomalies, key=lambda x: x.timestamp).timestamp.isoformat()
+    }

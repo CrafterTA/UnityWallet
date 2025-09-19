@@ -129,10 +129,10 @@ async def get_chat_suggestions(public_key: str):
                 suggestions.append("Tôi thường giao dịch vào giờ nào?")
             
             # Recent activity
-            from datetime import datetime, timedelta
+            from datetime import datetime, timedelta, timezone
             recent_txs = [
                 tx for tx in transactions 
-                if tx.timestamp >= datetime.now() - timedelta(days=7)
+                if tx.timestamp >= datetime.now(timezone.utc) - timedelta(days=7)
             ]
             
             if recent_txs:
