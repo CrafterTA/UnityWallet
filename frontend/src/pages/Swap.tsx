@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowUpDown, Zap, TrendingUp, AlertCircle } from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
 import { walletApi } from '@/api/wallet'
@@ -10,6 +10,7 @@ import toast from 'react-hot-toast'
 function Swap() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
+  const queryClient = useQueryClient()
   const [fromAsset, setFromAsset] = useState('SYP')
   const [toAsset, setToAsset] = useState('USD')
   const [fromAmount, setFromAmount] = useState('')
@@ -34,11 +35,12 @@ function Swap() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const { data: balances, isLoading: balancesLoading, error: balancesError } = useQuery({
+  const { data: balances, isLoading: balancesLoading, error: balancesError, refetch: refetchBalances } = useQuery({
     queryKey: ['balances'],
     queryFn: walletApi.getBalances,
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: true, // Always refetch when component mounts
   })
 
   // Auto-select first available asset when balances load
@@ -109,9 +111,17 @@ function Swap() {
       if (result.status === 'success') {
         toast.success(t('swap.swapSuccessful', 'Swap completed successfully!'), { id: 'swap' })
         setFromAmount('')
-        // setQuote(null) // This line was removed as per the new_code, as the quote is now managed by the useQuery
-        // Refresh balances
-        // balancesQuery.refetch() // This line was removed as per the new_code, as the balances are now managed by the useQuery
+        
+        // Refetch data immediately to update UI
+        await Promise.all([
+          refetchBalances(),
+          queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+          queryClient.invalidateQueries({ queryKey: ['activity-summary'] }),
+          queryClient.invalidateQueries({ queryKey: ['quote'] }),
+          queryClient.invalidateQueries({ queryKey: ['wallet-balances'] }),
+          queryClient.invalidateQueries({ queryKey: ['recent-transactions-wallet'] }),
+          queryClient.invalidateQueries({ queryKey: ['activity-transactions'] })
+        ])
       } else {
         toast.error(t('swap.swapFailed', 'Swap failed. Please try again.'), { id: 'swap' })
       }

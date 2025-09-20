@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   QrCode,
   Camera,
@@ -63,6 +63,7 @@ export default function Pay() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const [activeTab, setActiveTab] = useState<'send' | 'receive'>('send')
   const [recipient, setRecipient] = useState('')
@@ -77,19 +78,21 @@ export default function Pay() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Fetch real wallet balances
-  const { data: balances, isLoading: balancesLoading, error: balancesError } = useQuery({
+  const { data: balances, isLoading: balancesLoading, error: balancesError, refetch: refetchBalances } = useQuery({
     queryKey: ['wallet-balances-pay'],
     queryFn: walletApi.getBalances,
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: true, // Always refetch when component mounts
   })
 
   // Fetch recent transactions
-  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+  const { data: transactionsData, isLoading: transactionsLoading, refetch: refetchTransactions } = useQuery({
     queryKey: ['recent-transactions-pay'],
     queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 20 }), // Lấy nhiều hơn để có đủ 5 non-swap
     retry: 1,
     refetchOnWindowFocus: true,
+    refetchOnMount: true, // Always refetch when component mounts
   })
 
   // Process recent transactions (exclude swap transactions, take first 5)
@@ -211,6 +214,17 @@ export default function Pay() {
         setRecipient('')
         setAmount('')
         setNote('')
+        
+        // Refetch data immediately to update UI
+        await Promise.all([
+          refetchBalances(),
+          refetchTransactions(),
+          queryClient.invalidateQueries({ queryKey: ['wallet-balances'] }),
+          queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+          queryClient.invalidateQueries({ queryKey: ['activity-summary'] }),
+          queryClient.invalidateQueries({ queryKey: ['recent-transactions-wallet'] }),
+          queryClient.invalidateQueries({ queryKey: ['activity-transactions'] })
+        ])
       } else {
         toast.error(t('pay.paymentFailed', 'Payment failed. Please try again.'), { id: 'payment' })
       }

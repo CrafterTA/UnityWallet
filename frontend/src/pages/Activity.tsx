@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Activity, Filter, Search, ArrowUpRight, ArrowDownLeft, RefreshCw, Download, Calendar, ArrowLeft } from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
 import { useNavigate } from 'react-router-dom'
@@ -13,6 +13,7 @@ function ActivityPage() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
   const { isAuthenticated } = useAuthStore()
+  const queryClient = useQueryClient()
   const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received' | 'swapped'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
@@ -27,11 +28,15 @@ function ActivityPage() {
   ]
 
   // Fetch real transaction summary data
-  const { data: transactionSummary, isLoading: summaryLoading, error: summaryError } = useQuery({
+  const { data: transactionSummary, isLoading: summaryLoading, error: summaryError, refetch: refetchSummary } = useQuery({
     queryKey: ['activity-summary'],
     queryFn: transactionsApi.getTransactionSummary,
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnReconnect: true, // Refetch when network reconnects
+    refetchInterval: 500, // Auto-refresh every 0.5 seconds
+    staleTime: 0, // Data is always considered stale, will refetch
   })
 
   // Calculate transaction stats from real data (fallback)
@@ -50,11 +55,15 @@ function ActivityPage() {
   }
 
   // Fetch real transaction data from backend
-  const { data: transactionsData, isLoading: transactionsLoading, error: transactionsError } = useQuery({
+  const { data: transactionsData, isLoading: transactionsLoading, error: transactionsError, refetch: refetchTransactions } = useQuery({
     queryKey: ['activity-transactions'],
     queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 50 }),
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnReconnect: true, // Refetch when network reconnects
+    refetchInterval: 500, // Auto-refresh every 0.5 seconds
+    staleTime: 0, // Data is always considered stale, will refetch
   })
 
   // Process real transaction data - sử dụng tx_type từ API
@@ -91,6 +100,7 @@ function ActivityPage() {
     totalTransactions: transactions.length,
     averageAmount: transactions.length > 0 ? parseFloat((transactions.reduce((sum, tx) => sum + parseFloat(tx.amount || '0'), 0) / transactions.length).toFixed(3)) : 0,
   }
+
 
   // Check for errors
   const hasError = summaryError || transactionsError;
