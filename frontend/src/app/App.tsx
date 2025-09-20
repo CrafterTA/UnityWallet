@@ -14,7 +14,7 @@ import Settings from '@/pages/Settings'
 import Profile from '@/pages/Profile'
 
 function App() {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, isLocked } = useAuthStore()
 
   if (!isAuthenticated) {
     return (

@@ -238,7 +238,18 @@
     "emailNotifications": "Email Notifications",
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
-    "systemDefault": "System Default"
+    "systemDefault": "System Default",
+    "autoLock": "Auto-Lock Timeout",
+    "lockNow": "Lock Wallet Now",
+    "manualLock": "Manual lock",
+    "profileInfo": "Profile Information",
+    "kycStatus": "KYC Status",
+    "verified": "Verified",
+    "pending": "Pending",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "backupPhrase": "Backup Phrase",
+    "secured": "Secured"
   },
   "assistant": {
     "title": "AI Assistant",

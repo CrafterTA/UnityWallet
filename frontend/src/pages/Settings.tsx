@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { User, Shield, Bell, RefreshCw, LogOut, ChevronRight, Moon, Sun, Monitor } from 'lucide-react'
+import { User, Shield, Bell, RefreshCw, LogOut, ChevronRight, Moon, Sun, Monitor, Clock, Lock } from 'lucide-react'
 import { useAuthStore } from '@/store/session'
 import { useThemeStore } from '@/store/theme'
 import { useNavigate } from 'react-router-dom'
@@ -10,9 +10,25 @@ function Settings() {
   const { t } = useTranslation()
   const [notifications, setNotifications] = useState(true)
   const [language, setLanguage] = useState('en')
-  const { wallet, logout } = useAuthStore()
+  const [autoLockTimeout, setAutoLockTimeout] = useState(15) // minutes
+  const { wallet, logout, lockWallet } = useAuthStore()
   const { theme, setTheme, isDark } = useThemeStore()
   const navigate = useNavigate()
+
+  // Load auto-lock timeout from localStorage
+  useEffect(() => {
+    const savedTimeout = localStorage.getItem('auto-lock-timeout')
+    if (savedTimeout) {
+      setAutoLockTimeout(parseInt(savedTimeout, 10))
+    }
+  }, [])
+
+  // Save auto-lock timeout to localStorage
+  const handleAutoLockTimeoutChange = (minutes: number) => {
+    setAutoLockTimeout(minutes)
+    localStorage.setItem('auto-lock-timeout', minutes.toString())
+    toast.success(`Thời gian tự động khóa được đặt thành ${minutes} phút`)
+  }
 
   const handleLogout = () => {
     logout()
@@ -23,6 +39,11 @@ function Settings() {
   const handleReplayDemo = () => {
     toast.success('Demo reset! You can now replay all features.')
     // In a real app, this would reset demo state
+  }
+
+  const handleLockNow = () => {
+    lockWallet()
+    toast.success('Ví đã được khóa để bảo mật')
   }
 
      const settingSections = [
@@ -46,6 +67,19 @@ function Settings() {
        title: t('settings.security', 'Security'),
        icon: Shield,
        items: [
+         {
+           label: t('settings.autoLock', 'Auto-Lock Timeout'),
+           value: `${autoLockTimeout} minutes`,
+           action: () => {
+             const newTimeout = autoLockTimeout === 5 ? 15 : autoLockTimeout === 15 ? 30 : 5
+             handleAutoLockTimeoutChange(newTimeout)
+           },
+         },
+         {
+           label: t('settings.lockNow', 'Lock Wallet Now'),
+           value: t('settings.manualLock', 'Manual lock'),
+           action: handleLockNow,
+         },
          {
            label: t('settings.twoFactorAuth', 'Two-Factor Authentication'),
            value: t('settings.enabled', 'Enabled'),

@@ -1,11 +1,14 @@
 import { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/theme'
+import { useAuthStore } from '@/store/session'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import LightModeBackground from '@/components/LightModeBackground'
 import UnifiedBackground from '@/components/UnifiedBackground'
 import Assistant from '@/pages/Assistant'
+import UnlockModal from '@/components/UnlockModal'
+import { useAutoLock } from '@/hooks/useAutoLock'
 
 interface LayoutProps {
   children: ReactNode
@@ -14,11 +17,20 @@ interface LayoutProps {
 function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const { isDark } = useThemeStore()
+  const { isAuthenticated, isLocked, lockWallet } = useAuthStore()
   const hideNavOnRoutes = ['/login']
   const shouldHideNav = hideNavOnRoutes.includes(location.pathname)
   
   // Use landing variant for home page
   const headerVariant = location.pathname === '/' ? 'landing' : 'app'
+
+  // Auto-lock functionality
+  useAutoLock({
+    timeoutMinutes: 15, // Default, will be overridden by localStorage value
+    onLock: () => {
+      lockWallet()
+    }
+  })
 
   return (
     <div className={`relative min-h-screen w-full overflow-x-hidden antialiased ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -60,6 +72,14 @@ function Layout({ children }: LayoutProps) {
 
       {/* AI Assistant Chatbox - Always visible */}
       <Assistant />
+
+      {/* Unlock Modal - Show when wallet is locked */}
+      {isAuthenticated && isLocked && (
+        <UnlockModal 
+          isOpen={isLocked} 
+          onClose={() => {}} // Modal sẽ tự động đóng khi unlock thành công
+        />
+      )}
     </div>
   )
 }

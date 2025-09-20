@@ -15,11 +15,14 @@ interface Wallet {
 interface AuthState {
   wallet: Wallet | null
   isAuthenticated: boolean
+  isLocked: boolean
   queryClient: QueryClient | null
   setWallet: (wallet: Wallet) => void
   setQueryClient: (client: QueryClient) => void
   logout: () => void
   updateWallet: (updates: Partial<Wallet>) => void
+  lockWallet: () => void
+  unlockWallet: (password: string) => boolean
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -27,10 +30,11 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       wallet: null,
       isAuthenticated: false,
+      isLocked: false,
       queryClient: null,
       
       setWallet: (wallet: Wallet) => {
-        set({ wallet, isAuthenticated: true })
+        set({ wallet, isAuthenticated: true, isLocked: false })
       },
       
       setQueryClient: (client: QueryClient) => {
@@ -61,7 +65,7 @@ export const useAuthStore = create<AuthState>()(
         }
         
         // Reset state
-        set({ wallet: null, isAuthenticated: false })
+        set({ wallet: null, isAuthenticated: false, isLocked: false })
       },
       
       updateWallet: (updates: Partial<Wallet>) => {
@@ -70,12 +74,26 @@ export const useAuthStore = create<AuthState>()(
           set({ wallet: { ...currentWallet, ...updates } })
         }
       },
+      
+      lockWallet: () => {
+        set({ isLocked: true })
+      },
+      
+      unlockWallet: (password: string) => {
+        const savedPassword = localStorage.getItem('wallet-password')
+        if (savedPassword === password) {
+          set({ isLocked: false })
+          return true
+        }
+        return false
+      },
     }),
     {
       name: 'unity-wallet-auth',
       partialize: (state: AuthState) => ({
         wallet: state.wallet,
         isAuthenticated: state.isAuthenticated,
+        isLocked: state.isLocked,
       }),
     }
   )
