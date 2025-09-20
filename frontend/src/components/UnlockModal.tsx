@@ -19,13 +19,20 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ isOpen, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [error, setError] = useState('');
+  const [timeoutMinutes, setTimeoutMinutes] = useState(15);
 
-  // Reset form when modal opens
+  // Reset form when modal opens and load timeout setting
   useEffect(() => {
     if (isOpen) {
       setPassword('');
       setError('');
       setShowPassword(false);
+      
+      // Load timeout setting from localStorage
+      const savedTimeout = localStorage.getItem('auto-lock-timeout');
+      if (savedTimeout) {
+        setTimeoutMinutes(parseInt(savedTimeout, 10));
+      }
     }
   }, [isOpen]);
 
@@ -108,7 +115,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ isOpen, onClose }) => {
                <p className={`text-sm ${
                  isDark ? 'text-yellow-400' : 'text-yellow-700'
                }`}>
-                 Ví của bạn đã được tự động khóa để bảo mật sau 15 phút không hoạt động.
+                 Ví của bạn đã được tự động khóa để bảo mật sau {timeoutMinutes} phút không hoạt động.
                </p>
             </div>
           </div>
@@ -190,7 +197,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ isOpen, onClose }) => {
            <p className={`text-xs text-center ${
              isDark ? 'text-white/50' : 'text-gray-500'
            }`}>
-             💡 Mẹo: Ví của bạn tự động khóa sau 15 phút không hoạt động để bảo mật
+             💡 Mẹo: Ví của bạn tự động khóa sau {timeoutMinutes} phút không hoạt động để bảo mật
            </p>
         </div>
       </div>
