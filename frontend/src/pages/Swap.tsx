@@ -342,7 +342,7 @@ function Swap() {
                 
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('swap.networkFee', 'Network Fee')}:</span>
-                  <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{quote.fee_amount} {fromAsset}</span>
+                  <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{quote.fee_amount} XLM</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
@@ -351,6 +351,7 @@ function Swap() {
                     {quote.to_amount} {toAsset}
                   </span>
                 </div>
+                
               </div>
             )}
 

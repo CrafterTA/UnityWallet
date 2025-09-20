@@ -213,7 +213,7 @@ export const walletApi = {
         from_asset: fromAsset,
         to_asset: toAsset,
         from_amount: amount,
-        to_amount: response.dest_min_suggest || response.destination_amount || '0',
+        to_amount: response.destination_amount || response.dest_min_suggest || '0',
         exchange_rate: response.implied_price || response.price || '1',
         fee_amount: response.network_fee_xlm || '0.00001',
         fee_percentage: '0.1',
