@@ -14,7 +14,6 @@ import {
   Send,
   Repeat,
   Activity,
-  Bell,
   Menu,
   X,
   BarChart3,
@@ -47,7 +46,6 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(3); // Mock notification count
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const links = useMemo(() => ([
@@ -343,13 +341,7 @@ useEffect(() => {
                      }`}>{t('navigation.wallet','Wallet')}</span>
                   </button>
 
-                  {/* Enhanced Notifications */}
-                                     <button className={`relative p-2 rounded-xl border transition-all duration-200 group ${isDark ? 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20' : 'bg-slate-100/80 hover:bg-slate-200/80 border-slate-200 hover:border-slate-300'}`}>
-                                         <Bell className={`h-4 w-4 transition-colors duration-200 ${isDark ? 'text-white/70 group-hover:text-yellow-400' : 'text-slate-600 group-hover:text-yellow-500'}`} />
-                    {notificationCount > 0 && (
-                      <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-900 animate-pulse" />
-                    )}
-                  </button>
+                  {/* Enhanced Notifications - Removed */}
 
                   {/* Enhanced User Menu */}
                   <div className="relative" ref={userMenuRef}>
