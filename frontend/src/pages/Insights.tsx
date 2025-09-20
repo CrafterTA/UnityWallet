@@ -440,8 +440,8 @@ export default function Insights() {
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'text-white' : 'text-slate-900'}`}>
         <div className="text-center space-y-4">
           <Lock className="w-16 h-16 text-gray-400 mx-auto" />
-          <h2 className="text-2xl font-bold">Wallet Not Connected</h2>
-          <p className="text-gray-500">Please connect your wallet to view insights.</p>
+          <h2 className="text-2xl font-bold">{t('insights.errors.walletNotConnected')}</h2>
+          <p className="text-gray-500">{t('insights.errors.pleaseConnectWallet')}</p>
         </div>
       </div>
     )
@@ -472,13 +472,13 @@ export default function Insights() {
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'text-white' : 'text-slate-900'}`}>
         <div className="text-center space-y-4">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
-          <h2 className="text-2xl font-bold">Unable to Load Analytics</h2>
-          <p className="text-gray-500">Please ensure ML service is running and try again.</p>
+          <h2 className="text-2xl font-bold">{t('insights.errors.unableToLoadAnalytics')}</h2>
+          <p className="text-gray-500">{t('insights.errors.ensureMLServiceRunning')}</p>
           <button 
             onClick={handleRefreshAll}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
-            Retry
+            {t('insights.errors.retry')}
           </button>
           </div>
         </div>
@@ -493,10 +493,10 @@ export default function Insights() {
           <Brain className="w-8 h-8 text-white" />
         </div>
         <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          AI Wallet Insights
+          {t('insights.title')}
         </h1>
         <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-          Machine learning powered analytics
+          {t('insights.subtitle')}
         </p>
       </div>
 
@@ -507,10 +507,10 @@ export default function Insights() {
         <div className="flex items-center justify-between">
           <div className="flex gap-1">
             {[
-              { id: 'overview', label: 'Overview', icon: BarChart3 },
-              { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-              { id: 'anomalies', label: 'Security', icon: Shield },
-              { id: 'chat', label: 'AI Assistant', icon: Bot }
+              { id: 'overview', label: t('insights.tabs.overview'), icon: BarChart3 },
+              { id: 'analytics', label: t('insights.tabs.analytics'), icon: TrendingUp },
+              { id: 'anomalies', label: t('insights.tabs.anomalies'), icon: Shield },
+              { id: 'chat', label: t('insights.tabs.chat'), icon: Bot }
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -547,19 +547,19 @@ export default function Insights() {
                 value={30} 
                 className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
               >
-                Last 30 Days
+                {t('insights.timeframe.last30Days')}
               </option>
               <option 
                 value={60} 
                 className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
               >
-                Last 60 Days
+                {t('insights.timeframe.last60Days')}
               </option>
               <option 
                 value={90} 
                 className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
               >
-                Last 90 Days
+                {t('insights.timeframe.last90Days')}
               </option>
             </select>
 
@@ -606,10 +606,10 @@ export default function Insights() {
                         </div>
                           <div>
                         <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          Security Risk Assessment
+                          {t('insights.security.riskAssessment')}
                         </h2>
                         <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                          AI-powered security analysis
+                          {t('insights.security.aiPoweredAnalysis')}
                         </p>
                 </div>
           </div>
@@ -626,10 +626,10 @@ export default function Insights() {
 
                       <div className="space-y-2">
                         <div className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                          Anomalies Detected: <span className="font-semibold">{anomalies.length}</span>
+                          {t('insights.security.anomaliesDetected')}: <span className="font-semibold">{anomalies.length}</span>
               </div>
                         <div className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                          Last Check: {anomalyData ? new Date((anomalyData as AnomalyCheckResponse).checked_at).toLocaleTimeString() : 'N/A'}
+                          {t('insights.security.lastCheck')}: {anomalyData ? new Date((anomalyData as AnomalyCheckResponse).checked_at).toLocaleTimeString() : 'N/A'}
             </div>
             </div>
             </div>
@@ -666,33 +666,33 @@ export default function Insights() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <MetricCard
                 icon={Activity}
-                title="Total Transactions"
+                title={t('insights.metrics.totalTransactions')}
                 value={features?.total_transactions?.toString() || '0'}
-                subtitle={`${features?.transactions_per_month?.toFixed(1) || '0'}/month avg`}
+                subtitle={`${features?.transactions_per_month?.toFixed(1) || '0'}${t('insights.metrics.monthlyAverage')}`}
                 color="from-blue-500 to-blue-600"
                 isDark={isDark}
               />
               <MetricCard
                 icon={DollarSign}
-                title="Net Flow"
+                title={t('insights.metrics.netFlow')}
                 value={formatCurrency(summary?.amounts?.net_flow || 0)}
-                subtitle={summary?.amounts?.net_flow && summary.amounts.net_flow > 0 ? 'Positive' : 'Negative'}
+                subtitle={summary?.amounts?.net_flow && summary.amounts.net_flow > 0 ? t('insights.metrics.positive') : t('insights.metrics.negative')}
                 color="from-green-500 to-green-600"
                 isDark={isDark}
               />
               <MetricCard
                 icon={Users}
-                title="Unique Contacts"
+                title={t('insights.metrics.uniqueContacts')}
                 value={features?.frequent_destinations?.length?.toString() || '0'}
-                subtitle="Regular recipients"
+                subtitle={t('insights.metrics.regularRecipients')}
                 color="from-purple-500 to-purple-600"
                 isDark={isDark}
               />
               <MetricCard
                 icon={Gauge}
-                title="Activity Level"
+                title={t('insights.metrics.activityLevel')}
                 value={(summary?.activity_level || 'low').replace('_', ' ').toUpperCase()}
-                subtitle={`${selectedTimeframe} days period`}
+                subtitle={`${selectedTimeframe} ${t('insights.metrics.daysPeriod')}`}
                 color="from-orange-500 to-red-500"
                 isDark={isDark}
               />
@@ -715,10 +715,10 @@ export default function Insights() {
                 </div>
                       <div>
                         <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          Asset Portfolio
+                          {t('insights.charts.assetPortfolio')}
                         </h3>
                         <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-                          Your asset distribution
+                          {t('insights.charts.yourAssetDistribution')}
                         </p>
                       </div>
               </div>
@@ -816,10 +816,10 @@ export default function Insights() {
                 </div>
                       <div>
                         <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          Activity Breakdown
+                          {t('insights.charts.activityBreakdown')}
                         </h3>
                         <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-                          Transaction type analysis
+                          {t('insights.charts.transactionTypeAnalysis')}
                         </p>
                       </div>
               </div>
@@ -918,10 +918,10 @@ export default function Insights() {
                       </div>
                       <div>
                         <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          Balance Evolution
+                          {t('insights.charts.balanceEvolution')}
                         </h3>
                         <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-                          Historical balance trends
+                          {t('insights.charts.historicalBalanceTrends')}
                         </p>
                       </div>
                     </div>
@@ -940,7 +940,7 @@ export default function Insights() {
                           isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
                         }`}
                       >
-                        Live Data
+{t('insights.charts.liveData')}
                       </span>
                     </div>
                   </div>
@@ -1089,44 +1089,44 @@ export default function Insights() {
             {/* Advanced Features Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <FeatureCard
-                title="Peak Transaction Hours"
+                title={t('insights.analytics.peakTransactionHours')}
                 value={features.peak_transaction_hours.map(h => `${h}:00`).join(', ') || 'N/A'}
-                description="Most active hours of the day"
+                description={t('insights.analytics.mostActiveHours')}
                 icon={Clock}
                 isDark={isDark}
               />
               <FeatureCard
-                title="Refund Frequency"
+                title={t('insights.analytics.refundFrequency')}
                 value={formatPercent(features.refund_frequency)}
-                description="Rate of reverse transactions"
+                description={t('insights.analytics.rateOfReverseTransactions')}
                 icon={RefreshCw}
                 isDark={isDark}
               />
               <FeatureCard
-                title="Large Transactions"
+                title={t('insights.analytics.largeTransactions')}
                 value={features.large_transaction_count.toString()}
-                description={`Threshold: ${formatCurrency(features.large_transaction_threshold)}`}
+                description={`${t('insights.analytics.threshold')}: ${formatCurrency(features.large_transaction_threshold)}`}
                 icon={TrendingUp}
                 isDark={isDark}
               />
               <FeatureCard
-                title="Debt-to-Asset Ratio"
+                title={t('insights.analytics.debtToAssetRatio')}
                 value={features.debt_to_asset_ratio ? features.debt_to_asset_ratio.toFixed(2) : 'N/A'}
-                description="Financial leverage indicator"
+                description={t('insights.analytics.financialLeverageIndicator')}
                 icon={Target}
                 isDark={isDark}
               />
               <FeatureCard
-                title="Balance Volatility"
+                title={t('insights.analytics.balanceVolatility')}
                 value={Object.keys(features.balance_volatility).length.toString()}
-                description="Assets with volatility data"
+                description={t('insights.analytics.assetsWithVolatilityData')}
                 icon={Activity}
                 isDark={isDark}
               />
               <FeatureCard
-                title="Frequent Recipients"
+                title={t('insights.analytics.frequentRecipients')}
                 value={features.frequent_destinations.length.toString()}
-                description="Regular transaction partners"
+                description={t('insights.analytics.regularTransactionPartners')}
                 icon={Users}
                 isDark={isDark}
               />
@@ -1134,7 +1134,7 @@ export default function Insights() {
 
             {/* Risk Analysis Radar Chart */}
             {riskRadarData.length > 0 && (
-              <ChartCard title="Risk Profile Analysis" icon={Target} isDark={isDark}>
+              <ChartCard title={t('insights.analytics.riskProfileAnalysis')} icon={Target} isDark={isDark}>
                 <ResponsiveContainer width="100%" height={400}>
                   <RadarChart data={riskRadarData}>
                     <PolarGrid stroke={isDark ? '#374151' : '#e2e8f0'} />
@@ -1157,7 +1157,7 @@ export default function Insights() {
             {Object.keys(features.balance_volatility).length > 0 && (
               <div className={`p-6 rounded-2xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
                 <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Balance Volatility by Asset
+                  {t('insights.analytics.balanceVolatilityByAsset')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Object.entries(features.balance_volatility).map(([asset, volatility]) => (
@@ -1169,14 +1169,14 @@ export default function Insights() {
                           volatility > 10 ? 'bg-yellow-500/20 text-yellow-400' :
                           'bg-green-500/20 text-green-400'
                         }`}>
-                          {volatility > 100 ? 'High' : volatility > 10 ? 'Medium' : 'Low'}
+                          {volatility > 100 ? t('insights.analytics.high') : volatility > 10 ? t('insights.analytics.medium') : t('insights.analytics.low')}
                         </span>
                       </div>
                       <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {volatility.toFixed(2)}
                       </div>
                       <div className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                        Standard deviation
+                        {t('insights.analytics.standardDeviation')}
                       </div>
                     </div>
                   ))}
@@ -1194,39 +1194,39 @@ export default function Insights() {
               <div className={`p-6 rounded-2xl border ${isDark ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
                 <div className="flex items-center gap-3 mb-4">
                   <AlertTriangle className="w-6 h-6 text-red-500" />
-                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>High Risk</h3>
+                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('insights.security.highRisk')}</h3>
                 </div>
                 <div className="text-3xl font-bold text-red-500 mb-2">
                   {anomalies.filter(a => a.confidence_score > 0.8).length}
                 </div>
                 <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                  Critical anomalies detected
+                  {t('insights.security.criticalAnomalies')}
                 </p>
         </div>
 
               <div className={`p-6 rounded-2xl border ${isDark ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-yellow-50 border-yellow-200'}`}>
                 <div className="flex items-center gap-3 mb-4">
                   <Eye className="w-6 h-6 text-yellow-500" />
-                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Monitoring</h3>
+                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('insights.security.moderate')}</h3>
                 </div>
                 <div className="text-3xl font-bold text-yellow-500 mb-2">
                   {anomalies.filter(a => a.confidence_score > 0.5 && a.confidence_score <= 0.8).length}
                 </div>
                 <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                  Activities under watch
+                  {t('insights.security.activitiesUnderWatch')}
                 </p>
               </div>
               
               <div className={`p-6 rounded-2xl border ${isDark ? 'bg-green-500/5 border-green-500/20' : 'bg-green-50 border-green-200'}`}>
                 <div className="flex items-center gap-3 mb-4">
                   <Shield className="w-6 h-6 text-green-500" />
-                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Safe</h3>
+                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('insights.security.safe')}</h3>
                 </div>
                 <div className="text-3xl font-bold text-green-500 mb-2">
                   {((features?.total_transactions || 0) - anomalies.length).toString()}
                 </div>
                 <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                  Normal transactions
+                  {t('insights.security.normalTransactions')}
                 </p>
               </div>
             </div>
@@ -1235,7 +1235,7 @@ export default function Insights() {
             {anomalies.length > 0 && (
               <div className={`p-6 rounded-2xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
                 <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Recent Anomalies
+                  {t('insights.anomalies.recentAnomalies')}
                 </h3>
                 <div className="space-y-4">
                   {anomalies.slice(0, 10).map((anomaly, index) => (
@@ -1317,7 +1317,7 @@ export default function Insights() {
                 <div className="flex items-center gap-3 mb-4">
                   <Bot className="w-6 h-6 text-purple-500" />
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    AI Assistant Summary
+                    {t('insights.chat.aiAssistantSummary')}
                   </h3>
                 </div>
             
@@ -1331,7 +1331,7 @@ export default function Insights() {
                       {quickStats.stats.total_transactions}
                     </div>
                     <div className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                      Total Transactions
+                      {t('insights.metrics.totalTransactions')}
                     </div>
                   </div>
                   <div className="text-center">
@@ -1339,7 +1339,7 @@ export default function Insights() {
                       {formatCurrency(quickStats.stats.total_sent)}
                     </div>
                     <div className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                      Total Sent
+                      {t('insights.chat.totalSent')}
                     </div>
                   </div>
                   <div className="text-center">
@@ -1347,7 +1347,7 @@ export default function Insights() {
                       {formatCurrency(quickStats.stats.total_received)}
                     </div>
                     <div className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                      Total Received
+                      {t('insights.chat.totalReceived')}
                     </div>
                   </div>
                   <div className="text-center">
@@ -1355,7 +1355,7 @@ export default function Insights() {
                       {quickStats.stats.account_age_days}
                       </div>
                     <div className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                      Account Age (Days)
+                      {t('insights.chat.accountAgeDays')}
                     </div>
                   </div>
             </div>
@@ -1368,11 +1368,11 @@ export default function Insights() {
                 <div className="flex items-center gap-3 mb-4">
                   <MessageSquare className="w-6 h-6 text-blue-500" />
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    Suggested Questions
+                    {t('insights.chat.suggestedQuestions')}
                   </h3>
             </div>
                 <p className={`mb-4 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                  Try asking the AI assistant about these topics:
+                  {t('insights.chat.tryAskingAbout')}
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1431,21 +1431,21 @@ export default function Insights() {
                 <div className="flex items-center gap-3 mb-4">
                   <MessageSquare className="w-6 h-6 text-blue-500" />
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    Default Questions
+                    {t('insights.chat.defaultQuestions')}
                   </h3>
                 </div>
                 <p className={`mb-4 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                  Common questions you can ask about your wallet:
+                  {t('insights.chat.commonQuestions')}
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
-                    'Số dư hiện tại của tôi là bao nhiêu?',
-                    'Có hoạt động bất thường nào không?',
-                    'Phân tích chi tiêu của tôi',
-                    'Tôi thường giao dịch vào giờ nào?',
-                    'Giao dịch lớn nhất của tôi là gì?',
-                    'Tài sản nào chiếm tỷ trọng lớn nhất?'
+                    t('insights.chat.currentBalance'),
+                    t('insights.chat.anyAnomalies'),
+                    t('insights.chat.analyzeSpending'),
+                    t('insights.chat.usualTransactionTime'),
+                    t('insights.chat.largestTransaction'),
+                    t('insights.chat.largestAsset')
                   ].map((suggestion, index) => (
                     <button
                       key={index}
@@ -1506,10 +1506,10 @@ export default function Insights() {
                 </div>
                 <div>
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    AI Assistant
+                    {t('insights.chat.aiAssistant')}
                   </h3>
                   <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
-                    Your personal financial advisor
+                    {t('insights.chat.personalFinancialAdvisor')}
                   </p>
                 </div>
               </div>
@@ -1522,10 +1522,10 @@ export default function Insights() {
                       <Bot className="w-8 h-8 text-blue-500" />
                     </div>
                     <p className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      Welcome to AI Assistant!
+                      {t('insights.chat.welcomeToAI')}
                     </p>
                     <p className={`${isDark ? 'text-white/60' : 'text-slate-600'}`}>
-                      Ask me anything about your wallet activity
+                      {t('insights.chat.askAboutWallet')}
                     </p>
                   </div>
                 ) : (
@@ -1590,7 +1590,7 @@ export default function Insights() {
                             <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
                             <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
                             <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                            <span className="text-xs ml-2">AI is thinking...</span>
+                            <span className="text-xs ml-2">{t('insights.chat.aiIsThinking')}</span>
                           </div>
                         </div>
                       </div>
@@ -1608,7 +1608,7 @@ export default function Insights() {
                     value={chatMessage}
                     onChange={(e) => setChatMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Ask about your wallet activity..."
+                    placeholder={t('insights.chat.askAboutWalletActivity')}
                     className={`w-full px-4 py-3 pr-12 rounded-xl border transition-all duration-200 ${
                       isDark 
                         ? 'bg-slate-800/50 border-white/20 text-white placeholder-white/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20' 
@@ -1636,21 +1636,21 @@ export default function Insights() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
-                  <span className="hidden sm:inline">Send</span>
+                  <span className="hidden sm:inline">{t('insights.chat.send')}</span>
                 </button>
               </div>
 
               {/* Quick Questions */}
               <div className="mt-6">
                 <p className={`text-sm font-medium mb-4 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                  Quick questions:
+                  {t('insights.chat.quickQuestions')}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
-                    'Số dư hiện tại của tôi là bao nhiêu?',
-                    'Có hoạt động bất thường nào không?',
-                    'Phân tích chi tiêu của tôi',
-                    'Tôi thường giao dịch vào giờ nào?'
+                    t('insights.chat.currentBalance'),
+                    t('insights.chat.anyAnomalies'),
+                    t('insights.chat.analyzeSpending'),
+                    t('insights.chat.usualTransactionTime')
                   ].map((question, index) => (
                     <button
                       key={index}

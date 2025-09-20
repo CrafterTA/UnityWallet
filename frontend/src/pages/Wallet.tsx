@@ -492,12 +492,12 @@ const WalletPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
-          <h1 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Please login to access your wallet</h1>
+          <h1 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.pleaseLoginToAccess')}</h1>
           <button
             onClick={() => window.location.href = '/login'}
             className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
           >
-            Go to Login
+            {t('wallet.goToLogin')}
           </button>
         </div>
       </div>
@@ -510,8 +510,8 @@ const WalletPage: React.FC = () => {
         <div ref={walletRef} className="bg-gradient-to-r from-red-500 to-yellow-500 rounded-2xl p-8 text-white shadow-xl">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Total Balance</h2>
-              <p className="text-red-100">Your digital assets</p>
+              <h2 className="text-2xl font-bold mb-2">{t('wallet.totalBalance')}</h2>
+              <p className="text-red-100">{t('wallet.yourDigitalAssets')}</p>
             </div>
             <div className="text-right">
               <div className="flex items-center gap-3 mb-2">
@@ -529,14 +529,14 @@ const WalletPage: React.FC = () => {
                 )}
               </div>
               <div className="text-red-100 text-sm">
-                {showBalance ? (ratesLoading ? 'Updating rates...' : 'USD (Live)') : '••••'}
+                {showBalance ? (ratesLoading ? t('wallet.updatingRates') : t('wallet.usdLive')) : '••••'}
               </div>
           </div>
         </div>
           
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-red-100 text-sm">Wallet Address</p>
+              <p className="text-red-100 text-sm">{t('wallet.walletAddress')}</p>
               <p className="font-mono text-sm">
                 {showBalance ? `${walletData.address.slice(0, 8)}...${walletData.address.slice(-8)}` : '••••••••••••••••'}
               </p>
@@ -552,7 +552,7 @@ const WalletPage: React.FC = () => {
 
         {/* Quick Actions */}
         <div ref={quickActionsRef} className="mb-8">
-          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Actions</h3>
+          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.quickActions')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Send */}
             <button
@@ -563,8 +563,8 @@ const WalletPage: React.FC = () => {
                 <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
                   <ArrowUpRight className="w-6 h-6 text-white" />
                 </div>
-                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Send</h4>
-                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Transfer assets</p>
+                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.send')}</h4>
+                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{t('wallet.transferAssets')}</p>
               </div>
             </button>
 
@@ -577,8 +577,8 @@ const WalletPage: React.FC = () => {
                 <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
                   <ArrowDownLeft className="w-6 h-6 text-white" />
                 </div>
-                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Receive</h4>
-                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Get QR code</p>
+                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.receive')}</h4>
+                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{t('wallet.getQRCode')}</p>
               </div>
             </button>
 
@@ -591,8 +591,8 @@ const WalletPage: React.FC = () => {
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
                   <Send className="w-6 h-6 text-white" />
                 </div>
-                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Swap</h4>
-                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Exchange assets</p>
+                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.swap')}</h4>
+                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{t('wallet.exchangeAssets')}</p>
               </div>
             </button>
 
@@ -605,8 +605,8 @@ const WalletPage: React.FC = () => {
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
                   <Coins className="w-6 h-6 text-white" />
                 </div>
-                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Activity</h4>
-                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>View history</p>
+                <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.activity')}</h4>
+                <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{t('wallet.viewHistory')}</p>
               </div>
             </button>
           </div>
@@ -614,7 +614,7 @@ const WalletPage: React.FC = () => {
 
         {/* Assets */}
         <div ref={assetsRef} className="mb-8">
-          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Assets</h3>
+          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.assets')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {processedBalances.map((balance: any, index: number) => (
               <div key={index} className={`asset-card backdrop-blur-sm rounded-xl p-6 border transition-all duration-200 ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/80 border-white/20 hover:bg-white/90'}`}>
@@ -625,7 +625,7 @@ const WalletPage: React.FC = () => {
                       </div>
                       <div>
                       <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{balance.symbol}</h4>
-                      <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Digital Asset</p>
+                      <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{t('wallet.digitalAsset')}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -650,12 +650,12 @@ const WalletPage: React.FC = () => {
 
       {/* Recent Transactions */}
         <div className="mb-8">
-          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Transactions</h3>
+          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.recentTransactions')}</h3>
         <div className="space-y-3">
           {transactionsLoading ? (
             <div className="text-center py-8">
               <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>Loading transactions...</p>
+              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>{t('wallet.loadingTransactions')}</p>
             </div>
           ) : recentTransactions.length > 0 ? (
             recentTransactions.map((tx) => (
@@ -679,9 +679,9 @@ const WalletPage: React.FC = () => {
                         )}
                     </div>
                     <div>
-                        <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>{tx.type}</p>
+                        <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>{tx.type === 'sent' ? t('wallet.sent') : t('wallet.received')}</p>
                         <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-                          {tx.type === 'sent' ? `To: ${tx.to?.slice(0, 8)}...` : `From: ${tx.from?.slice(0, 8)}...`}
+                          {tx.type === 'sent' ? `${t('wallet.to')}: ${tx.to?.slice(0, 8)}...` : `${t('wallet.from')}: ${tx.from?.slice(0, 8)}...`}
                       </p>
                     </div>
                   </div>
@@ -699,8 +699,8 @@ const WalletPage: React.FC = () => {
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}>
                   <ArrowUpRight className={`w-8 h-8 ${isDark ? 'text-white/40' : 'text-gray-400'}`} />
               </div>
-                <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No transactions yet</h3>
-                <p className={`${isDark ? 'text-white/60' : 'text-gray-600'}`}>Your transaction history will appear here</p>
+                <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.noTransactionsYet')}</h3>
+                <p className={`${isDark ? 'text-white/60' : 'text-gray-600'}`}>{t('wallet.transactionHistoryWillAppear')}</p>
             </div>
           )}
         </div>
@@ -714,14 +714,14 @@ const WalletPage: React.FC = () => {
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-orange-600" />
               </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Trustline Required</h3>
-              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>To receive SYP tokens, you need to set up a trustline first.</p>
+              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.trustlineRequired')}</h3>
+              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>{t('wallet.toReceiveSYPTokens')}</p>
             </div>
 
             <div className={`rounded-lg p-4 mb-6 ${isDark ? 'bg-orange-900/20 border border-orange-600/20' : 'bg-orange-50 border border-orange-200'}`}>
-              <h4 className={`font-semibold mb-2 ${isDark ? 'text-orange-300' : 'text-orange-800'}`}>What is a trustline?</h4>
+              <h4 className={`font-semibold mb-2 ${isDark ? 'text-orange-300' : 'text-orange-800'}`}>{t('wallet.whatIsTrustline')}</h4>
               <p className={`text-sm ${isDark ? 'text-orange-400' : 'text-orange-700'}`}>
-                A trustline allows your account to hold SYP tokens. This is a one-time setup required by the Stellar network.
+                {t('wallet.trustlineExplanation')}
               </p>
             </div>
 
@@ -730,7 +730,7 @@ const WalletPage: React.FC = () => {
                 onClick={handleConfirmTrustline}
                 className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center"
               >
-                Confirm Trustline
+                {t('wallet.confirmTrustline')}
               </button>
               <button
                 onClick={handleSkipTrustline}
@@ -740,10 +740,10 @@ const WalletPage: React.FC = () => {
                 {isReceivingBonus ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                    Receiving Bonus...
+                    {t('wallet.receivingBonus')}
                   </>
                 ) : (
-                  'Skip for now'
+                  t('wallet.skipForNow')
                 )}
               </button>
             </div>
