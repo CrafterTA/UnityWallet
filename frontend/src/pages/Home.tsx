@@ -72,18 +72,24 @@ const StatCard = ({ icon: Icon, label, value, sub }: any) => {
   return (
          <div
        ref={cardRef}
-       className={`group relative overflow-hidden rounded-2xl border p-6 backdrop-blur-xl transition-all ${isDark ? 'border-white/10 bg-white/5 hover:bg-white/7.5 hover:border-white/20' : 'border-slate-200 bg-slate-100/80 hover:bg-slate-200/80 hover:border-slate-300'}`}
+       className={`group relative overflow-hidden rounded-2xl border p-5 sm:p-6 backdrop-blur-xl transition-all ${isDark ? 'border-white/10 bg-white/5 hover:bg-white/7.5 hover:border-white/20' : 'border-slate-200 bg-slate-100/80 hover:bg-slate-200/80 hover:border-slate-300'}`}
    >
-     <div className="flex items-center gap-3">
-       <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-400/20 text-primary-600 group-hover:from-primary-500/30 group-hover:to-accent-400/30 transition-all duration-300">
-         <Icon className="h-5 w-5" />
+     <div className="flex items-start gap-3">
+       <div className="flex-shrink-0">
+         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500/20 to-accent-400/20 text-primary-600 group-hover:from-primary-500/30 group-hover:to-accent-400/30 transition-all duration-300">
+           <Icon className="h-5 w-5 flex-shrink-0" />
+         </div>
        </div>
-       <div>
-         <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{label}</p>
-         <p className={`mt-0.5 text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+       
+       <div className="flex-1 min-w-0">
+         <p className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-slate-600'}`}>{label}</p>
        </div>
      </div>
-     {sub && <p className={`mt-3 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>{sub}</p>}
+     
+     <div className="mt-2">
+       <p className={`text-base sm:text-lg font-semibold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+       {sub && <p className={`mt-1.5 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>{sub}</p>}
+     </div>
     
     {/* Enhanced glow effect */}
     <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 -translate-y-8 translate-x-6 rounded-full bg-gradient-to-tr from-primary-300/10 via-accent-300/15 to-transparent blur-xl transition-opacity group-hover:opacity-100 opacity-0"></div>
@@ -174,27 +180,48 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
 );
 };
 
+// Token icon URLs mapping - using local images from public folder
+const TOKEN_ICON_URLS: Record<string, string> = {
+  SYP: "/images/stellar-xlm-logo.png", // Using XLM logo for SYP
+  USDC: "/images/usd-coin-usdc-logo.png", // Local USDC logo
+  XLM: "/images/stellar-xlm-logo.png", // Local XLM logo
+};
+
+const DEFAULT_ICON_URL = "/images/logo.png"; // Using SoviPay logo as fallback
+
+type TokenIconProps = {
+  symbol: string;
+  size?: number;
+  className?: string;
+  srcOverride?: string;
+};
+
+const TokenIcon: React.FC<TokenIconProps> = ({ symbol, size = 32, className = "", srcOverride }) => {
+  const initial = srcOverride || TOKEN_ICON_URLS[symbol?.toUpperCase()] || DEFAULT_ICON_URL;
+  const [src, setSrc] = React.useState(initial);
+
+  return (
+    <img
+      src={src}
+      alt={symbol || "token"}
+      width={size}
+      height={size}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={() => setSrc(DEFAULT_ICON_URL)}
+      className={`h-8 w-8 rounded-lg object-contain ${className}`}
+    />
+);
+};
+
 const TokenRow = ({ name, symbol, balance, value }: any) => {
   const { isDark } = useThemeStore();
   
-  // Icon mapping for cryptocurrencies
-  const getCryptoIcon = (symbol: string) => {
-    switch (symbol.toUpperCase()) {
-      case 'SYP':
-        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">S</div>;
-      case 'USDC':
-        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-xs">$</div>;
-      case 'XLM':
-        return <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">XLM</div>;
-      default:
-        return <div className={`h-8 w-8 rounded-lg ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />;
-    }
-  };
 
   return (
   <div className={`grid grid-cols-12 items-center gap-3 rounded-xl px-3 py-2 transition-colors duration-200 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-100/80'}`}>
     <div className="col-span-5 flex items-center gap-3">
-      {getCryptoIcon(symbol)}
+      <TokenIcon symbol={symbol} />
       <div>
         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{name}</p>
         <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{symbol}</p>
@@ -751,9 +778,7 @@ export default function Web3ModernLayout() {
                       {assets.length > 0 ? assets.map((asset) => (
                         <div key={asset.id} className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
                           <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
-                              {asset.symbol[0]}
-                            </div>
+                            <TokenIcon symbol={asset.symbol} size={24} className="h-6 w-6" />
                             <div>
                               <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{asset.name}</p>
                               <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{asset.symbol}</p>
