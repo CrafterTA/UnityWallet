@@ -188,7 +188,7 @@ const Login: React.FC = () => {
 
       // Web3 standard: encrypt secret key with password
       try {
-        await saveSecureWalletData(createdWallet.secret, password, createdWallet.mnemonic);
+        await saveSecureWalletData(createdWallet.secret, password, createdWallet.public_key, createdWallet.mnemonic);
       } catch (error) {
         toast.error('Failed to save wallet securely. Please try again.');
         return;

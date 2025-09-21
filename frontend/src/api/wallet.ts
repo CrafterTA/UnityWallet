@@ -146,7 +146,7 @@ export const walletApi = {
     try {
       // Get wallet from store instead of localStorage
       const { useAuthStore } = await import('@/store/session')
-      const { wallet, loadSecureWalletData } = useAuthStore.getState()
+      const { wallet } = useAuthStore.getState()
       
       
       if (!wallet?.public_key) {

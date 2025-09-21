@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { QueryClient } from '@tanstack/react-query'
-import { SecureStorage } from '@/lib/secureStorage'
+import { Web3Keystore } from '@/lib/web3Keystore'
 
 interface Wallet {
   public_key: string
@@ -24,8 +24,7 @@ interface AuthState {
   updateWallet: (updates: Partial<Wallet>) => void
   lockWallet: () => void
   unlockWallet: (password: string) => Promise<boolean>
-  saveSecureWalletData: (secret: string, password: string, mnemonic?: string) => Promise<void>
-  loadSecureWalletData: (password: string) => Promise<{ secret: string; mnemonic?: string } | null>
+  saveSecureWalletData: (secret: string, password: string, publicKey: string, mnemonic?: string) => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -47,6 +46,9 @@ export const useAuthStore = create<AuthState>()(
       
       
       
+      
+      
+      
       logout: () => {
         // Clear only auth-related data, preserve theme and other preferences
         localStorage.removeItem('unity-wallet-auth')
@@ -64,8 +66,8 @@ export const useAuthStore = create<AuthState>()(
         // Explicitly remove password if it exists
         localStorage.removeItem('wallet-password')
         
-        // Clear secure data from sessionStorage
-        SecureStorage.clearSecureData()
+        // Clear Web3 keystore from localStorage
+        Web3Keystore.clearKeystore()
         
         // Clear query cache
         const { queryClient } = get()
@@ -91,83 +93,72 @@ export const useAuthStore = create<AuthState>()(
       },
       
       unlockWallet: async (password: string) => {
-        // Web3 standard: verify password by trying to decrypt secret key
+        // Web3 standard: decrypt keystore to get private key
         try {
-          const secret = await SecureStorage.getSecureItem('wallet-secret', password)
-          const mnemonic = await SecureStorage.getSecureItem('wallet-mnemonic', password)
-          
-          if (secret || mnemonic) {
-            // Load secret key and mnemonic into memory
-            const currentWallet = get().wallet
-            if (currentWallet) {
-              set({ 
-                isLocked: false,
-                wallet: {
-                  ...currentWallet,
-                  secret: secret || '',
-                  mnemonic: mnemonic || undefined
-                }
-              })
-            } else {
-              set({ isLocked: false })
-            }
-            return true
+          const keystore = Web3Keystore.loadKeystore()
+          if (!keystore) {
+            return false
           }
+
+          // Decrypt keystore to get private key
+          const secret = await Web3Keystore.decryptKeystore(keystore, password)
           
-          return false
+          // Load secret key into memory
+          const currentWallet = get().wallet
+          if (currentWallet) {
+            set({ 
+              isLocked: false,
+              wallet: {
+                ...currentWallet,
+                secret: secret,
+                mnemonic: undefined // Mnemonic is not stored in keystore
+              }
+            })
+          } else {
+            set({ isLocked: false })
+          }
+          return true
         } catch (error) {
           console.error('Failed to verify password:', error)
           return false
         }
       },
 
-      saveSecureWalletData: async (secret: string, password: string, mnemonic?: string) => {
+      saveSecureWalletData: async (secret: string, password: string, publicKey: string, mnemonic?: string) => {
         try {
-          // Web3 standard: encrypt secret key with password
-          if (secret) {
-            await SecureStorage.setSecureItem('wallet-secret', secret, password)
-          }
-          // Also save mnemonic for backup
-          if (mnemonic) {
-            await SecureStorage.setSecureItem('wallet-mnemonic', mnemonic, password)
-          }
+          // Create Web3 keystore for secret key
+          const keystore = await Web3Keystore.createKeystore(secret, password, publicKey)
+          Web3Keystore.storeKeystore(keystore)
+
+          // Note: Mnemonic is not stored in keystore for security
+          // Only secret key is stored in Web3 keystore format
         } catch (error) {
           console.error('Failed to save secure wallet data:', error)
           throw new Error('Failed to save wallet data securely')
         }
       },
 
-      loadSecureWalletData: async (password: string) => {
-        try {
-          // Try to load secret key first (Web3 standard)
-          const secret = await SecureStorage.getSecureItem('wallet-secret', password)
-          const mnemonic = await SecureStorage.getSecureItem('wallet-mnemonic', password)
-          
-          if (secret) {
-            return { secret, mnemonic: mnemonic || undefined }
-          }
-          
-          // Fallback to mnemonic if no secret key
-          if (mnemonic) {
-            return { secret: '', mnemonic }
-          }
-          
-          return null
-        } catch (error) {
-          console.error('Failed to load secure wallet data:', error)
-          return null
-        }
-      },
     }),
     {
       name: 'unity-wallet-auth',
-      partialize: (state: AuthState) => ({
-        // Store all wallet data including secret and mnemonic in localStorage
-        // This ensures memory is preserved when reloading the page
-        wallet: state.wallet,
-        isAuthenticated: state.isAuthenticated,
-        isLocked: state.isLocked,
-      }),
+      partialize: (state: AuthState) => {
+        // Store only non-sensitive data in localStorage
+        // Sensitive data (secret key, mnemonic) will be stored in Web3 keystore
+        const wallet = state.wallet ? {
+          public_key: state.wallet.public_key,
+          account_exists: state.wallet.account_exists,
+          funded_or_existing: state.wallet.funded_or_existing,
+          balances: state.wallet.balances,
+          created_at: state.wallet.created_at,
+          // DO NOT store secret or mnemonic in localStorage
+        } : null
+        
+        return {
+          wallet,
+          isAuthenticated: state.isAuthenticated,
+          isLocked: state.isLocked,
+        }
+      },
     }
   )
 )
