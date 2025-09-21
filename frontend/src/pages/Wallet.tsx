@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '@/store/theme';
 import { useAuthStore } from '@/store/session';
+import { WalletUtils } from '@/lib/walletUtils';
 import { walletApi } from '@/api/wallet';
 import { chainApi } from '@/api/chain';
 import { transactionsApi } from '@/api/transactions';
@@ -82,14 +83,12 @@ const WalletPage: React.FC = () => {
   useEffect(() => {
     const showTrustlineModalFlag = localStorage.getItem('show_trustline_modal');
     
-    if (isAuthenticated && showTrustlineModalFlag === 'true') {
+    if (isAuthenticated && wallet?.public_key && showTrustlineModalFlag === 'true') {
       localStorage.removeItem('show_trustline_modal');
       handleAutoBeginOnboard();
-    } else {
+    } else if (isAuthenticated && wallet?.public_key && !showTrustlineModalFlag) {
       // Only refetch balances if not showing onboard modals
-      if (isAuthenticated && wallet?.public_key && !showTrustlineModalFlag) {
-        refetchBalances();
-      }
+      refetchBalances();
     }
   }, [isAuthenticated, wallet?.public_key]);
 
@@ -173,12 +172,20 @@ const WalletPage: React.FC = () => {
         throw new Error('Missing XDR from /onboard/begin');
       }
       
-      if (!wallet?.secret) {
-        throw new Error('No user secret to sign with (DEV only)');
+      // Get secret key - either from wallet or derive from mnemonic
+      let secretKey = wallet?.secret;
+      
+      if (!secretKey && wallet?.mnemonic) {
+        // Derive secret key from mnemonic
+        secretKey = WalletUtils.deriveSecretFromMnemonic(wallet.mnemonic);
+      }
+      
+      if (!secretKey) {
+        throw new Error('No user secret to sign with. Please unlock wallet first.');
       }
 
       // Sign the XDR with user's secret key
-      const signedXdr = await signXdrWithSecret(trustlineData.xdr, wallet.secret);
+      const signedXdr = await signXdrWithSecret(trustlineData.xdr, secretKey);
       
       // Switch to receiving bonus state (keep confirm modal open)
       setIsSigning(false);

@@ -8,6 +8,7 @@ import './index.css'
 import './i18n'
 import { initializeTheme } from './store/theme'
 import { useAuthStore } from './store/session'
+import './lib/cleanup' // Clean up insecure data on startup
 
 // Initialize theme
 initializeTheme()

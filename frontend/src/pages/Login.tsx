@@ -11,7 +11,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 const Login: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { setWallet } = useAuthStore();
+  const { setWallet, saveSecureWalletData } = useAuthStore();
   const { isDark } = useThemeStore();
 
   // State for create wallet
@@ -156,7 +156,7 @@ const Login: React.FC = () => {
   };
 
   // Handle password creation
-  const handlePasswordCreate = () => {
+  const handlePasswordCreate = async () => {
     if (!password || password.length < 8) {
       toast.error('Password must be at least 8 characters');
       return;
@@ -167,8 +167,7 @@ const Login: React.FC = () => {
     }
 
     if (createdWallet) {
-      // Save password locally
-      localStorage.setItem('wallet-password', password);
+      // Don't save password - use mnemonic verification instead
       localStorage.setItem('wallet_public_key', createdWallet.public_key);
       
       // Only show trustline modal for newly created wallets
@@ -187,11 +186,19 @@ const Login: React.FC = () => {
         }
       }
 
-      // Set wallet in store
+      // Web3 standard: encrypt secret key with password
+      try {
+        await saveSecureWalletData(createdWallet.secret, password, createdWallet.mnemonic);
+      } catch (error) {
+        toast.error('Failed to save wallet securely. Please try again.');
+        return;
+      }
+
+      // Set wallet in store with secret key loaded (for immediate use)
       setWallet({
         public_key: createdWallet.public_key,
-        secret: createdWallet.secret,
-        mnemonic: createdWallet.mnemonic,
+        secret: createdWallet.secret, // Load secret key for immediate use
+        mnemonic: createdWallet.mnemonic, // Load mnemonic for immediate use
         account_exists: true,
         funded_or_existing: true,
         balances: createdWallet.balances || {},
@@ -199,7 +206,11 @@ const Login: React.FC = () => {
       });
 
       toast.success('Wallet setup complete!');
-      navigate('/wallet');
+      
+      // Small delay to ensure state is updated before navigation
+      setTimeout(() => {
+        navigate('/wallet');
+      }, 100);
     }
   };
 

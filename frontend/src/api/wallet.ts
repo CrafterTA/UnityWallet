@@ -82,13 +82,15 @@ export const walletApi = {
 
   async getAddress(): Promise<string> {
     try {
-      // Get wallet from store
-      const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-      if (!wallet.state?.wallet?.public_key) {
+      // Get wallet from store instead of localStorage
+      const { useAuthStore } = await import('@/store/session')
+      const { wallet } = useAuthStore.getState()
+      
+      if (!wallet?.public_key) {
         throw new Error('No wallet found. Please login first.')
       }
       
-      return wallet.state.wallet.public_key
+      return wallet.public_key
     } catch (error) {
       throw new Error('Failed to get wallet address')
     }
@@ -96,14 +98,34 @@ export const walletApi = {
 
   async payment(request: PaymentRequest): Promise<TransactionResult> {
     try {
-      const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-      if (!wallet.state?.wallet?.public_key || !wallet.state?.wallet?.secret) {
+      // Get wallet from store instead of localStorage
+      const { useAuthStore } = await import('@/store/session')
+      const { wallet } = useAuthStore.getState()
+      
+      if (!wallet?.public_key) {
         throw new Error('No wallet found. Please login first.')
+      }
+
+      // Get secret key - either from wallet or derive from mnemonic
+      let secretKey = wallet?.secret
+      
+      if (!secretKey && wallet?.mnemonic) {
+        // Derive secret key from mnemonic
+        const { WalletUtils } = await import('@/lib/walletUtils')
+        secretKey = WalletUtils.deriveSecretFromMnemonic(wallet.mnemonic)
+      }
+      
+      if (!secretKey) {
+        // If no secret key available, wallet is locked
+        const { useAuthStore } = await import('@/store/session')
+        const { lockWallet } = useAuthStore.getState()
+        lockWallet() // This will trigger unlock modal
+        throw new Error('Wallet is locked. Please unlock wallet first to perform transactions.')
       }
 
       // Use the old execute endpoint for now (requires secret key)
       const response = await chainApi.executeSend({
-        secret: wallet.state.wallet.secret,
+        secret: secretKey,
         destination: request.destination,
         source: { code: request.asset_code },
         amount: request.amount
@@ -122,9 +144,30 @@ export const walletApi = {
 
   async swap(request: { selling_asset_code: string; buying_asset_code: string; amount: string }): Promise<TransactionResult> {
     try {
-      const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-      if (!wallet.state?.wallet?.public_key || !wallet.state?.wallet?.secret) {
+      // Get wallet from store instead of localStorage
+      const { useAuthStore } = await import('@/store/session')
+      const { wallet, loadSecureWalletData } = useAuthStore.getState()
+      
+      
+      if (!wallet?.public_key) {
         throw new Error('No wallet found. Please login first.')
+      }
+
+      // Get secret key - either from wallet or derive from mnemonic
+      let secretKey = wallet?.secret
+      
+      if (!secretKey && wallet?.mnemonic) {
+        // Derive secret key from mnemonic
+        const { WalletUtils } = await import('@/lib/walletUtils')
+        secretKey = WalletUtils.deriveSecretFromMnemonic(wallet.mnemonic)
+      }
+      
+      if (!secretKey) {
+        // If no secret key available, wallet is locked
+        const { useAuthStore } = await import('@/store/session')
+        const { lockWallet } = useAuthStore.getState()
+        lockWallet() // This will trigger unlock modal
+        throw new Error('Wallet is locked. Please unlock wallet first to perform transactions.')
       }
 
 
@@ -134,7 +177,7 @@ export const walletApi = {
         source_asset: { code: request.selling_asset_code },
         dest_asset: { code: request.buying_asset_code },
         source_amount: request.amount,
-        source_account: wallet.state.wallet.public_key,
+        source_account: wallet.public_key,
         max_paths: 5,
         slippage_bps: 200
       })
@@ -160,8 +203,8 @@ export const walletApi = {
       // Execute swap using the old execute endpoint
       const swapResponse = await chainApi.executeSwap({
         mode: 'send',
-        secret: wallet.state.wallet.secret,
-        destination: wallet.state.wallet.public_key,
+        secret: secretKey,
+        destination: wallet.public_key,
         source_asset: sourceAsset,
         dest_asset: destAsset,
         source_amount: request.amount,

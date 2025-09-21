@@ -3,14 +3,18 @@ import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowUpDown, Zap, TrendingUp, AlertCircle } from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
+import { useAuthStore } from '@/store/session'
 import { walletApi } from '@/api/wallet'
 import { formatBalance } from '@/lib/utils'
+import UnlockModal from '@/components/UnlockModal'
 import toast from 'react-hot-toast'
 
 function Swap() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
+  const { isLocked, lockWallet } = useAuthStore()
   const queryClient = useQueryClient()
+  
   const [fromAsset, setFromAsset] = useState('SYP')
   const [toAsset, setToAsset] = useState('USD')
   const [fromAmount, setFromAmount] = useState('')
@@ -128,7 +132,15 @@ function Swap() {
     } catch (error) {
       console.error('Swap error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Swap failed. Please try again.'
-      toast.error(errorMessage, { id: 'swap' })
+      
+      // Check if wallet is locked
+      if (errorMessage.includes('Wallet is locked')) {
+        toast.error('Wallet is locked. Please unlock wallet first.', { id: 'swap' })
+        // Trigger wallet lock to show unlock modal
+        lockWallet()
+      } else {
+        toast.error(errorMessage, { id: 'swap' })
+      }
     } finally {
       setIsSwapping(false)
     }
@@ -431,6 +443,9 @@ function Swap() {
            </div>
          </div>
       </div>
+      
+      {/* Unlock Modal */}
+      <UnlockModal isOpen={isLocked} onClose={() => {}} />
     </div>
   )
 }

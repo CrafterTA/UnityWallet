@@ -48,7 +48,7 @@ const UnlockModal: React.FC<UnlockModalProps> = ({ isOpen, onClose }) => {
     setError('');
 
     try {
-      const success = unlockWallet(password);
+      const success = await unlockWallet(password);
       
       if (success) {
         toast.success('Mở khóa ví thành công');
