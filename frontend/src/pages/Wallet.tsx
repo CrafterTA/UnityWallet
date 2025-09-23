@@ -776,24 +776,24 @@ const WalletPage: React.FC = () => {
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Confirm Transaction</h3>
-              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>Please review and sign the trustline transaction.</p>
+              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.confirmTransaction', 'Confirm Transaction')}</h3>
+              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>{t('wallet.reviewAndSignTrustline', 'Please review and sign the trustline transaction.')}</p>
             </div>
 
             <div className={`rounded-lg p-4 mb-6 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
-              <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Transaction Details</h4>
+              <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('wallet.transactionDetails', 'Transaction Details')}</h4>
               <div className={`space-y-2 text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
                 <div className="flex justify-between">
-                  <span>Operation:</span>
-                  <span>Change Trust</span>
+                  <span>{t('wallet.operation', 'Operation')}:</span>
+                  <span>{t('wallet.changeTrust', 'Change Trust')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Asset:</span>
+                  <span>{t('wallet.asset', 'Asset')}:</span>
                   <span>SYP</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Limit:</span>
-                  <span>Unlimited</span>
+                  <span>{t('wallet.limit', 'Limit')}:</span>
+                  <span>{t('wallet.unlimited', 'Unlimited')}</span>
                 </div>
               </div>
             </div>
@@ -807,17 +807,17 @@ const WalletPage: React.FC = () => {
                 {isSigning ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Signing...</span>
+                    <span>{t('wallet.signing', 'Signing...')}</span>
                   </>
                 ) : isReceivingBonus ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Receiving Bonus...</span>
+                    <span>{t('wallet.receivingBonus', 'Receiving Bonus...')}</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle className="w-5 h-5" />
-                    <span>Sign & Confirm</span>
+                    <span>{t('wallet.signAndConfirm', 'Sign & Confirm')}</span>
                   </>
                 )}
               </button>
@@ -825,7 +825,7 @@ const WalletPage: React.FC = () => {
                 onClick={() => setShowConfirmModal(false)}
                 className={`w-full font-semibold py-3 px-6 rounded-xl transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
               >
-                Back to Review
+{t('wallet.backToReview', 'Back to Review')}
               </button>
             </div>
           </div>
@@ -840,8 +840,8 @@ const WalletPage: React.FC = () => {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Coins className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Bonus Received!</h3>
-              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>You have successfully received your welcome bonus.</p>
+              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.bonusReceived', 'Bonus Received!')}</h3>
+              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>{t('wallet.successfullyReceivedWelcomeBonus', 'You have successfully received your welcome bonus.')}</p>
             </div>
 
             <div className={`rounded-lg p-4 mb-6 ${isDark ? 'bg-green-900/20 border border-green-600/20' : 'bg-green-50 border border-green-200'}`}>
@@ -849,7 +849,7 @@ const WalletPage: React.FC = () => {
                 <div className="text-3xl font-bold text-green-600 mb-2">
                   +{bonusResult.amount} SYP
                 </div>
-                <p className={`${isDark ? 'text-green-400' : 'text-green-700'}`}>Welcome bonus tokens</p>
+                <p className={`${isDark ? 'text-green-400' : 'text-green-700'}`}>{t('wallet.welcomeBonusTokens', 'Welcome bonus tokens')}</p>
               </div>
             </div>
 
@@ -859,7 +859,7 @@ const WalletPage: React.FC = () => {
               onClick={handleCloseBonusResult}
               className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
             >
-              Continue to Wallet
+{t('wallet.continueToWallet', 'Continue to Wallet')}
             </button>
           </div>
         </div>
