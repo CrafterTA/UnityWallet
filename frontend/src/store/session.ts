@@ -111,7 +111,8 @@ export const useAuthStore = create<AuthState>()(
               wallet: {
                 ...currentWallet,
                 secret: secret,
-                mnemonic: undefined // Mnemonic is not stored in keystore
+                // Keep existing mnemonic if it exists (for mnemonic-based wallets)
+                // For secret key imports, mnemonic will be undefined
               }
             })
           } else {

@@ -188,7 +188,11 @@ const Login: React.FC = () => {
 
       // Web3 standard: encrypt secret key with password
       try {
-        await saveSecureWalletData(createdWallet.secret, password, createdWallet.public_key, createdWallet.mnemonic);
+        // For secret key import, use the original secret key from input
+        const secretToSave = importMethod === 'secret' ? secretKey.trim() : createdWallet.secret;
+        const mnemonicToSave = importMethod === 'mnemonic' ? createdWallet.mnemonic : undefined;
+        
+        await saveSecureWalletData(secretToSave, password, createdWallet.public_key, mnemonicToSave);
       } catch (error) {
         toast.error('Failed to save wallet securely. Please try again.');
         return;
@@ -197,8 +201,8 @@ const Login: React.FC = () => {
       // Set wallet in store with secret key loaded (for immediate use)
       setWallet({
         public_key: createdWallet.public_key,
-        secret: createdWallet.secret, // Load secret key for immediate use
-        mnemonic: createdWallet.mnemonic, // Load mnemonic for immediate use
+        secret: importMethod === 'secret' ? secretKey.trim() : createdWallet.secret, // Use original secret for import
+        mnemonic: importMethod === 'mnemonic' ? createdWallet.mnemonic : undefined, // Only set mnemonic for mnemonic import
         account_exists: true,
         funded_or_existing: true,
         balances: createdWallet.balances || {},
