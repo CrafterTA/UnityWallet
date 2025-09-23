@@ -417,16 +417,15 @@ useEffect(() => {
               ) : (
                 <button
                     onClick={() => go('/login')}
-                    className="group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-300 shadow-md hover:scale-105 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 hover:from-yellow-400 hover:via-orange-400 hover:to-red-700 text-white shadow-yellow-500/20 hover:shadow-yellow-500/30 relative overflow-hidden"
+                    className={`group inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors duration-200 relative ${
+                      isDark 
+                        ? 'bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-400 hover:to-yellow-400 text-white border border-red-400/30'
+                        : 'bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 text-red-600 hover:text-red-700 border border-gray-300/50'
+                    }`}
                   >
-                    {/* Subtle shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -skew-x-12 -translate-x-full group-hover:translate-x-full" />
-                    
-                    {/* Subtle glow effect */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-red-600/10 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                     
                     <span className="relative z-10 drop-shadow-sm">{t('navigation.getWallet', 'Get Wallet')}</span>
-                    <ArrowRight className="h-4 w-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110 relative z-10 drop-shadow-sm" />
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </button>
               )}
             </div>

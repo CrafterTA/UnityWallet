@@ -276,7 +276,9 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${
+      !isDark ? 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50' : ''
+    }`}>
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -294,36 +296,60 @@ const Login: React.FC = () => {
             </button>
             <ThemeSwitcher />
           </div>
-          <h1 className="text-3xl font-bold mb-2 text-white">SoviPay</h1>
-          <p className="text-white/70">Your Digital Wallet</p>
+          <h1 className={`text-3xl font-bold mb-2 ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}>{t('login.title', 'SoviPay')}</h1>
+          <p className={`${
+            isDark ? 'text-white/70' : 'text-slate-600'
+          }`}>{t('login.subtitle', 'Your Digital Wallet')}</p>
         </div>
 
         {/* Main Content */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/10">
+        <div className={`backdrop-blur-sm rounded-2xl shadow-xl p-8 border ${
+          isDark 
+            ? 'bg-white/5 border-white/10' 
+            : 'bg-white/90 border-slate-200'
+        }`}>
           {verificationStep === 'display' && createdWallet && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2 text-white">Save Your Recovery Phrase</h2>
-                <p className="text-white/70">Write down these 12 words in the correct order and keep them safe.</p>
+                <h2 className={`text-2xl font-bold mb-2 ${
+                  isDark ? 'text-white' : 'text-slate-900'
+                }`}>{t('login.saveRecoveryPhrase', 'Save Your Recovery Phrase')}</h2>
+                <p className={`${
+                  isDark ? 'text-white/70' : 'text-slate-600'
+                }`}>{t('login.writeDownWords', 'Write down these 12 words in the correct order and keep them safe.')}</p>
               </div>
 
               {/* Mnemonic Display */}
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className={`rounded-xl p-6 border ${
+                isDark 
+                  ? 'bg-white/5 border-white/10' 
+                  : 'bg-slate-50 border-slate-200'
+              }`}>
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   {createdWallet.mnemonic.split(' ').map((word: string, index: number) => (
                     <div key={index} className="flex items-center space-x-2">
-                      <span className="text-sm w-6 text-white/60">{index + 1}.</span>
-                      <span className="font-mono text-sm text-white">{word}</span>
+                      <span className={`text-sm w-6 ${
+                        isDark ? 'text-white/60' : 'text-slate-500'
+                      }`}>{index + 1}.</span>
+                      <span className={`font-mono text-sm ${
+                        isDark ? 'text-white' : 'text-slate-900'
+                      }`}>{word}</span>
                     </div>
                   ))}
             </div>
                 
                 <button
                   onClick={copyMnemonic}
-                  className="w-full flex items-center justify-center space-x-2 py-2 px-4 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                  className={`w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg transition-colors ${
+                    isDark 
+                      ? 'bg-white/10 hover:bg-white/20 text-white' 
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
                 >
                   {mnemonicCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  <span>{mnemonicCopied ? 'Copied!' : 'Copy to Clipboard'}</span>
+                  <span>{mnemonicCopied ? t('login.copied', 'Copied!') : t('login.copyToClipboard', 'Copy to Clipboard')}</span>
                 </button>
               </div>
 
@@ -336,12 +362,12 @@ const Login: React.FC = () => {
                     </svg>
               </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-yellow-300">Important</h3>
+                    <h3 className="text-sm font-medium text-yellow-300">{t('login.important', 'Important')}</h3>
                     <div className="mt-2 text-sm text-yellow-200">
                       <ul className="list-disc list-inside space-y-1">
-                        <li>Never share your recovery phrase</li>
-                        <li>Store it in a safe place</li>
-                        <li>Anyone with this phrase can access your wallet</li>
+                        <li>{t('login.neverSharePhrase', 'Never share your recovery phrase')}</li>
+                        <li>{t('login.storeInSafePlace', 'Store it in a safe place')}</li>
+                        <li>{t('login.anyoneWithPhrase', 'Anyone with this phrase can access your wallet')}</li>
                       </ul>
               </div>
             </div>
@@ -360,7 +386,7 @@ const Login: React.FC = () => {
                 }}
                 className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
               >
-                I've Saved It - Verify Now
+                {t('login.iveSavedIt', "I've Saved It - Verify Now")}
               </button>
             </div>
           )}
@@ -368,15 +394,21 @@ const Login: React.FC = () => {
           {verificationStep === 'verify' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2 text-white">Verify Your Recovery Phrase</h2>
-                <p className="text-white/70">Select the words in the correct order to verify you've saved them.</p>
+                <h2 className={`text-2xl font-bold mb-2 ${
+                  isDark ? 'text-white' : 'text-slate-900'
+                }`}>{t('login.verifyRecoveryPhrase', 'Verify Your Recovery Phrase')}</h2>
+                <p className={`${
+                  isDark ? 'text-white/70' : 'text-slate-600'
+                }`}>{t('login.selectWordsInOrder', "Select the words in the correct order to verify you've saved them.")}</p>
               </div>
 
               <div className="space-y-4">
                 {verificationRows.map((row, rowIndex) => (
                   <div key={rowIndex} className="space-y-2">
-                    <p className="text-sm font-medium text-white/80">
-                      Select word #{correctIndices[rowIndex] + 1}:
+                    <p className={`text-sm font-medium ${
+                      isDark ? 'text-white/80' : 'text-slate-700'
+                    }`}>
+                      {t('login.selectWord', 'Select word #')}{correctIndices[rowIndex] + 1}:
                     </p>
                     <div className="grid grid-cols-3 gap-2">
                       {row.options.map((word: string, wordIndex: number) => {
@@ -389,7 +421,9 @@ const Login: React.FC = () => {
                             className={`p-3 rounded-lg border-2 transition-all ${
                               isSelected
                                 ? 'border-red-500 bg-red-500/20 text-red-300'
-                                : 'border-white/20 hover:border-white/40 bg-white/5 text-white hover:bg-white/10'
+                                : isDark
+                                  ? 'border-white/20 hover:border-white/40 bg-white/5 text-white hover:bg-white/10'
+                                  : 'border-slate-200 hover:border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100'
                             }`}
                           >
                             {word}
@@ -404,17 +438,21 @@ const Login: React.FC = () => {
               <div className="flex space-x-3">
                 <button
                   onClick={handleBackToMnemonic}
-                  className="flex-1 font-semibold py-3 px-6 rounded-xl transition-colors bg-white/10 hover:bg-white/20 text-white"
+                  className={`flex-1 font-semibold py-3 px-6 rounded-xl transition-colors ${
+                    isDark 
+                      ? 'bg-white/10 hover:bg-white/20 text-white' 
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
                 >
                   <ArrowLeft className="w-4 h-4 inline mr-2" />
-                  Back
+                  {t('login.back', 'Back')}
                 </button>
                 <button
                   onClick={handleMnemonicVerification}
                   disabled={Object.keys(rowSelections).length !== 3}
                   className="flex-1 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
                 >
-                  Continue ({Object.keys(rowSelections).length}/3)
+                  {t('login.continue', 'Continue')} ({Object.keys(rowSelections).length}/3)
                 </button>
               </div>
             </div>
@@ -423,27 +461,39 @@ const Login: React.FC = () => {
           {verificationStep === 'password' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2 text-white">Create Password</h2>
-                <p className="text-white/70">Set a password to secure your wallet</p>
+                <h2 className={`text-2xl font-bold mb-2 ${
+                  isDark ? 'text-white' : 'text-slate-900'
+                }`}>{t('login.createPassword', 'Create Password')}</h2>
+                <p className={`${
+                  isDark ? 'text-white/70' : 'text-slate-600'
+                }`}>{t('login.setPasswordToSecure', 'Set a password to secure your wallet')}</p>
                 </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-white/80">
-                    Password
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDark ? 'text-white/80' : 'text-slate-700'
+                  }`}>
+                    {t('login.password', 'Password')}
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/20 text-white placeholder-white/50 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter password (min 8 characters)"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                        isDark 
+                          ? 'bg-white/5 border-white/20 text-white placeholder-white/50' 
+                          : 'bg-white border-slate-200 text-slate-900 placeholder-slate-500'
+                      }`}
+                      placeholder={t('login.enterPasswordMin8', 'Enter password (min 8 characters)')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white/80"
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                        isDark ? 'text-white/60 hover:text-white/80' : 'text-slate-500 hover:text-slate-700'
+                      }`}
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -451,21 +501,29 @@ const Login: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-white/80">
-                    Confirm Password
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDark ? 'text-white/80' : 'text-slate-700'
+                  }`}>
+                    {t('login.confirmPassword', 'Confirm Password')}
                   </label>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/20 text-white placeholder-white/50 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Confirm password"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                        isDark 
+                          ? 'bg-white/5 border-white/20 text-white placeholder-white/50' 
+                          : 'bg-white border-slate-200 text-slate-900 placeholder-slate-500'
+                      }`}
+                      placeholder={t('login.confirmPasswordPlaceholder', 'Confirm password')}
                     />
                   <button
                     type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white/80"
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                        isDark ? 'text-white/60 hover:text-white/80' : 'text-slate-500 hover:text-slate-700'
+                      }`}
                     >
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -478,7 +536,7 @@ const Login: React.FC = () => {
                 disabled={!password || password.length < 8 || password !== confirmPassword}
                 className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
               >
-                Create Password & Continue
+                {t('login.createPasswordContinue', 'Create Password & Continue')}
               </button>
             </div>
           )}
@@ -486,8 +544,12 @@ const Login: React.FC = () => {
           {!createdWallet && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2 text-white">Welcome to SoviPay</h2>
-                <p className="text-white/70">Create a new wallet or import an existing one</p>
+                <h2 className={`text-2xl font-bold mb-2 ${
+                  isDark ? 'text-white' : 'text-slate-900'
+                }`}>{t('login.welcome', 'Welcome to SoviPay')}</h2>
+                <p className={`${
+                  isDark ? 'text-white/70' : 'text-slate-600'
+                }`}>{t('login.createOrImport', 'Create a new wallet or import an existing one')}</p>
               </div>
 
               {/* Create Wallet */}
@@ -497,7 +559,7 @@ const Login: React.FC = () => {
                   disabled={isCreating}
                   className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300"
                 >
-                  {isCreating ? 'Creating...' : 'Create New Wallet'}
+                  {isCreating ? t('login.creating', 'Creating...') : t('login.createWallet', 'Create New Wallet')}
                 </button>
               </div>
 
@@ -505,10 +567,14 @@ const Login: React.FC = () => {
               <div className="space-y-4">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/20" />
+                    <div className={`w-full border-t ${
+                      isDark ? 'border-white/20' : 'border-slate-200'
+                    }`} />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white/5 text-white/60">Or</span>
+                    <span className={`px-2 ${
+                      isDark ? 'bg-white/5 text-white/60' : 'bg-white text-slate-500'
+                    }`}>{t('login.or', 'Or')}</span>
         </div>
       </div>
 
@@ -520,20 +586,24 @@ const Login: React.FC = () => {
                       className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                         importMethod === 'mnemonic'
                           ? 'bg-red-500/20 text-red-300 border-2 border-red-500/50'
-                          : 'bg-white/10 text-white/80 border-2 border-transparent hover:bg-white/20'
+                          : isDark
+                            ? 'bg-white/10 text-white/80 border-2 border-transparent hover:bg-white/20'
+                            : 'bg-slate-100 text-slate-700 border-2 border-transparent hover:bg-slate-200'
                       }`}
                     >
-                      Recovery Phrase
+                      {t('login.recoveryPhrase', 'Recovery Phrase')}
                     </button>
                     <button
                       onClick={() => setImportMethod('secret')}
                       className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                         importMethod === 'secret'
                           ? 'bg-red-500/20 text-red-300 border-2 border-red-500/50'
-                          : 'bg-white/10 text-white/80 border-2 border-transparent hover:bg-white/20'
+                          : isDark
+                            ? 'bg-white/10 text-white/80 border-2 border-transparent hover:bg-white/20'
+                            : 'bg-slate-100 text-slate-700 border-2 border-transparent hover:bg-slate-200'
                       }`}
                     >
-                      Secret Key
+                      {t('login.secretKey', 'Secret Key')}
                     </button>
         </div>
 
@@ -541,29 +611,41 @@ const Login: React.FC = () => {
                   {importMethod === 'mnemonic' ? (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-white/80 mb-2">
-                          Recovery Phrase
+                        <label className={`block text-sm font-medium mb-2 ${
+                          isDark ? 'text-white/80' : 'text-slate-700'
+                        }`}>
+                          {t('login.recoveryPhrase', 'Recovery Phrase')}
                         </label>
                         <textarea
                           value={mnemonic}
                           onChange={(e) => setMnemonic(e.target.value)}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 text-white placeholder-white/50 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                            isDark 
+                              ? 'bg-white/5 border-white/20 text-white placeholder-white/50' 
+                              : 'bg-white border-slate-200 text-slate-900 placeholder-slate-500'
+                          }`}
                           rows={3}
-                          placeholder="Enter your 12 or 24 word recovery phrase"
+                          placeholder={t('login.enterRecoveryPhrase', 'Enter your 12 or 24 word recovery phrase')}
                         />
                       </div>
                     </div>
                   ) : (
             <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Secret Key
+                      <label className={`block text-sm font-medium mb-2 ${
+                        isDark ? 'text-white/80' : 'text-slate-700'
+                      }`}>
+                        {t('login.secretKey', 'Secret Key')}
               </label>
                 <input
                         type="password"
                         value={secretKey}
                         onChange={(e) => setSecretKey(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 text-white placeholder-white/50 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="Enter your secret key (S...)"
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                          isDark 
+                            ? 'bg-white/5 border-white/20 text-white placeholder-white/50' 
+                            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-500'
+                        }`}
+                        placeholder={t('login.enterSecretKey', 'Enter your secret key (S...)')}
                       />
               </div>
                   )}
@@ -571,9 +653,13 @@ const Login: React.FC = () => {
             <button
                     onClick={handleImportWallet}
                     disabled={isImporting || (importMethod === 'mnemonic' ? !mnemonic.trim() : !secretKey.trim())}
-                    className="w-full bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                    className={`w-full disabled:opacity-50 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-xl transition-colors ${
+                      isDark 
+                        ? 'bg-white/10 hover:bg-white/20 text-white' 
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
                   >
-                    {isImporting ? 'Importing...' : 'Import Wallet'}
+                    {isImporting ? t('login.importing', 'Importing...') : t('login.importWallet', 'Import Wallet')}
             </button>
           </div>
         </div>
