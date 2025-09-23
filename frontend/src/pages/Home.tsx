@@ -6,7 +6,7 @@ import { useThemeStore } from "@/store/theme";
 import { useAuthStore } from "@/store/session";
 import { walletApi } from '@/api/wallet'
 import { analyticsApi } from '@/api/analytics'
-import { formatAssetAmount, formatUSDValue, getUSDValue, fetchLiveRates, ExchangeRate, DEFAULT_RATES } from '@/lib/currency'
+import { formatAssetAmount, formatAssetAmountWithPrecision, formatUSDValue, getUSDValue, fetchLiveRates, ExchangeRate, DEFAULT_RATES } from '@/lib/currency'
 import { chainApi } from '@/api/chain'
 import LightModeBackground from "@/components/LightModeBackground";
 import { gsap } from "gsap";
@@ -443,18 +443,18 @@ export default function Web3ModernLayout() {
         const usdValue = getUSDValue(balance.asset_code, balance.amount, exchangeRates);
         return {
           id: index + 1,
-          name: balance.asset_code === 'SYP' ? 'Stellar Yield Points' : 
+          name: balance.asset_code === 'SYP' ? 'Sky Point' : 
                 balance.asset_code === 'USDC' ? 'USD Coin' :
-                balance.asset_code === 'XLM' ? 'Stellar Lumens' : balance.asset_code,
+                balance.asset_code === 'XLM' ? 'Lumens' : balance.asset_code,
           symbol: balance.asset_code,
-          balance: formatAssetAmount(balance.amount || '0', 3),
+          balance: formatAssetAmountWithPrecision(balance.amount || '0', balance.asset_code, 6),
           value: usdValue, // Real USD value with live conversion rates
         };
       }) || [])
     : [
         {
           id: 1,
-          name: 'Stellar Yield Points',
+          name: 'Sky Point',
           symbol: 'SYP',
           balance: '450.000',
           value: 450.00 // USD value
@@ -468,7 +468,7 @@ export default function Web3ModernLayout() {
         },
         {
           id: 3,
-          name: 'Stellar Lumens',
+          name: 'Lumens',
           symbol: 'XLM',
           balance: '10,000.000',
           value: 1100.00 // USD value (10,000 * 0.11 rate)

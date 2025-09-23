@@ -39,11 +39,28 @@ export const formatUSDValue = (value: number): string => {
  * Format asset amount for display
  */
 export const formatAssetAmount = (amount: string, decimals: number = 2): string => {
+  // Parse as string to preserve precision, then convert to number
   const num = parseFloat(amount) || 0;
   
   return num.toLocaleString('en-US', { 
     minimumFractionDigits: decimals, 
     maximumFractionDigits: decimals 
+  });
+};
+
+/**
+ * Format asset amount for display with asset-specific precision
+ */
+export const formatAssetAmountWithPrecision = (amount: string, assetCode: string, decimals: number = 2): string => {
+  // Parse as string to preserve precision, then convert to number
+  const num = parseFloat(amount) || 0;
+  
+  // Use more decimal places for all assets to avoid rounding issues
+  const actualDecimals = Math.max(decimals, 6);
+  
+  return num.toLocaleString('en-US', { 
+    minimumFractionDigits: actualDecimals, 
+    maximumFractionDigits: actualDecimals 
   });
 };
 

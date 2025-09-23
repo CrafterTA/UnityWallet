@@ -56,14 +56,11 @@ export const transactionsApi = {
   }): Promise<TransactionListResponse> {
     try {
       // Get wallet from auth store
-      const authData = localStorage.getItem('unity-wallet-auth')
-      if (!authData) {
-        throw new Error('No wallet found. Please login first.')
-      }
+      const { useAuthStore } = await import('@/store/session')
+      const { wallet } = useAuthStore.getState()
       
-      const wallet = JSON.parse(authData)
-      if (!wallet.state?.wallet?.public_key) {
-        throw new Error('No wallet public key found')
+      if (!wallet?.public_key) {
+        throw new Error('No wallet found. Please login first.')
       }
       
       const limit = params?.per_page || 10
@@ -78,7 +75,7 @@ export const transactionsApi = {
       
       // Get transaction history from chain service
       const chainResponse = await chainApi.getTransactionHistory(
-        wallet.state.wallet.public_key,
+        wallet.public_key,
         limit,
         cursor,
         params?.tx_type?.toLowerCase() || 'all'
@@ -101,7 +98,7 @@ export const transactionsApi = {
         try {
           return {
             id: tx.id || `tx_${index}`,
-            user_id: wallet.state.wallet.public_key,
+            user_id: wallet.public_key,
             tx_type: tx.tx_type || 'PAYMENT',
             asset_code: tx.asset_code || 'XLM',
             amount: tx.amount || '0',
@@ -122,7 +119,7 @@ export const transactionsApi = {
             } catch (error) {
               return {
             id: `tx_${index}`,
-            user_id: wallet.state.wallet.public_key,
+            user_id: wallet.public_key,
             tx_type: 'PAYMENT',
             asset_code: 'XLM',
             amount: '0',
@@ -187,17 +184,14 @@ export const transactionsApi = {
       }
       
       // Otherwise try to get from transaction history
-      const authData = localStorage.getItem('unity-wallet-auth')
-      if (!authData) {
+      const { useAuthStore } = await import('@/store/session')
+      const { wallet } = useAuthStore.getState()
+      
+      if (!wallet?.public_key) {
         throw new Error('No wallet found')
       }
       
-      const wallet = JSON.parse(authData)
-      if (!wallet.state?.wallet?.public_key) {
-        throw new Error('No wallet public key found')
-      }
-      
-      const history = await chainApi.getTransactionHistory(wallet.state.wallet.public_key, 100)
+      const history = await chainApi.getTransactionHistory(wallet.public_key, 100)
       const transaction = history.transactions.find(tx => tx.id === transactionId || tx.hash === transactionId)
       
       if (!transaction) {
@@ -206,7 +200,7 @@ export const transactionsApi = {
       
       return {
         id: transaction.id,
-        user_id: wallet.state.wallet.public_key,
+        user_id: wallet.public_key,
         tx_type: transaction.tx_type,
         asset_code: transaction.asset_code,
         amount: transaction.amount,
@@ -226,18 +220,15 @@ export const transactionsApi = {
   async getTransactionSummary(): Promise<TransactionSummary> {
     try {
       // Get wallet from auth store
-      const authData = localStorage.getItem('unity-wallet-auth')
-      if (!authData) {
+      const { useAuthStore } = await import('@/store/session')
+      const { wallet } = useAuthStore.getState()
+      
+      if (!wallet?.public_key) {
         throw new Error('No wallet found')
       }
       
-      const wallet = JSON.parse(authData)
-      if (!wallet.state?.wallet?.public_key) {
-        throw new Error('No wallet public key found')
-      }
-      
       // Get transaction history to calculate summary
-      const history = await chainApi.getTransactionHistory(wallet.state.wallet.public_key, 100)
+      const history = await chainApi.getTransactionHistory(wallet.public_key, 100)
       
       if (!history || !history.transactions) {
         return {

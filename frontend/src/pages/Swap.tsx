@@ -5,7 +5,8 @@ import { ArrowUpDown, Zap, TrendingUp, AlertCircle } from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
 import { useAuthStore } from '@/store/session'
 import { walletApi } from '@/api/wallet'
-import { formatBalance } from '@/lib/utils'
+import { formatBalance, formatBalanceWithAsset } from '@/lib/utils'
+import { formatAssetAmountWithPrecision } from '@/lib/currency'
 import UnlockModal from '@/components/UnlockModal'
 import toast from 'react-hot-toast'
 
@@ -197,7 +198,7 @@ function Swap() {
                        <div className="flex items-center justify-between">
                <label className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{t('swap.from', 'From')}</label>
                <span className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                 {t('swap.balance', 'Balance')}: {formatBalance(getAssetBalance(fromAsset).toString(), 3)}
+                 {t('swap.balance', 'Balance')}: {formatBalanceWithAsset(getAssetBalance(fromAsset).toString(), fromAsset, 6)}
                </span>
              </div>
             
@@ -237,7 +238,7 @@ function Swap() {
                 </button>
                 
                 {fromAssetOpen && balances && (
-                  <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border backdrop-blur-sm z-10 ${
+                  <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border backdrop-blur-sm z-50 ${
                     isDark 
                       ? 'bg-slate-800/95 border-slate-600 shadow-2xl' 
                       : 'bg-white border-slate-200 shadow-2xl'
@@ -257,7 +258,7 @@ function Swap() {
                               : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
                           } ${balance.asset_code === fromAsset ? 'font-semibold' : ''}`}
                         >
-                          {balance.asset_code} ({parseFloat(balance.amount).toFixed(3)})
+                          {balance.asset_code} ({formatAssetAmountWithPrecision(balance.amount, balance.asset_code, 6)})
                         </button>
                       ))}
                   </div>
@@ -323,7 +324,7 @@ function Swap() {
                  </button>
                  
                  {toAssetOpen && balances && (
-                   <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border backdrop-blur-sm z-10 ${
+                   <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border backdrop-blur-sm z-50 ${
                      isDark 
                        ? 'bg-slate-800/95 border-slate-600 shadow-2xl' 
                        : 'bg-white border-slate-200 shadow-2xl'
@@ -343,7 +344,7 @@ function Swap() {
                                : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
                            } ${balance.asset_code === toAsset ? 'font-semibold' : ''}`}
                          >
-                           {balance.asset_code} ({parseFloat(balance.amount).toFixed(3)})
+                           {balance.asset_code} ({formatAssetAmountWithPrecision(balance.amount, balance.asset_code, 6)})
                          </button>
                        ))}
                    </div>

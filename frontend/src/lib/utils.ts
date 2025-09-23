@@ -32,6 +32,19 @@ export function formatBalance(balance: string, decimals: number = 7): string {
   })
 }
 
+export function formatBalanceWithAsset(balance: string, assetCode: string, decimals: number = 7): string {
+  const num = parseFloat(balance)
+  if (isNaN(num)) return '0.0000000'
+  
+  // Use more decimal places for all assets to avoid rounding issues
+  const actualDecimals = Math.max(decimals, 6)
+  
+  return num.toLocaleString('en-US', {
+    minimumFractionDigits: actualDecimals,
+    maximumFractionDigits: actualDecimals,
+  })
+}
+
 export function shortenHash(hash: string, startChars: number = 6, endChars: number = 4): string {
   if (hash.length <= startChars + endChars) return hash
   return `${hash.slice(0, startChars)}...${hash.slice(-endChars)}`

@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom'
 import { useThemeStore } from '@/store/theme'
 import { walletApi } from '@/api/wallet'
 import { transactionsApi, Transaction } from '@/api/transactions'
+import { formatAssetAmountWithPrecision } from '@/lib/currency'
 import QRCodeGenerator from '@/components/QRCodeGenerator'
 import QRScanner from '@/components/QRScanner'
 import TransactionDetailModal from '@/components/TransactionDetailModal'
@@ -265,14 +266,15 @@ export default function Pay() {
           {t('pay.subtitle', 'Send and receive digital assets instantly')}
         </p>
 
-        <div className={classNames(
-          'mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ring-1',
-          isDark ? 'bg-white/5 ring-white/10 text-white/70' : 'bg-slate-100 ring-slate-200 text-slate-700'
-        )}>
-          {balancesLoading && <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />}
-          {balancesError && <span className="text-red-400">{t('common.dataLoadError', 'Unable to load wallet data')}</span>}
-          {balances && <span>{t('pay.walletConnected', 'Wallet connected')}</span>}
-        </div>
+        {(balancesLoading || balancesError) && (
+          <div className={classNames(
+            'mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ring-1',
+            isDark ? 'bg-white/5 ring-white/10 text-white/70' : 'bg-slate-100 ring-slate-200 text-slate-700'
+          )}>
+            {balancesLoading && <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />}
+            {balancesError && <span className="text-red-400">{t('common.dataLoadError', 'Unable to load wallet data')}</span>}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -443,7 +445,7 @@ export default function Pay() {
                           value={balance.asset_code} 
                           className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
                         >
-                          {balance.asset_code} ({parseFloat(balance.amount).toFixed(3)})
+                          {balance.asset_code} ({formatAssetAmountWithPrecision(balance.amount, balance.asset_code, 6)})
                         </option>
                       )) || (
                         <option value="" className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>
@@ -572,7 +574,7 @@ export default function Pay() {
                           <p className={`text-sm font-semibold ${
                             tx.type === 'sent' ? 'text-red-400' : 'text-green-400'
                           }`}>
-                            {tx.type === 'sent' ? '-' : '+'}{parseFloat(tx.amount).toFixed(3)} {tx.symbol}
+                            {tx.type === 'sent' ? '-' : '+'}{formatAssetAmountWithPrecision(tx.amount, tx.symbol, 6)} {tx.symbol}
                           </p>
                           <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
                         </div>
@@ -700,7 +702,7 @@ export default function Pay() {
                           <p className={`text-sm font-semibold ${
                             tx.type === 'sent' ? 'text-red-400' : 'text-green-400'
                           }`}>
-                            {tx.type === 'sent' ? '-' : '+'}{parseFloat(tx.amount).toFixed(3)} {tx.symbol}
+                            {tx.type === 'sent' ? '-' : '+'}{formatAssetAmountWithPrecision(tx.amount, tx.symbol, 6)} {tx.symbol}
                           </p>
                           <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{tx.time}</p>
                         </div>

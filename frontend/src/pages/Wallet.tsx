@@ -10,7 +10,8 @@ import { transactionsApi } from '@/api/transactions';
 import { toast } from 'react-hot-toast';
 import * as StellarBase from 'stellar-base';
 import { Buffer } from 'buffer';
-import { getUSDValue, formatUSDValue, formatAssetAmount, fetchLiveRates, ExchangeRate, DEFAULT_RATES } from '@/lib/currency';
+import { getUSDValue, formatUSDValue, formatAssetAmount, formatAssetAmountWithPrecision, fetchLiveRates, ExchangeRate, DEFAULT_RATES } from '@/lib/currency';
+import TransactionDetailModal from '@/components/TransactionDetailModal';
 
 // Polyfills
 if (!window.Buffer) window.Buffer = Buffer;
@@ -26,6 +27,7 @@ import {
   Send, 
   ArrowUpRight, 
   ArrowDownLeft, 
+  ArrowUpDown,
   RefreshCw, 
   Eye,
   EyeOff,
@@ -383,10 +385,9 @@ const WalletPage: React.FC = () => {
     refetchOnWindowFocus: false, // Tắt refetch khi focus để giảm refresh
   })
 
-  // Process recent transactions (exclude swap transactions, take first 5)
+  // Process recent transactions (take first 5)
   const recentTransactions = transactionsData?.transactions
-    .filter((tx) => tx.tx_type !== 'SWAP') // Bỏ qua swap transactions
-    .slice(0, 5) // Lấy 5 giao dịch gần nhất (không phải swap)
+    .slice(0, 5) // Lấy 5 giao dịch gần nhất
     .map((tx) => {
       let type = 'sent' // default fallback
       
@@ -397,14 +398,16 @@ const WalletPage: React.FC = () => {
       }
       
       return {
-        id: tx.id,
-        type: type,
-        amount: tx.amount,
-        symbol: tx.asset_code,
-        to: tx.destination,
-        from: tx.source,
-        time: new Date(tx.created_at).toLocaleDateString(),
-        status: tx.status.toLowerCase()
+        // Keep original Transaction object for modal
+        ...tx,
+        // Add display properties for UI
+        displayType: type,
+        displayAmount: tx.amount,
+        displaySymbol: tx.asset_code,
+        displayTo: tx.destination,
+        displayFrom: tx.source,
+        displayTime: new Date(tx.created_at).toLocaleDateString(),
+        displayStatus: tx.status.toLowerCase()
       }
     }) || []
 
@@ -454,10 +457,9 @@ const WalletPage: React.FC = () => {
       // Scroll animations for assets
       gsap.utils.toArray('.asset-card').forEach((card: any, index) => {
         gsap.fromTo(card,
-          { opacity: 0, x: -50 },
+          { opacity: 0 },
           {
             opacity: 1,
-            x: 0,
             duration: 0.6,
             delay: 0.1 * index,
             ease: "power2.out",
@@ -474,10 +476,9 @@ const WalletPage: React.FC = () => {
       // Transaction animations
       gsap.utils.toArray('.transaction-item').forEach((item: any, index) => {
         gsap.fromTo(item,
-          { opacity: 0, x: -30 },
+          { opacity: 0 },
           {
             opacity: 1,
-            x: 0,
             duration: 0.5,
             delay: 0.1 * index,
             ease: "power2.out",
@@ -637,7 +638,7 @@ const WalletPage: React.FC = () => {
                     </div>
                     <div className="text-right">
                     <p className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {showBalance ? formatAssetAmount(balance.amount || '0', 3) : '••••'}
+                      {showBalance ? formatAssetAmountWithPrecision(balance.amount || '0', balance.symbol, 6) : '••••'}
                     </p>
                     <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
                       {showBalance ? formatUSDValue(balance.value || 0) : '••••'}
@@ -669,7 +670,7 @@ const WalletPage: React.FC = () => {
               <div 
                 key={tx.id} 
                 onClick={() => {
-                    setSelectedTransaction(tx);
+                    setSelectedTransaction(tx as any);
                     setIsModalOpen(true);
                   }}
                   className={`transaction-item backdrop-blur-sm rounded-xl border p-4 transition-all duration-200 cursor-pointer ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white/80 border-slate-200 hover:bg-slate-200/80'}`}
@@ -677,26 +678,35 @@ const WalletPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        tx.type === 'received' ? 'bg-green-100' : 'bg-red-100'
+                        tx.displayType === 'received' ? 'bg-green-100' : tx.displayType === 'swapped' ? 'bg-blue-100' : 'bg-red-100'
                       }`}>
-                        {tx.type === 'received' ? (
+                        {tx.displayType === 'received' ? (
                           <ArrowDownLeft className="w-5 h-5 text-green-600" />
+                        ) : tx.displayType === 'swapped' ? (
+                          <ArrowUpDown className="w-5 h-5 text-blue-600" />
                         ) : (
                           <ArrowUpRight className="w-5 h-5 text-red-600" />
                         )}
                     </div>
                     <div>
-                        <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>{tx.type === 'sent' ? t('wallet.sent') : t('wallet.received')}</p>
+                        <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {tx.displayType === 'sent' ? t('wallet.sent') : tx.displayType === 'swapped' ? t('wallet.swapped', 'Swapped') : t('wallet.received')}
+                        </p>
                         <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-                          {tx.type === 'sent' ? `${t('wallet.to')}: ${tx.to?.slice(0, 8)}...` : `${t('wallet.from')}: ${tx.from?.slice(0, 8)}...`}
+                          {tx.displayType === 'swapped' 
+                            ? `${t('wallet.swap', 'Asset swap')}` 
+                            : tx.displayType === 'sent' 
+                              ? `${t('wallet.to')}: ${tx.displayTo?.slice(0, 8)}...` 
+                              : `${t('wallet.from')}: ${tx.displayFrom?.slice(0, 8)}...`
+                          }
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                      <p className={`font-semibold ${tx.type === 'received' ? 'text-green-600' : 'text-red-600'}`}>
-                        {tx.type === 'received' ? '+' : '-'}{tx.amount} {tx.symbol}
+                      <p className={`font-semibold ${tx.displayType === 'received' ? 'text-green-600' : tx.displayType === 'swapped' ? 'text-blue-600' : 'text-red-600'}`}>
+                        {tx.displayType === 'received' ? '+' : tx.displayType === 'swapped' ? '↔' : '-'}{tx.displayAmount} {tx.displaySymbol}
                       </p>
-                      <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{tx.time}</p>
+                      <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{tx.displayTime}</p>
                   </div>
                 </div>
               </div>
@@ -854,6 +864,16 @@ const WalletPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Transaction Detail Modal */}
+      <TransactionDetailModal
+        transaction={selectedTransaction as any}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTransaction(null);
+        }}
+      />
     </div>
   );
 };
