@@ -1,3 +1,4 @@
+import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/session'
 // Use alias path to avoid any moduleResolution quirks with relative specifier
@@ -12,6 +13,8 @@ import Insights from '@/pages/Insights'
 import Assistant from '@/pages/Assistant'
 import Settings from '@/pages/Settings'
 import Profile from '@/pages/Profile'
+import SovicoEcosystem from '@/pages/SovicoEcosystem'
+
 
 function App() {
   const { isAuthenticated, isLocked } = useAuthStore()
@@ -36,6 +39,7 @@ function App() {
         <Route path="/activity" element={<Activity />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/assistant" element={<Assistant />} />
+        <Route path="/sovico" element={<SovicoEcosystem />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/login" element={<Navigate to="/" replace />} />

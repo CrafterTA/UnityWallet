@@ -30,6 +30,9 @@ AIRDROP_AMOUNT = int(os.getenv("AIRDROP_AMOUNT", "500"))
 USDC_CODE   = os.getenv("USDC_CODE", "USDC")
 USDC_ISSUER = os.getenv("USDC_ISSUER", "")
 
+# Database configuration
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/sovico_ecosystem")
+
 server = Server(HORIZON)
 
 def is_ia_or_da(pub: str) -> bool:

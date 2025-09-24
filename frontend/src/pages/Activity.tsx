@@ -1,20 +1,21 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Filter, Search, ArrowUpRight, ArrowDownLeft, RefreshCw, Download, Calendar, ArrowLeft } from 'lucide-react'
+import { Activity, Filter, Search, ArrowUpRight, ArrowDownLeft, RefreshCw, Download, Calendar, ArrowLeft, Star } from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
 import { useNavigate } from 'react-router-dom'
 import { analyticsApi } from '@/api/analytics'
 import { transactionsApi, Transaction } from '@/api/transactions'
+import { sovicoApi, SovicoTransactionResponse } from '@/api/sovico'
 import { useAuthStore } from '@/store/session'
 import TransactionDetailModal from '@/components/TransactionDetailModal'
 
 function ActivityPage() {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, wallet } = useAuthStore()
   const queryClient = useQueryClient()
-  const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received' | 'swapped'>('all')
+  const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received' | 'swapped' | 'sovico'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -25,6 +26,7 @@ function ActivityPage() {
     { id: 'sent', label: t('activity.sent', 'Sent'), icon: ArrowUpRight },
     { id: 'received', label: t('activity.received', 'Received'), icon: ArrowDownLeft },
     { id: 'swapped', label: t('activity.swapped', 'Swapped'), icon: RefreshCw },
+    { id: 'sovico', label: t('activity.sovico', 'Sovico'), icon: Star },
   ]
 
   // Fetch real transaction summary data
@@ -66,8 +68,21 @@ function ActivityPage() {
     staleTime: 0, // Data is always considered stale, will refetch
   })
 
+  // Fetch Sovico transaction data
+  const { data: sovicoTransactionsData, isLoading: sovicoLoading, error: sovicoError } = useQuery({
+    queryKey: ['sovico-transactions', wallet?.public_key],
+    queryFn: () => wallet?.public_key ? sovicoApi.getSovicoTransactions(wallet.public_key, 20) : Promise.resolve([]),
+    retry: 1,
+    enabled: !!wallet?.public_key,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
+    refetchInterval: 500,
+    staleTime: 0,
+  })
+
   // Process real transaction data - sử dụng tx_type từ API
-  const transactions = transactionsData?.transactions?.map((tx) => {
+  const stellarTransactions = transactionsData?.transactions?.map((tx) => {
     // Map tx_type từ backend thành type cho UI
     let type = 'sent' // default fallback
     
@@ -88,22 +103,71 @@ function ActivityPage() {
       status: tx.status.toLowerCase(),
       fee: '0.01', // Default fee
       toAmount: tx.tx_type === 'SWAP' ? tx.amount : (tx.buy_asset ? tx.amount : undefined),
-      toCurrency: tx.tx_type === 'SWAP' ? tx.asset_code : tx.buy_asset
+      toCurrency: tx.tx_type === 'SWAP' ? tx.asset_code : tx.buy_asset,
+      source: 'stellar'
     }
   }) || []
+
+  // Process Sovico transactions
+  const sovicoTransactions = sovicoTransactionsData?.map((tx) => {
+    // Use actual Stellar transaction data if available, otherwise estimate
+    const stellarAmount = (tx as any).stellar_amount || '1.000'
+    const stellarAsset = (tx as any).stellar_asset || 'XLM'
+    
+    // Get brand name from brand_id
+    const getBrandName = (brandId: string) => {
+      const brandNames: Record<string, string> = {
+        '1': "McDonald's",
+        '2': 'Nike',
+        '3': 'Grab',
+        '4': 'Vincom',
+        '5': 'The Coffee House',
+        '6': 'Vietnam Airlines'
+      }
+      return brandNames[brandId] || `Brand ${brandId}`
+    }
+    
+    return {
+      id: tx.transaction_id,
+      type: 'sovico',
+      amount: stellarAmount, // Show actual Stellar amount used
+      currency: stellarAsset, // Show the actual Stellar asset used
+      address: getBrandName(tx.brand_id), // Show brand name instead of brand_id
+      date: new Date(tx.timestamp * 1000).toISOString(),
+      status: 'confirmed',
+      fee: '0',
+      description: tx.description || `${getBrandName(tx.brand_id)} purchase`,
+      source: 'sovico',
+      toAmount: tx.points_earned.toString(), // Points earned
+      toCurrency: 'Points',
+      sovico_data: {
+        amount_vnd: tx.amount_vnd,
+        points_earned: tx.points_earned,
+        brand_id: tx.brand_id
+      }
+    }
+  }) || []
+
+  // Combine all transactions and sort by date
+  const allTransactions = [...stellarTransactions, ...sovicoTransactions].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+
+  const transactions = allTransactions
 
   // Recalculate stats from actual transactions
   const actualStats = {
     totalSent: transactions.filter(tx => tx.type === 'sent').length,
     totalReceived: transactions.filter(tx => tx.type === 'received').length,
     totalSwapped: transactions.filter(tx => tx.type === 'swapped').length,
+    totalSovico: transactions.filter(tx => tx.type === 'sovico').length,
     totalTransactions: transactions.length,
     averageAmount: transactions.length > 0 ? parseFloat((transactions.reduce((sum, tx) => sum + parseFloat(tx.amount || '0'), 0) / transactions.length).toFixed(3)) : 0,
   }
 
 
   // Check for errors
-  const hasError = summaryError || transactionsError;
+  const hasError = summaryError || transactionsError || sovicoError;
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -113,6 +177,8 @@ function ActivityPage() {
         return <ArrowDownLeft className="w-5 h-5 text-green-400" />
       case 'swapped':
         return <RefreshCw className="w-5 h-5 text-blue-400" />
+      case 'sovico':
+        return <Star className="w-5 h-5 text-yellow-400" />
       default:
         return <Activity className="w-5 h-5 text-gray-400" />
     }
@@ -126,6 +192,8 @@ function ActivityPage() {
         return 'bg-green-500/10 border-green-500/20'
       case 'swapped':
         return 'bg-blue-500/10 border-blue-500/20'
+      case 'sovico':
+        return 'bg-yellow-500/10 border-yellow-500/20'
       default:
         return 'bg-gray-500/10 border-gray-500/20'
     }
@@ -217,7 +285,7 @@ function ActivityPage() {
       )}
 
       {/* Loading State */}
-      {(summaryLoading || transactionsLoading) && (
+      {(summaryLoading || transactionsLoading || sovicoLoading) && (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className={`h-24 backdrop-blur-sm rounded-2xl border animate-pulse ${
@@ -228,7 +296,7 @@ function ActivityPage() {
       )}
 
       {/* Transactions List */}
-      {!(summaryLoading || transactionsLoading) && !hasError && (
+      {!(summaryLoading || transactionsLoading || sovicoLoading) && !hasError && (
         <div className="space-y-4">
           {filteredTransactions.length > 0 ? (
             <>
@@ -272,7 +340,7 @@ function ActivityPage() {
                         <div>
                           <div className="flex items-center space-x-2">
                             <h3 className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                              {transaction.type}
+                              {transaction.type === 'sovico' ? transaction.address : transaction.type}
                             </h3>
                             <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
                               {transaction.status}
@@ -289,7 +357,8 @@ function ActivityPage() {
                           {transaction.type !== 'swapped' && (
                             <p className={`text-xs font-mono mt-1 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
                               {transaction.type === 'sent' ? transaction.address : 
-                               transaction.type === 'received' ? transaction.address : ''}
+                               transaction.type === 'received' ? transaction.address :
+                               transaction.type === 'sovico' ? (transaction as any).description : ''}
                             </p>
                           )}
                         </div>
@@ -306,13 +375,23 @@ function ActivityPage() {
                               → {transaction.toAmount ? parseFloat(transaction.toAmount).toFixed(3) : '0.000'} {transaction.toCurrency || 'XLM'}
                             </p>
                           </div>
+                        ) : transaction.type === 'sovico' ? (
+                          <div>
+                            <p className={`font-bold text-lg text-red-400`}>
+                              -{parseFloat(transaction.amount || '0').toFixed(3)} {transaction.currency || 'USDC'}
+                            </p>
+                            <p className={`text-sm text-yellow-400`}>
+                              → +{transaction.toAmount} {transaction.toCurrency}
+                            </p>
+                          </div>
                         ) : (
                           <p className={`font-bold text-lg ${
                             transaction.type === 'sent' ? 'text-red-400' : 
-                            transaction.type === 'received' ? 'text-green-400' : 
+                            transaction.type === 'received' ? 'text-green-400' :
                             'text-blue-400'
                           }`}>
-                            {transaction.type === 'sent' ? '-' : transaction.type === 'received' ? '+' : ''}
+                            {transaction.type === 'sent' ? '-' : 
+                             transaction.type === 'received' ? '+' : ''}
                             {parseFloat(transaction.amount || '0').toFixed(3)} {transaction.currency || 'XLM'}
                           </p>
                         )}
@@ -355,7 +434,7 @@ function ActivityPage() {
       )}
 
       {/* Summary Stats */}
-      {!(summaryLoading || transactionsLoading) && !hasError && (
+      {!(summaryLoading || transactionsLoading || sovicoLoading) && !hasError && (
         <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-white/80 border-slate-200'} backdrop-blur-sm rounded-2xl p-6 border mt-6`}>
           <h3 className={`font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('activity.monthSummary', 'This Month Summary')}
