@@ -22,6 +22,7 @@ import {
   User,
   LogOut,
   ArrowRight,
+  Building2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/session';
 import { useThemeStore } from '@/store/theme';
@@ -54,6 +55,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
     { path: '/swap', label: t('navigation.swap', 'Swap'), icon: Repeat },
     { path: '/activity', label: t('navigation.activity', 'Activity'), icon: Activity },
     { path: '/insights', label: t('navigation.insights', 'Insights'), icon: BarChart3 },
+    { path: '/sovico', label: t('navigation.sovico', 'Sovico'), icon: Building2 },
   ]), [t]);
 
   const activeIndex = useMemo(() => {

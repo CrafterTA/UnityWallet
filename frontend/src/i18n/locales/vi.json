@@ -32,6 +32,7 @@
     "insights": "Phân tích",
     "settings": "Cài đặt",
     "profile": "Hồ sơ",
+    "sovico": "Sovico",
     "logout": "Đăng xuất"
   },
   "home": {
@@ -499,5 +500,73 @@
     "liquidity": "Thanh khoản",
     "proTip": "Mẹo chuyên nghiệp",
     "tip": "Chuyển đổi SkyPoints sang USDC để chi tiêu dễ dàng hơn, hoặc sang XLM để có phí giao dịch thấp hơn."
+  },
+  "sovico": {
+    "title": "Hệ sinh thái Sovico",
+    "subtitle": "Khám phá và sử dụng các dịch vụ đa dạng từ tập đoàn kinh tế hàng đầu Việt Nam",
+    "about": {
+      "title": "Về Sovico Group",
+      "description": "Sovico Group là tập đoàn kinh tế đa ngành hàng đầu tại Việt Nam, hoạt động trong các lĩnh vực then chốt như tài chính - ngân hàng, hàng không, bất động sản và năng lượng.",
+      "experience": "Hơn 20 năm kinh nghiệm",
+      "customers": "Hàng triệu khách hàng tin tưởng",
+      "sustainability": "Cam kết phát triển bền vững"
+    },
+    "services": {
+      "title": "Dịch vụ của chúng tôi",
+      "subtitle": "Thanh toán dễ dàng bằng các đồng tiền số trong ví của bạn",
+      "all": "Tất cả",
+      "banking": "Tài chính - Ngân hàng",
+      "aviation": "Hàng không",
+      "realestate": "Bất động sản",
+      "energy": "Năng lượng",
+      "buyNow": "Mua ngay",
+      "payment": "Thanh toán",
+      "amount": "Số tiền",
+      "payWith": "Thanh toán bằng",
+      "exchangeRate": "Tỷ giá quy đổi sẽ được cập nhật theo thời gian thực",
+      "cancel": "Hủy",
+      "pay": "Thanh toán",
+      "loginRequired": "Vui lòng đăng nhập để thanh toán"
+    },
+    "hdbank": {
+      "name": "Tài khoản HDBank Premium",
+      "description": "Tài khoản ngân hàng cao cấp với nhiều ưu đãi đặc biệt",
+      "features": [
+        "Miễn phí chuyển khoản không giới hạn",
+        "Lãi suất tiết kiệm cao",
+        "Bảo hiểm tài khoản miễn phí",
+        "Hỗ trợ 24/7"
+      ]
+    },
+    "vietjet": {
+      "name": "Vietjet Business Class",
+      "description": "Vé máy bay hạng thương gia với dịch vụ cao cấp",
+      "features": [
+        "Ghế ngồi rộng rãi, thoải mái",
+        "Bữa ăn cao cấp",
+        "Hành lý ký gửi miễn phí",
+        "Ưu tiên check-in và lên máy bay"
+      ]
+    },
+    "dragonVillage": {
+      "name": "Biệt thự Dragon Village",
+      "description": "Biệt thự cao cấp tại khu đô thị Dragon Village",
+      "features": [
+        "Thiết kế sang trọng, hiện đại",
+        "Vị trí đắc địa, gần trung tâm",
+        "Tiện ích đầy đủ",
+        "Bảo hành 10 năm"
+      ]
+    },
+    "renewableEnergy": {
+      "name": "Năng lượng tái tạo",
+      "description": "Đầu tư vào các dự án năng lượng xanh",
+      "features": [
+        "Góp phần bảo vệ môi trường",
+        "Lợi nhuận ổn định",
+        "Hỗ trợ phát triển bền vững",
+        "Được chính phủ khuyến khích"
+      ]
+    }
   }
 }

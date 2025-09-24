@@ -31,6 +31,7 @@
     "insights": "Insights",
     "settings": "Settings",
     "profile": "Profile",
+    "sovico": "Sovico",
     "logout": "Logout"
   },
   "home": {
@@ -497,5 +498,73 @@
     "liquidity": "Liquidity",
     "proTip": "Pro Tip",
     "tip": "Convert SkyPoints to USDC for easier spending, or to XLM for lower transaction fees."
+  },
+  "sovico": {
+    "title": "Sovico Ecosystem",
+    "subtitle": "Discover and use diverse services from Vietnam's leading economic group",
+    "about": {
+      "title": "About Sovico Group",
+      "description": "Sovico Group is Vietnam's leading multi-sector economic group, operating in key sectors such as finance - banking, aviation, real estate and energy.",
+      "experience": "Over 20 years of experience",
+      "customers": "Millions of trusted customers",
+      "sustainability": "Commitment to sustainable development"
+    },
+    "services": {
+      "title": "Our Services",
+      "subtitle": "Easy payment with digital currencies in your wallet",
+      "all": "All",
+      "banking": "Finance - Banking",
+      "aviation": "Aviation",
+      "realestate": "Real Estate",
+      "energy": "Energy",
+      "buyNow": "Buy Now",
+      "payment": "Payment",
+      "amount": "Amount",
+      "payWith": "Pay with",
+      "exchangeRate": "Exchange rates will be updated in real time",
+      "cancel": "Cancel",
+      "pay": "Pay",
+      "loginRequired": "Please login to make payment"
+    },
+    "hdbank": {
+      "name": "HDBank Premium Account",
+      "description": "Premium bank account with special benefits",
+      "features": [
+        "Unlimited free transfers",
+        "High savings interest rate",
+        "Free account insurance",
+        "24/7 support"
+      ]
+    },
+    "vietjet": {
+      "name": "Vietjet Business Class",
+      "description": "Business class flight tickets with premium service",
+      "features": [
+        "Spacious, comfortable seats",
+        "Premium meals",
+        "Free checked baggage",
+        "Priority check-in and boarding"
+      ]
+    },
+    "dragonVillage": {
+      "name": "Dragon Village Villa",
+      "description": "Luxury villa in Dragon Village urban area",
+      "features": [
+        "Luxurious, modern design",
+        "Prime location, near center",
+        "Full amenities",
+        "10-year warranty"
+      ]
+    },
+    "renewableEnergy": {
+      "name": "Renewable Energy",
+      "description": "Investment in green energy projects",
+      "features": [
+        "Contribute to environmental protection",
+        "Stable returns",
+        "Support sustainable development",
+        "Government encouraged"
+      ]
+    }
   }
 }
