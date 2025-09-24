@@ -383,16 +383,6 @@ useEffect(() => {
                             </div>
                             <span className="font-medium">{t('navigation.settings', 'Settings')}</span>
                           </button>
-                          
-                                                     <button 
-                             onClick={() => go('/profile')}
-                             className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition-all duration-200 group ${isDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
-                           >
-                             <div className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${isDark ? 'bg-white/5 group-hover:bg-blue-500/20' : 'bg-slate-100 group-hover:bg-blue-100'}`}>
-                              <User className="h-4 w-4" />
-                            </div>
-                            <span className="font-medium">{t('navigation.profile', 'Profile')}</span>
-                          </button>
                         </div>
 
                         {/* Divider */}
