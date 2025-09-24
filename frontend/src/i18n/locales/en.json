@@ -566,5 +566,457 @@
         "Government encouraged"
       ]
     }
+  },
+  "sovico2": {
+    "hero": {
+      "title": "Sovico 2.0",
+      "subtitle": "Experience marketplace with integrated SYP payments - Discover and use diverse services from Vietnam's leading economic group",
+      "balance": {
+        "syp": "SYP Balance"
+      },
+      "stats": {
+        "customers": "Customers",
+        "categories": "Categories",
+        "rating": "Rating",
+        "years": "Years Experience"
+      },
+      "features": {
+        "instant": "Instant Payment",
+        "instantDesc": "Pay with SYP in seconds",
+        "rewards": "Exclusive Rewards",
+        "rewardsDesc": "Get special offers when using SYP",
+        "secure": "High Security",
+        "secureDesc": "Secure blockchain technology"
+      },
+      "cta": {
+        "explore": "Explore with SYP",
+        "solutions": "View Solutions"
+      },
+      "video": {
+        "title": "Discover Sovico 2.0",
+        "description": "See how Sovico 2.0 changes how you use services"
+      }
+    },
+    "tabs": {
+      "overview": "Overview",
+      "overviewDesc": "Overview of Sovico 2.0",
+      "solutions": "Solution Packs",
+      "solutionsDesc": "Combined service packages",
+      "businesses": "Businesses",
+      "businessesDesc": "Member company information",
+      "services": "Services",
+      "servicesDesc": "Service marketplace",
+      "promotions": "Promotions",
+      "promotionsDesc": "Promotions and offers",
+      "stories": "Stories",
+      "storiesDesc": "Success stories",
+      "contact": "Contact",
+      "contactDesc": "Support and contact"
+    },
+    "search": {
+      "placeholder": "Search services, solution packages..."
+    },
+    "sort": {
+      "popularity": "Popular",
+      "price": "Price",
+      "rating": "Rating",
+      "name": "Name",
+      "newest": "Newest",
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
+    "filter": {
+      "button": "Filters"
+    },
+    "about": {
+      "title": "About Sovico 2.0",
+      "description": "Sovico 2.0 is an experience marketplace with integrated SYP payments, connecting users with diverse services from Vietnam's leading economic group. Experience shopping and using services in a completely new way with blockchain technology.",
+      "feature1": "Instant payment with SYP",
+      "feature2": "Exclusive offers for SYP users",
+      "feature3": "AI integration and data analytics"
+    },
+    "categories": {
+      "banking": "Banking",
+      "aviation": "Aviation",
+      "realestate": "Real Estate",
+      "energy": "Energy"
+    },
+    "mission": {
+      "title": "Mission",
+      "description": "Create a unified payment ecosystem, connecting users with high-quality services through blockchain technology and artificial intelligence."
+    },
+    "vision": {
+      "title": "Vision",
+      "description": "Become the leading marketplace platform in Southeast Asia, leading in crypto payment integration and personalized user experience."
+    },
+    "analytics": {
+      "title": "Market Statistics",
+      "marketCap": "SYP Market Cap (VND)",
+      "sypPrice": "SYP Price (VND)",
+      "transactions": "Transactions",
+      "activeUsers": "Active Users"
+    },
+    "solutions": {
+      "title": "Solution Packages",
+      "subtitle": "Combined service packages with special offers",
+      "popular": "Popular",
+      "discount": "Save",
+      "explore": "Explore"
+    },
+    "businesses": {
+      "title": "Member Businesses",
+      "subtitle": "Discover subsidiary companies in the Sovico ecosystem",
+      "visit": "Visit Website",
+      "viewProfile": "View Profile"
+    },
+    "services": {
+      "title": "Services",
+      "subtitle": "Service marketplace with SYP payments",
+      "payment": "Payment with SYP, XLM, USDC",
+      "buy": "Buy Now"
+    },
+    "promotions": {
+      "title": "Promotions",
+      "subtitle": "Promotions and exclusive offers for SYP users",
+      "comingSoon": "Promotions Coming Soon",
+      "comingSoonDesc": "We're preparing exciting offers for you"
+    },
+    "stories": {
+      "title": "Stories",
+      "subtitle": "Success stories and user experiences",
+      "comingSoon": "Stories Coming Soon",
+      "comingSoonDesc": "We're preparing interesting stories for you"
+    },
+    "contact": {
+      "title": "Contact",
+      "subtitle": "Connect with Sovico Group and member businesses",
+      "info": "Contact Information",
+      "form": "Send Message",
+      "name": "Full Name",
+      "email": "Email",
+      "message": "Message",
+      "send": "Send Message"
+    },
+    "payment": {
+      "title": "Payment",
+      "step": "Step",
+      "step1": {
+        "title": "Service Details",
+        "subtitle": "Review the service you want to purchase"
+      },
+      "step2": {
+        "title": "Payment Method",
+        "subtitle": "Select asset to pay with"
+      },
+      "step3": {
+        "title": "Payment Confirmation",
+        "subtitle": "Review information before payment"
+      },
+      "addons": "Add-on Services",
+      "balance": "Balance",
+      "insufficient": "Insufficient balance",
+      "insufficientTitle": "Insufficient Balance",
+      "insufficientDesc": "You need more assets to complete payment",
+      "swap": "Swap",
+      "item": "Service",
+      "amount": "Amount",
+      "recipient": "Recipient",
+      "memo": "Memo",
+      "walletInfo": "Wallet Information",
+      "walletDesc": "Transaction will be signed with your wallet",
+      "secretKey": "Secret Key",
+      "confirm": "Confirm",
+      "processing": "Processing...",
+      "payNow": "Pay Now",
+      "success": {
+        "title": "Payment Successful!",
+        "subtitle": "Transaction has been processed successfully"
+      },
+      "error": {
+        "title": "Payment Failed",
+        "subtitle": "An error occurred during payment"
+      },
+      "txHash": "Transaction Hash",
+      "viewOnHorizon": "View on Horizon",
+      "downloadInvoice": "Download Invoice"
+    },
+    "filters": {
+      "title": "Filters",
+      "category": "Category",
+      "company": "Company",
+      "priceRange": "Price Range",
+      "rating": "Minimum Rating",
+      "sortBy": "Sort By",
+      "allCategories": "All Categories",
+      "allCompanies": "All Companies",
+      "anyRating": "Any",
+      "active": "Active filters",
+      "clearAll": "Clear All"
+    },
+    "results": {
+      "found": "Found",
+      "services": "services",
+      "showing": "Showing",
+      "of": "of",
+      "noResults": "No services found",
+      "noResultsDesc": "Try changing filters or search keywords"
+    }
+  },
+  "company": {
+    "tabs": {
+      "overview": "Overview",
+      "kpis": "KPIs",
+      "stories": "Stories",
+      "contact": "Contact"
+    },
+    "profile": "Company Profile",
+    "established": "Established",
+    "employees": "employees",
+    "revenue": "Revenue",
+    "annual": "Annual",
+    "marketShare": "Market Share",
+    "inVietnam": "in Vietnam",
+    "achievements": "Achievements",
+    "awards": "Awards",
+    "services": "Main Services",
+    "viewServices": "View Services",
+    "partnerships": "Partners",
+    "socialMedia": "Social Media",
+    "kpis": {
+      "title": "Key Performance Indicators",
+      "subtitle": "Important performance metrics updated in real-time"
+    },
+    "lastUpdated": "Last updated",
+    "stories": {
+      "title": "Success Stories",
+      "subtitle": "Customer success stories and experiences",
+      "noStories": "No stories yet",
+      "noStoriesDesc": "Stories will be updated soon"
+    },
+    "contact": {
+      "title": "Contact",
+      "subtitle": "Get in touch with us",
+      "info": "Contact Information",
+      "form": "Send Message",
+      "name": "Full Name",
+      "email": "Email",
+      "message": "Message",
+      "send": "Send Message"
+    }
+  },
+  "loyalty": {
+    "title": "Loyalty Program",
+    "subtitle": "Earn points, get rewards and enjoy special services",
+    "tabs": {
+      "promotions": "Promotions",
+      "tasks": "Tasks",
+      "levels": "Levels"
+    },
+    "levels": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "platinum": "Platinum",
+      "diamond": "Diamond",
+      "title": "Membership Levels",
+      "progressToNext": "Progress to next level",
+      "nextLevel": "Need",
+      "toReach": "to reach next level",
+      "benefits": "Level Benefits"
+    },
+    "promotions": {
+      "title": "Current Promotions",
+      "viewAll": "View All",
+      "noPromotions": "No promotions available",
+      "noPromotionsDesc": "Promotions will be updated soon",
+      "off": "off",
+      "cashback": "cashback",
+      "pointsLabel": "points",
+      "gift": "Gift",
+      "validUntil": "Valid until",
+      "used": "used",
+      "terms": "Terms",
+      "redeem": "Use Now"
+    },
+    "tasks": {
+      "title": "Daily Tasks",
+      "viewAll": "View All",
+      "progress": "Progress",
+      "completed": "Completed",
+      "showLess": "Show Less",
+      "showMore": "Show More",
+      "firstPurchase": "First Purchase",
+      "firstPurchaseDesc": "Make your first transaction with SYP",
+      "referFriend": "Refer Friends",
+      "referFriendDesc": "Invite 3 friends to use Sovico",
+      "weeklySpend": "Weekly Spending",
+      "weeklySpendDesc": "Spend 1,000,000 VND this week",
+      "socialShare": "Social Share",
+      "socialShareDesc": "Share Sovico on Facebook"
+    },
+    "points": {
+      "available": "Available Points",
+      "used": "Used Points",
+      "total": "Total Points"
+    }
+  },
+  "stories": {
+    "title": "Stories & Media",
+    "subtitle": "Stories, videos and multimedia content",
+    "tabs": {
+      "all": "All",
+      "blog": "Blog",
+      "video": "Video",
+      "podcast": "Podcast",
+      "timeline": "Timeline"
+    },
+    "categories": {
+      "all": "All",
+      "business": "Business",
+      "technology": "Technology",
+      "finance": "Finance",
+      "lifestyle": "Lifestyle",
+      "education": "Education"
+    },
+    "mediaTypes": {
+      "all": "All",
+      "video": "Video",
+      "audio": "Audio",
+      "text": "Text",
+      "image": "Image"
+    },
+    "search": "Search stories...",
+    "featured": "Featured",
+    "readMore": "Read More",
+    "noStories": "No stories available",
+    "noStoriesDesc": "Stories will be updated soon",
+    "viewAll": "View All"
+  },
+  "analytics": {
+    "title": "Analytics & Insights",
+    "subtitle": "Data analysis and detailed insights",
+    "tabs": {
+      "overview": "Overview",
+      "market": "Market",
+      "users": "Users",
+      "transactions": "Transactions",
+      "risks": "Risks"
+    },
+    "timeRanges": {
+      "1d": "1 day",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "1y": "1 year"
+    },
+    "sypMarketCap": "SYP Market Cap",
+    "activeUsers": "Active Users",
+    "transactionVolume": "Transaction Volume",
+    "revenue": "Revenue",
+    "sypPriceChart": "SYP Price Chart",
+    "userDistribution": "User Distribution",
+    "chartPlaceholder": "Chart will be displayed here",
+    "exchangeRates": "Exchange Rates",
+    "marketInsights": "Market Insights",
+    "totalUsers": "Total Users",
+    "newUsers": "New Users",
+    "retentionRate": "Retention Rate",
+    "transactionStats": "Transaction Statistics",
+    "totalTransactions": "Total Transactions",
+    "successRate": "Success Rate",
+    "avgProcessingTime": "Avg Processing Time",
+    "peakHours": "Peak Hours",
+    "riskScore": "Risk Score",
+    "riskLevels": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "anomalies": "Detected Anomalies",
+    "export": "Export Data"
+  },
+  "support": {
+    "title": "Support & Contact",
+    "subtitle": "We are always ready to support you",
+    "tabs": {
+      "contact": "Contact",
+      "appointment": "Appointment",
+      "faq": "FAQ",
+      "chatbot": "Chatbot",
+      "resources": "Resources"
+    },
+    "contactInfo": "Contact Information",
+    "hotline": "Hotline",
+    "email": "Email",
+    "address": "Address",
+    "hours": "Working Hours",
+    "quickActions": "Quick Actions",
+    "startChatbot": "Start Chatbot",
+    "viewFAQ": "View FAQ",
+    "downloadGuide": "Download Guide",
+    "contactForm": "Submit Support Request",
+    "submitted": "Request submitted successfully!",
+    "name": "Full Name",
+    "namePlaceholder": "Enter full name",
+    "emailPlaceholder": "Enter email",
+    "phone": "Phone Number",
+    "phonePlaceholder": "Enter phone number",
+    "priority": "Priority Level",
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "category": "Category",
+    "categories": {
+      "technical": "Technical",
+      "billing": "Billing",
+      "general": "General",
+      "feature_request": "Feature Request",
+      "bug_report": "Bug Report"
+    },
+    "subject": "Subject",
+    "subjectPlaceholder": "Enter subject",
+    "message": "Message",
+    "messagePlaceholder": "Describe your issue in detail",
+    "submitting": "Submitting...",
+    "submit": "Submit Request",
+    "scheduleAppointment": "Schedule Appointment",
+    "appointmentScheduled": "Appointment scheduled successfully!",
+    "service": "Service",
+    "services": {
+      "consultation": "Consultation",
+      "technical_support": "Technical Support",
+      "training": "Training",
+      "integration": "Integration",
+      "custom_development": "Custom Development"
+    },
+    "selectService": "Select Service",
+    "date": "Date",
+    "time": "Time",
+    "appointmentMessagePlaceholder": "Describe your requirements",
+    "scheduling": "Scheduling...",
+    "schedule": "Schedule Appointment",
+    "faq": {
+      "howToStart": "How to get started with Sovico?",
+      "howToStartAnswer": "You can start by creating an account, connecting your wallet and exploring available services in the Sovico ecosystem.",
+      "paymentMethods": "What payment methods are supported?",
+      "paymentMethodsAnswer": "We support payments with SYP, XLM, USDC and other cryptocurrencies through the Stellar network.",
+      "security": "Is my data secure?",
+      "securityAnswer": "We use end-to-end encryption and advanced security technologies to protect your data.",
+      "fees": "Are there any transaction fees?",
+      "feesAnswer": "Transaction fees are very low and calculated based on the Stellar network. We provide transparent fee schedules.",
+      "technicalIssues": "I have technical issues, how can I get support?",
+      "technicalIssuesAnswer": "You can contact us via hotline, email or use our chatbot for 24/7 support."
+    },
+    "chatbotTitle": "AI Chatbot",
+    "chatbotDesc": "Chat with AI for quick support 24/7",
+    "startChat": "Start Chat",
+    "userGuide": "User Guide",
+    "userGuideDesc": "Basic usage guide for new users",
+    "businessGuide": "Business Guide",
+    "businessGuideDesc": "Integration guide for businesses",
+    "developerGuide": "API Documentation",
+    "developerGuideDesc": "API documentation and SDK for developers"
   }
 }

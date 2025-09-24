@@ -1,0 +1,641 @@
+import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useThemeStore } from '@/store/theme'
+import { useAuthStore } from '@/store/session'
+import { 
+  X, 
+  ArrowLeft, 
+  ArrowRight, 
+  CheckCircle, 
+  AlertCircle, 
+  CreditCard, 
+  Zap, 
+  Coins, 
+  DollarSign,
+  Clock,
+  ExternalLink,
+  Copy,
+  Download,
+  Eye,
+  EyeOff
+} from 'lucide-react'
+import { SovicoService, SovicoSolution, SovicoCheckoutState, SovicoPaymentResult } from '@/types/sovico'
+
+interface PaymentModalProps {
+  isOpen: boolean
+  onClose: () => void
+  checkoutState: SovicoCheckoutState
+  onCheckoutChange: (state: SovicoCheckoutState) => void
+  onProcessPayment: () => Promise<SovicoPaymentResult>
+  onSuggestSwap: (fromAsset: string, toAsset: string, amount: number) => void
+  exchangeRates?: any
+  balances?: Record<string, string>
+  isLoading?: boolean
+  error?: string
+  paymentResult?: SovicoPaymentResult
+}
+
+const PaymentModal: React.FC<PaymentModalProps> = ({
+  isOpen,
+  onClose,
+  checkoutState,
+  onCheckoutChange,
+  onProcessPayment,
+  onSuggestSwap,
+  exchangeRates,
+  balances = {},
+  isLoading = false,
+  error,
+  paymentResult
+}) => {
+  const { t } = useTranslation()
+  const { isDark } = useThemeStore()
+  const { wallet } = useAuthStore()
+  
+  const [currentStep, setCurrentStep] = useState(1)
+  const [showSecretKey, setShowSecretKey] = useState(false)
+  const [copied, setCopied] = useState(false)
+  
+  const totalSteps = 4
+  const isService = !!checkoutState.service
+  const isSolution = !!checkoutState.solution
+  const item = isService ? checkoutState.service : checkoutState.solution
+
+  // Calculate balances in different assets
+  const sypBalance = parseFloat(balances.SYP || '0')
+  const xlmBalance = parseFloat(balances.XLM || '0')
+  const usdcBalance = parseFloat(balances.USDC || '0')
+
+  // Check if user has enough balance
+  const hasEnoughSYP = sypBalance >= (checkoutState.totalInSYP || 0)
+  const hasEnoughXLM = xlmBalance >= (checkoutState.totalInXLM || 0)
+  const hasEnoughUSDC = usdcBalance >= (checkoutState.totalInUSDC || 0)
+
+  const canPayWithSelectedAsset = () => {
+    switch (checkoutState.selectedAsset) {
+      case 'SYP': return hasEnoughSYP
+      case 'XLM': return hasEnoughXLM
+      case 'USDC': return hasEnoughUSDC
+      default: return false
+    }
+  }
+
+  const getBalanceForAsset = (asset: string) => {
+    switch (asset) {
+      case 'SYP': return sypBalance
+      case 'XLM': return xlmBalance
+      case 'USDC': return usdcBalance
+      default: return 0
+    }
+  }
+
+  const getAmountForAsset = (asset: string) => {
+    switch (asset) {
+      case 'SYP': return checkoutState.totalInSYP || 0
+      case 'XLM': return checkoutState.totalInXLM || 0
+      case 'USDC': return checkoutState.totalInUSDC || 0
+      default: return 0
+    }
+  }
+
+  const handleAssetChange = (asset: string) => {
+    onCheckoutChange({
+      ...checkoutState,
+      selectedAsset: asset
+    })
+  }
+
+  const handleAddonToggle = (addonId: string) => {
+    const updatedAddons = checkoutState.addons.map(addon => 
+      addon.id === addonId 
+        ? { ...addon, isSelected: !addon.isSelected }
+        : addon
+    )
+    
+    // Recalculate total
+    const addonTotal = updatedAddons
+      .filter(addon => addon.isSelected)
+      .reduce((sum, addon) => sum + addon.price, 0)
+    
+    const newTotal = (item?.price || 0) + addonTotal
+    
+    onCheckoutChange({
+      ...checkoutState,
+      addons: updatedAddons,
+      totalAmount: newTotal
+    })
+  }
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const handleConfirmPayment = async () => {
+    try {
+      await onProcessPayment()
+    } catch (error) {
+      console.error('Payment failed:', error)
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const formatPrice = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: currency === 'VND' ? 'VND' : 'USD',
+      minimumFractionDigits: currency === 'VND' ? 0 : 2
+    }).format(amount)
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+        
+        <div className={`relative w-full max-w-2xl rounded-3xl shadow-2xl ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          {/* Header */}
+          <div className={`flex items-center justify-between p-6 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={onClose}
+                className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div>
+                <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {t('payment.title', 'Thanh toán')}
+                </h2>
+                <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                  {t('payment.step', 'Bước')} {currentStep} / {totalSteps}
+                </p>
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="flex items-center gap-2">
+              {Array.from({ length: totalSteps }, (_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    i + 1 <= currentStep
+                      ? 'bg-red-500'
+                      : isDark
+                        ? 'bg-white/20'
+                        : 'bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            {/* Step 1: Service Details */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {t('payment.step1.title', 'Chi tiết dịch vụ')}
+                  </h3>
+                  <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                    {t('payment.step1.subtitle', 'Xem lại thông tin dịch vụ bạn muốn mua')}
+                  </p>
+                </div>
+
+                {item && (
+                  <div className={`p-6 rounded-2xl ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+                    <div className="flex items-start gap-4">
+                      <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-yellow-500 rounded-xl flex items-center justify-center">
+                        {isService ? (
+                          <CreditCard className="w-8 h-8 text-white" />
+                        ) : (
+                          <Zap className="w-8 h-8 text-white" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {item.name}
+                        </h4>
+                        <p className={`text-sm mb-4 ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          {item.description}
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {formatPrice(item.price, item.currency)}
+                          </div>
+                          {isSolution && 'originalPrice' in item && item.originalPrice && (
+                            <div className={`text-lg line-through ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                              {formatPrice(item.originalPrice, item.currency)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Add-ons */}
+                {checkoutState.addons.length > 0 && (
+                  <div>
+                    <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {t('payment.addons', 'Dịch vụ bổ sung')}
+                    </h4>
+                    <div className="space-y-3">
+                      {checkoutState.addons.map((addon) => (
+                        <label key={addon.id} className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={addon.isSelected}
+                            onChange={() => handleAddonToggle(addon.id)}
+                            className="w-4 h-4 text-red-500 rounded focus:ring-red-500"
+                          />
+                          <div className="flex-1">
+                            <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {addon.name}
+                            </div>
+                            <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                              {addon.description}
+                            </div>
+                          </div>
+                          <div className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {formatPrice(addon.price, addon.currency)}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Payment Method */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {t('payment.step2.title', 'Phương thức thanh toán')}
+                  </h3>
+                  <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                    {t('payment.step2.subtitle', 'Chọn tài sản để thanh toán')}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {['SYP', 'XLM', 'USDC'].map((asset) => {
+                    const balance = getBalanceForAsset(asset)
+                    const amount = getAmountForAsset(asset)
+                    const hasEnough = balance >= amount
+                    
+                    return (
+                      <button
+                        key={asset}
+                        onClick={() => handleAssetChange(asset)}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all ${
+                          checkoutState.selectedAsset === asset
+                            ? 'border-red-500 bg-red-500/10'
+                            : isDark
+                              ? 'border-white/20 hover:border-white/40'
+                              : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              asset === 'SYP' ? 'bg-gradient-to-r from-red-500 to-yellow-500' :
+                              asset === 'XLM' ? 'bg-blue-500' : 'bg-green-500'
+                            }`}>
+                              <Coins className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="text-left">
+                              <div className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                {asset}
+                              </div>
+                              <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                                {t('payment.balance', 'Số dư')}: {balance.toLocaleString()} {asset}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {amount.toLocaleString()} {asset}
+                            </div>
+                            <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                              ≈ {formatPrice(amount * (exchangeRates?.[asset]?.VND || 1), 'VND')}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {!hasEnough && (
+                          <div className="mt-3 flex items-center gap-2 text-orange-500">
+                            <AlertCircle className="w-4 h-4" />
+                            <span className="text-sm">
+                              {t('payment.insufficient', 'Số dư không đủ')}
+                            </span>
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {!canPayWithSelectedAsset() && (
+                  <div className={`p-4 rounded-2xl ${isDark ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-orange-50 border border-orange-200'}`}>
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="w-5 h-5 text-orange-500" />
+                      <div className="flex-1">
+                        <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {t('payment.insufficientTitle', 'Số dư không đủ')}
+                        </div>
+                        <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          {t('payment.insufficientDesc', 'Bạn cần thêm tài sản để thanh toán')}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => onSuggestSwap('XLM', checkoutState.selectedAsset, getAmountForAsset(checkoutState.selectedAsset))}
+                        className="px-4 py-2 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
+                      >
+                        {t('payment.swap', 'Swap')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Confirmation */}
+            {currentStep === 3 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {t('payment.step3.title', 'Xác nhận thanh toán')}
+                  </h3>
+                  <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                    {t('payment.step3.subtitle', 'Kiểm tra lại thông tin trước khi thanh toán')}
+                  </p>
+                </div>
+
+                <div className={`p-6 rounded-2xl ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span className={isDark ? 'text-white/70' : 'text-gray-600'}>
+                        {t('payment.item', 'Dịch vụ')}:
+                      </span>
+                      <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {item?.name}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className={isDark ? 'text-white/70' : 'text-gray-600'}>
+                        {t('payment.amount', 'Số tiền')}:
+                      </span>
+                      <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {getAmountForAsset(checkoutState.selectedAsset).toLocaleString()} {checkoutState.selectedAsset}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className={isDark ? 'text-white/70' : 'text-gray-600'}>
+                        {t('payment.recipient', 'Người nhận')}:
+                      </span>
+                      <span className={`font-mono text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {checkoutState.paymentAddress}
+                      </span>
+                    </div>
+                    
+                    {checkoutState.memo && (
+                      <div className="flex justify-between">
+                        <span className={isDark ? 'text-white/70' : 'text-gray-600'}>
+                          {t('payment.memo', 'Memo')}:
+                        </span>
+                        <span className={`font-mono text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {checkoutState.memo}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Wallet Info */}
+                <div className={`p-4 rounded-2xl ${isDark ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <Eye className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {t('payment.walletInfo', 'Thông tin ví')}
+                      </div>
+                      <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                        {t('payment.walletDesc', 'Giao dịch sẽ được ký bằng ví của bạn')}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowSecretKey(!showSecretKey)}
+                      className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                      {showSecretKey ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                  
+                  {showSecretKey && wallet?.secret && (
+                    <div className="mt-3 p-3 bg-black/20 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`text-xs ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          {t('payment.secretKey', 'Secret Key')}:
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(wallet.secret)}
+                          className="p-1 hover:bg-white/10 rounded transition-colors"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <div className={`font-mono text-xs break-all ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {wallet.secret}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Result */}
+            {currentStep === 4 && (
+              <div className="space-y-6">
+                {paymentResult?.success ? (
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {t('payment.success.title', 'Thanh toán thành công!')}
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                      {t('payment.success.subtitle', 'Giao dịch đã được xử lý thành công')}
+                    </p>
+                    
+                    {paymentResult.transactionHash && (
+                      <div className={`mt-6 p-4 rounded-2xl ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className={isDark ? 'text-white/70' : 'text-gray-600'}>
+                              {t('payment.txHash', 'Transaction Hash')}:
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(paymentResult.transactionHash!)}
+                              className="p-1 hover:bg-white/10 rounded transition-colors"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className={`font-mono text-sm break-all ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {paymentResult.transactionHash}
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <a
+                              href={paymentResult.horizonUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              {t('payment.viewOnHorizon', 'Xem trên Horizon')}
+                            </a>
+                            {paymentResult.invoiceUrl && (
+                              <a
+                                href={paymentResult.invoiceUrl}
+                                download
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors"
+                              >
+                                <Download className="w-4 h-4" />
+                                {t('payment.downloadInvoice', 'Tải hóa đơn')}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <AlertCircle className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {t('payment.error.title', 'Thanh toán thất bại')}
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                      {error || t('payment.error.subtitle', 'Có lỗi xảy ra trong quá trình thanh toán')}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Error Display */}
+            {error && currentStep < 4 && (
+              <div className={`p-4 rounded-2xl ${isDark ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-200'}`}>
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {error}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className={`flex items-center justify-between p-6 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <button
+              onClick={currentStep === 1 ? onClose : handleBack}
+              className={`px-6 py-3 rounded-xl font-medium transition-colors ${
+                isDark
+                  ? 'text-white/70 hover:text-white hover:bg-white/10'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              {currentStep === 1 ? t('common.cancel', 'Hủy') : t('common.back', 'Quay lại')}
+            </button>
+
+            {currentStep < totalSteps && (
+              <button
+                onClick={handleNext}
+                disabled={currentStep === 2 && !canPayWithSelectedAsset()}
+                className={`px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${
+                  currentStep === 2 && !canPayWithSelectedAsset()
+                    ? isDark
+                      ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600'
+                }`}
+              >
+                {currentStep === totalSteps - 1 ? t('payment.confirm', 'Xác nhận') : t('common.next', 'Tiếp theo')}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+
+            {currentStep === totalSteps - 1 && !paymentResult && (
+              <button
+                onClick={handleConfirmPayment}
+                disabled={isLoading || !canPayWithSelectedAsset()}
+                className={`px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${
+                  isLoading || !canPayWithSelectedAsset()
+                    ? isDark
+                      ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600'
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <Clock className="w-4 h-4 animate-spin" />
+                    {t('payment.processing', 'Đang xử lý...')}
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    {t('payment.payNow', 'Thanh toán ngay')}
+                  </>
+                )}
+              </button>
+            )}
+
+            {currentStep === totalSteps && (
+              <button
+                onClick={onClose}
+                className="px-6 py-3 rounded-xl font-medium transition-colors bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600"
+              >
+                {t('common.done', 'Hoàn thành')}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default PaymentModal

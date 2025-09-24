@@ -568,5 +568,457 @@
         "Được chính phủ khuyến khích"
       ]
     }
+  },
+  "sovico2": {
+    "hero": {
+      "title": "Sovico 2.0",
+      "subtitle": "Marketplace trải nghiệm tích hợp thanh toán SYP - Khám phá và sử dụng các dịch vụ đa dạng từ tập đoàn kinh tế hàng đầu Việt Nam",
+      "balance": {
+        "syp": "Số dư SYP"
+      },
+      "stats": {
+        "customers": "Khách hàng",
+        "categories": "Lĩnh vực",
+        "rating": "Đánh giá",
+        "years": "Năm kinh nghiệm"
+      },
+      "features": {
+        "instant": "Thanh toán tức thì",
+        "instantDesc": "Thanh toán bằng SYP trong vài giây",
+        "rewards": "Ưu đãi độc quyền",
+        "rewardsDesc": "Nhận ưu đãi đặc biệt khi sử dụng SYP",
+        "secure": "Bảo mật cao",
+        "secureDesc": "Công nghệ blockchain an toàn"
+      },
+      "cta": {
+        "explore": "Khám phá bằng SYP",
+        "solutions": "Xem gói giải pháp"
+      },
+      "video": {
+        "title": "Khám phá Sovico 2.0",
+        "description": "Xem cách Sovico 2.0 thay đổi cách bạn sử dụng dịch vụ"
+      }
+    },
+    "tabs": {
+      "overview": "Tổng quan",
+      "overviewDesc": "Tổng quan về Sovico 2.0",
+      "solutions": "Gói giải pháp",
+      "solutionsDesc": "Các gói dịch vụ kết hợp",
+      "businesses": "Doanh nghiệp",
+      "businessesDesc": "Thông tin các công ty thành viên",
+      "services": "Dịch vụ",
+      "servicesDesc": "Marketplace dịch vụ",
+      "promotions": "Ưu đãi",
+      "promotionsDesc": "Khuyến mãi và ưu đãi",
+      "stories": "Stories",
+      "storiesDesc": "Câu chuyện thành công",
+      "contact": "Liên hệ",
+      "contactDesc": "Hỗ trợ và liên hệ"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm dịch vụ, gói giải pháp..."
+    },
+    "sort": {
+      "popularity": "Phổ biến",
+      "price": "Giá",
+      "rating": "Đánh giá",
+      "name": "Tên",
+      "newest": "Mới nhất",
+      "asc": "Tăng dần",
+      "desc": "Giảm dần"
+    },
+    "filter": {
+      "button": "Bộ lọc"
+    },
+    "about": {
+      "title": "Về Sovico 2.0",
+      "description": "Sovico 2.0 là marketplace trải nghiệm tích hợp thanh toán SYP, kết nối người dùng với các dịch vụ đa dạng từ tập đoàn kinh tế hàng đầu Việt Nam. Trải nghiệm mua sắm và sử dụng dịch vụ hoàn toàn mới với công nghệ blockchain.",
+      "feature1": "Thanh toán tức thì bằng SYP",
+      "feature2": "Ưu đãi độc quyền cho người dùng SYP",
+      "feature3": "Tích hợp AI và phân tích dữ liệu"
+    },
+    "categories": {
+      "banking": "Ngân hàng",
+      "aviation": "Hàng không",
+      "realestate": "Bất động sản",
+      "energy": "Năng lượng"
+    },
+    "mission": {
+      "title": "Sứ mệnh",
+      "description": "Tạo ra một hệ sinh thái thanh toán thống nhất, kết nối người dùng với các dịch vụ chất lượng cao thông qua công nghệ blockchain và trí tuệ nhân tạo."
+    },
+    "vision": {
+      "title": "Tầm nhìn",
+      "description": "Trở thành nền tảng marketplace hàng đầu Đông Nam Á, dẫn đầu trong việc tích hợp thanh toán crypto và trải nghiệm người dùng cá nhân hóa."
+    },
+    "analytics": {
+      "title": "Thống kê thị trường",
+      "marketCap": "Vốn hóa SYP (VND)",
+      "sypPrice": "Giá SYP (VND)",
+      "transactions": "Giao dịch",
+      "activeUsers": "Người dùng hoạt động"
+    },
+    "solutions": {
+      "title": "Gói giải pháp",
+      "subtitle": "Các gói dịch vụ kết hợp với ưu đãi đặc biệt",
+      "popular": "Phổ biến",
+      "discount": "Tiết kiệm",
+      "explore": "Khám phá"
+    },
+    "businesses": {
+      "title": "Các doanh nghiệp thành viên",
+      "subtitle": "Khám phá các công ty con trong hệ sinh thái Sovico",
+      "visit": "Truy cập website",
+      "viewProfile": "Xem hồ sơ"
+    },
+    "services": {
+      "title": "Dịch vụ",
+      "subtitle": "Marketplace dịch vụ với thanh toán SYP",
+      "payment": "Thanh toán bằng SYP, XLM, USDC",
+      "buy": "Mua ngay"
+    },
+    "promotions": {
+      "title": "Ưu đãi",
+      "subtitle": "Khuyến mãi và ưu đãi độc quyền cho người dùng SYP",
+      "comingSoon": "Ưu đãi sắp ra mắt",
+      "comingSoonDesc": "Chúng tôi đang chuẩn bị những ưu đãi hấp dẫn cho bạn"
+    },
+    "stories": {
+      "title": "Stories",
+      "subtitle": "Câu chuyện thành công và trải nghiệm người dùng",
+      "comingSoon": "Stories sắp ra mắt",
+      "comingSoonDesc": "Chúng tôi đang chuẩn bị những câu chuyện thú vị cho bạn"
+    },
+    "contact": {
+      "title": "Liên hệ",
+      "subtitle": "Kết nối với Sovico Group và các doanh nghiệp thành viên",
+      "info": "Thông tin liên hệ",
+      "form": "Gửi tin nhắn",
+      "name": "Họ và tên",
+      "email": "Email",
+      "message": "Tin nhắn",
+      "send": "Gửi tin nhắn"
+    },
+    "payment": {
+      "title": "Thanh toán",
+      "step": "Bước",
+      "step1": {
+        "title": "Chi tiết dịch vụ",
+        "subtitle": "Xem lại thông tin dịch vụ bạn muốn mua"
+      },
+      "step2": {
+        "title": "Phương thức thanh toán",
+        "subtitle": "Chọn tài sản để thanh toán"
+      },
+      "step3": {
+        "title": "Xác nhận thanh toán",
+        "subtitle": "Kiểm tra lại thông tin trước khi thanh toán"
+      },
+      "addons": "Dịch vụ bổ sung",
+      "balance": "Số dư",
+      "insufficient": "Số dư không đủ",
+      "insufficientTitle": "Số dư không đủ",
+      "insufficientDesc": "Bạn cần thêm tài sản để thanh toán",
+      "swap": "Swap",
+      "item": "Dịch vụ",
+      "amount": "Số tiền",
+      "recipient": "Người nhận",
+      "memo": "Memo",
+      "walletInfo": "Thông tin ví",
+      "walletDesc": "Giao dịch sẽ được ký bằng ví của bạn",
+      "secretKey": "Secret Key",
+      "confirm": "Xác nhận",
+      "processing": "Đang xử lý...",
+      "payNow": "Thanh toán ngay",
+      "success": {
+        "title": "Thanh toán thành công!",
+        "subtitle": "Giao dịch đã được xử lý thành công"
+      },
+      "error": {
+        "title": "Thanh toán thất bại",
+        "subtitle": "Có lỗi xảy ra trong quá trình thanh toán"
+      },
+      "txHash": "Transaction Hash",
+      "viewOnHorizon": "Xem trên Horizon",
+      "downloadInvoice": "Tải hóa đơn"
+    },
+    "filters": {
+      "title": "Bộ lọc",
+      "category": "Danh mục",
+      "company": "Công ty",
+      "priceRange": "Khoảng giá",
+      "rating": "Đánh giá tối thiểu",
+      "sortBy": "Sắp xếp theo",
+      "allCategories": "Tất cả danh mục",
+      "allCompanies": "Tất cả công ty",
+      "anyRating": "Bất kỳ",
+      "active": "Bộ lọc đang áp dụng",
+      "clearAll": "Xóa tất cả"
+    },
+    "results": {
+      "found": "Tìm thấy",
+      "services": "dịch vụ",
+      "showing": "Hiển thị",
+      "of": "trong",
+      "noResults": "Không tìm thấy dịch vụ",
+      "noResultsDesc": "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
+    }
+  },
+  "company": {
+    "tabs": {
+      "overview": "Tổng quan",
+      "kpis": "KPI",
+      "stories": "Stories",
+      "contact": "Liên hệ"
+    },
+    "profile": "Hồ sơ công ty",
+    "established": "Thành lập",
+    "employees": "nhân viên",
+    "revenue": "Doanh thu",
+    "annual": "Hàng năm",
+    "marketShare": "Thị phần",
+    "inVietnam": "Tại Việt Nam",
+    "achievements": "Thành tựu",
+    "awards": "Giải thưởng",
+    "services": "Dịch vụ chính",
+    "viewServices": "Xem dịch vụ",
+    "partnerships": "Đối tác",
+    "socialMedia": "Mạng xã hội",
+    "kpis": {
+      "title": "Chỉ số KPI",
+      "subtitle": "Các chỉ số hiệu suất quan trọng được cập nhật realtime"
+    },
+    "lastUpdated": "Cập nhật lần cuối",
+    "stories": {
+      "title": "Stories thành công",
+      "subtitle": "Câu chuyện thành công và trải nghiệm từ khách hàng",
+      "noStories": "Chưa có stories",
+      "noStoriesDesc": "Stories sẽ được cập nhật sớm"
+    },
+    "contact": {
+      "title": "Liên hệ",
+      "subtitle": "Kết nối với chúng tôi",
+      "info": "Thông tin liên hệ",
+      "form": "Gửi tin nhắn",
+      "name": "Họ và tên",
+      "email": "Email",
+      "message": "Tin nhắn",
+      "send": "Gửi tin nhắn"
+    }
+  },
+  "loyalty": {
+    "title": "Chương trình khách hàng thân thiết",
+    "subtitle": "Tích điểm, nhận ưu đãi và trải nghiệm dịch vụ đặc biệt",
+    "tabs": {
+      "promotions": "Ưu đãi",
+      "tasks": "Nhiệm vụ",
+      "levels": "Cấp độ"
+    },
+    "levels": {
+      "bronze": "Đồng",
+      "silver": "Bạc",
+      "gold": "Vàng",
+      "platinum": "Bạch kim",
+      "diamond": "Kim cương",
+      "title": "Cấp độ thành viên",
+      "progressToNext": "Tiến độ đến cấp tiếp theo",
+      "nextLevel": "Cần thêm",
+      "toReach": "để đạt cấp tiếp theo",
+      "benefits": "Quyền lợi cấp độ"
+    },
+    "promotions": {
+      "title": "Ưu đãi hiện tại",
+      "viewAll": "Xem tất cả",
+      "noPromotions": "Chưa có ưu đãi",
+      "noPromotionsDesc": "Ưu đãi sẽ được cập nhật sớm",
+      "off": "giảm giá",
+      "cashback": "hoàn tiền",
+      "pointsLabel": "điểm",
+      "gift": "Quà tặng",
+      "validUntil": "Có hiệu lực đến",
+      "used": "đã sử dụng",
+      "terms": "Điều kiện",
+      "redeem": "Sử dụng ngay"
+    },
+    "tasks": {
+      "title": "Nhiệm vụ hàng ngày",
+      "viewAll": "Xem tất cả",
+      "progress": "Tiến độ",
+      "completed": "Đã hoàn thành",
+      "showLess": "Ẩn bớt",
+      "showMore": "Xem thêm",
+      "firstPurchase": "Giao dịch đầu tiên",
+      "firstPurchaseDesc": "Thực hiện giao dịch đầu tiên với SYP",
+      "referFriend": "Giới thiệu bạn bè",
+      "referFriendDesc": "Mời 3 người bạn sử dụng Sovico",
+      "weeklySpend": "Chi tiêu hàng tuần",
+      "weeklySpendDesc": "Chi tiêu 1,000,000 VND trong tuần",
+      "socialShare": "Chia sẻ mạng xã hội",
+      "socialShareDesc": "Chia sẻ Sovico trên Facebook"
+    },
+    "points": {
+      "available": "Điểm khả dụng",
+      "used": "Điểm đã dùng",
+      "total": "Tổng điểm"
+    }
+  },
+  "stories": {
+    "title": "Stories & Media",
+    "subtitle": "Câu chuyện, video và nội dung đa phương tiện",
+    "tabs": {
+      "all": "Tất cả",
+      "blog": "Blog",
+      "video": "Video",
+      "podcast": "Podcast",
+      "timeline": "Timeline"
+    },
+    "categories": {
+      "all": "Tất cả",
+      "business": "Kinh doanh",
+      "technology": "Công nghệ",
+      "finance": "Tài chính",
+      "lifestyle": "Lối sống",
+      "education": "Giáo dục"
+    },
+    "mediaTypes": {
+      "all": "Tất cả",
+      "video": "Video",
+      "audio": "Audio",
+      "text": "Văn bản",
+      "image": "Hình ảnh"
+    },
+    "search": "Tìm kiếm stories...",
+    "featured": "Nổi bật",
+    "readMore": "Đọc thêm",
+    "noStories": "Chưa có stories",
+    "noStoriesDesc": "Stories sẽ được cập nhật sớm",
+    "viewAll": "Xem tất cả"
+  },
+  "analytics": {
+    "title": "Analytics & Insights",
+    "subtitle": "Phân tích dữ liệu và thông tin chi tiết",
+    "tabs": {
+      "overview": "Tổng quan",
+      "market": "Thị trường",
+      "users": "Người dùng",
+      "transactions": "Giao dịch",
+      "risks": "Rủi ro"
+    },
+    "timeRanges": {
+      "1d": "1 ngày",
+      "7d": "7 ngày",
+      "30d": "30 ngày",
+      "90d": "90 ngày",
+      "1y": "1 năm"
+    },
+    "sypMarketCap": "Vốn hóa SYP",
+    "activeUsers": "Người dùng hoạt động",
+    "transactionVolume": "Khối lượng giao dịch",
+    "revenue": "Doanh thu",
+    "sypPriceChart": "Biểu đồ giá SYP",
+    "userDistribution": "Phân bố người dùng",
+    "chartPlaceholder": "Biểu đồ sẽ được hiển thị ở đây",
+    "exchangeRates": "Tỷ giá hối đoái",
+    "marketInsights": "Thông tin thị trường",
+    "totalUsers": "Tổng người dùng",
+    "newUsers": "Người dùng mới",
+    "retentionRate": "Tỷ lệ giữ chân",
+    "transactionStats": "Thống kê giao dịch",
+    "totalTransactions": "Tổng giao dịch",
+    "successRate": "Tỷ lệ thành công",
+    "avgProcessingTime": "Thời gian xử lý TB",
+    "peakHours": "Giờ cao điểm",
+    "riskScore": "Điểm rủi ro",
+    "riskLevels": {
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    },
+    "anomalies": "Bất thường phát hiện",
+    "export": "Xuất dữ liệu"
+  },
+  "support": {
+    "title": "Hỗ trợ & Liên hệ",
+    "subtitle": "Chúng tôi luôn sẵn sàng hỗ trợ bạn",
+    "tabs": {
+      "contact": "Liên hệ",
+      "appointment": "Đặt lịch",
+      "faq": "FAQ",
+      "chatbot": "Chatbot",
+      "resources": "Tài liệu"
+    },
+    "contactInfo": "Thông tin liên hệ",
+    "hotline": "Hotline",
+    "email": "Email",
+    "address": "Địa chỉ",
+    "hours": "Giờ làm việc",
+    "quickActions": "Hành động nhanh",
+    "startChatbot": "Bắt đầu Chatbot",
+    "viewFAQ": "Xem FAQ",
+    "downloadGuide": "Tải hướng dẫn",
+    "contactForm": "Gửi yêu cầu hỗ trợ",
+    "submitted": "Yêu cầu đã được gửi thành công!",
+    "name": "Họ và tên",
+    "namePlaceholder": "Nhập họ và tên",
+    "emailPlaceholder": "Nhập email",
+    "phone": "Số điện thoại",
+    "phonePlaceholder": "Nhập số điện thoại",
+    "priority": "Mức độ ưu tiên",
+    "priorities": {
+      "low": "Thấp",
+      "medium": "Trung bình",
+      "high": "Cao"
+    },
+    "category": "Danh mục",
+    "categories": {
+      "technical": "Kỹ thuật",
+      "billing": "Thanh toán",
+      "general": "Chung",
+      "feature_request": "Yêu cầu tính năng",
+      "bug_report": "Báo lỗi"
+    },
+    "subject": "Tiêu đề",
+    "subjectPlaceholder": "Nhập tiêu đề",
+    "message": "Nội dung",
+    "messagePlaceholder": "Mô tả chi tiết vấn đề của bạn",
+    "submitting": "Đang gửi...",
+    "submit": "Gửi yêu cầu",
+    "scheduleAppointment": "Đặt lịch hẹn",
+    "appointmentScheduled": "Lịch hẹn đã được đặt thành công!",
+    "service": "Dịch vụ",
+    "services": {
+      "consultation": "Tư vấn",
+      "technical_support": "Hỗ trợ kỹ thuật",
+      "training": "Đào tạo",
+      "integration": "Tích hợp",
+      "custom_development": "Phát triển tùy chỉnh"
+    },
+    "selectService": "Chọn dịch vụ",
+    "date": "Ngày",
+    "time": "Giờ",
+    "appointmentMessagePlaceholder": "Mô tả thêm về yêu cầu của bạn",
+    "scheduling": "Đang đặt lịch...",
+    "schedule": "Đặt lịch hẹn",
+    "faq": {
+      "howToStart": "Làm thế nào để bắt đầu sử dụng Sovico?",
+      "howToStartAnswer": "Bạn có thể bắt đầu bằng cách tạo tài khoản, kết nối ví của mình và khám phá các dịch vụ có sẵn trong hệ sinh thái Sovico.",
+      "paymentMethods": "Các phương thức thanh toán nào được hỗ trợ?",
+      "paymentMethodsAnswer": "Chúng tôi hỗ trợ thanh toán bằng SYP, XLM, USDC và các loại tiền điện tử khác thông qua mạng Stellar.",
+      "security": "Dữ liệu của tôi có an toàn không?",
+      "securityAnswer": "Chúng tôi sử dụng mã hóa end-to-end và các công nghệ bảo mật tiên tiến để bảo vệ dữ liệu của bạn.",
+      "fees": "Có phí giao dịch nào không?",
+      "feesAnswer": "Phí giao dịch rất thấp và được tính dựa trên mạng Stellar. Chúng tôi cung cấp bảng phí minh bạch.",
+      "technicalIssues": "Tôi gặp vấn đề kỹ thuật, làm sao để được hỗ trợ?",
+      "technicalIssuesAnswer": "Bạn có thể liên hệ qua hotline, email hoặc sử dụng chatbot để được hỗ trợ 24/7."
+    },
+    "chatbotTitle": "Chatbot AI",
+    "chatbotDesc": "Trò chuyện với AI để được hỗ trợ nhanh chóng 24/7",
+    "startChat": "Bắt đầu trò chuyện",
+    "userGuide": "Hướng dẫn người dùng",
+    "userGuideDesc": "Hướng dẫn sử dụng cơ bản cho người dùng mới",
+    "businessGuide": "Hướng dẫn doanh nghiệp",
+    "businessGuideDesc": "Hướng dẫn tích hợp cho doanh nghiệp",
+    "developerGuide": "Tài liệu API",
+    "developerGuideDesc": "Tài liệu API và SDK cho developers"
   }
 }
