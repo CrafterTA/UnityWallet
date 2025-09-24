@@ -15,7 +15,11 @@ import {
   CheckCircle,
   X,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  CreditCard,
+  Plane,
+  Home,
+  Zap
 } from 'lucide-react'
 import { SovicoService, SovicoFilter } from '@/types/sovico'
 
@@ -207,18 +211,34 @@ const ServiceExplorer: React.FC<ServiceExplorerProps> = ({
     }).format(amount)
   }
 
+  // Function to get service icon based on category
+  const getServiceIcon = (service: SovicoService) => {
+    switch (service.category) {
+      case 'banking':
+        return <CreditCard className="w-16 h-16 text-blue-500" />
+      case 'aviation':
+        return <Plane className="w-16 h-16 text-red-500" />
+      case 'hospitality':
+        return <Home className="w-16 h-16 text-green-500" />
+      case 'energy':
+        return <Zap className="w-16 h-16 text-yellow-500" />
+      default:
+        return <ShoppingCart className="w-16 h-16 text-red-500" />
+    }
+  }
+
   const renderServiceCard = (service: SovicoService) => (
     <div
       key={service.id}
-      className={`rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer ${
+      className={`rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer flex flex-col ${
         isDark ? 'bg-white/5 border border-white/10' : 'bg-white/80 border border-gray-200'
       }`}
       onClick={() => onServiceSelect(service)}
     >
       <div className="h-32 bg-gradient-to-br from-red-500/20 to-yellow-500/20 flex items-center justify-center">
-        <ShoppingCart className="w-16 h-16 text-red-500" />
+        {getServiceIcon(service)}
       </div>
-      <div className="p-6">
+      <div className="p-6 flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {service.name}
@@ -261,20 +281,22 @@ const ServiceExplorer: React.FC<ServiceExplorerProps> = ({
           ))}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {formatPrice(service.price, service.currency)}
-            </div>
-            {service.priceInSYP && (
-              <div className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
-                {service.priceInSYP.toLocaleString()} SYP
+        <div className="mt-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {formatPrice(service.price, service.currency)}
               </div>
-            )}
+              {service.priceInSYP && (
+                <div className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
+                  {service.priceInSYP.toLocaleString()} SYP
+                </div>
+              )}
+            </div>
+            <button className="px-4 py-2 bg-gradient-to-r from-red-500 to-yellow-500 text-white rounded-xl font-medium hover:from-red-600 hover:to-yellow-600 transition-all duration-300">
+              {t('sovico.services.buy', 'Mua ngay')}
+            </button>
           </div>
-          <button className="px-4 py-2 bg-gradient-to-r from-red-500 to-yellow-500 text-white rounded-xl font-medium hover:from-red-600 hover:to-yellow-600 transition-all duration-300">
-            {t('sovico.services.buy', 'Mua ngay')}
-          </button>
         </div>
       </div>
     </div>

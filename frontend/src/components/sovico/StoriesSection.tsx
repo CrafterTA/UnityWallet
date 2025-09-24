@@ -314,31 +314,31 @@ const StoriesSection: React.FC<StoriesSectionProps> = ({
   const renderStoryCard = (story: SovicoStory, index: number) => {
     const isLiked = likedStories.has(story.id)
 
+    const handleStoryClick = () => {
+      setCurrentStoryIndex(index)
+      onViewStory?.(story)
+    }
+
     return (
       <div
         key={story.id}
         className={`${viewMode === 'grid' ? 'col-span-1' : 'col-span-full'} ${
           isDark ? 'bg-white/5 border border-white/10' : 'bg-white/80 border border-gray-200'
-        } rounded-xl backdrop-blur-sm overflow-hidden hover:scale-105 transition-transform duration-300`}
+        } rounded-xl backdrop-blur-sm overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer`}
+        onClick={handleStoryClick}
       >
         <div className="aspect-video bg-gradient-to-br from-red-500/20 to-yellow-500/20 flex items-center justify-center relative">
           {story.mediaType === 'video' ? (
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-              <button
-                onClick={() => onViewStory?.(story)}
-                className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-300"
-              >
+              <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-300">
                 <Play className="w-6 h-6 text-red-500 ml-1" />
-              </button>
+              </div>
             </div>
           ) : (story.mediaType === 'audio' || story.mediaType === 'podcast') ? (
             <div className="text-center">
-              <button
-                onClick={() => onViewStory?.(story)}
-                className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-300"
-              >
+              <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-300 mx-auto">
                 <Volume2 className="w-6 h-6 text-red-500" />
-              </button>
+              </div>
             </div>
           ) : (
             <div className="text-center">
