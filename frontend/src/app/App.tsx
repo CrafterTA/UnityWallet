@@ -11,7 +11,7 @@ import Activity from '@/pages/Activity'
 import Insights from '@/pages/Insights'
 import Assistant from '@/pages/Assistant'
 import Settings from '@/pages/Settings'
-import Sovico2 from '@/pages/Sovico2'
+import Sovico from '@/pages/Sovico'
 
 function App() {
   const { isAuthenticated, isLocked } = useAuthStore()
@@ -37,7 +37,7 @@ function App() {
         <Route path="/insights" element={<Insights />} />
         <Route path="/assistant" element={<Assistant />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/sovico" element={<Sovico2 />} />
+        <Route path="/sovico" element={<Sovico />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

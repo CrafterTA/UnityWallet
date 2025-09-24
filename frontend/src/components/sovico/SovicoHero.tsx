@@ -18,13 +18,15 @@ interface SovicoHeroProps {
   onViewSolutions: () => void
   sypBalance?: number
   exchangeRate?: number
+  isLoadingBalance?: boolean
 }
 
 const SovicoHero: React.FC<SovicoHeroProps> = ({
   onExploreServices,
   onViewSolutions,
   sypBalance = 0,
-  exchangeRate = 5000
+  exchangeRate = 5000,
+  isLoadingBalance = false
 }) => {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
@@ -83,8 +85,12 @@ const SovicoHero: React.FC<SovicoHeroProps> = ({
           {/* Logo & Badge */}
           <div className="flex justify-center mb-8">
             <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-r from-red-500 to-yellow-500 rounded-3xl flex items-center justify-center shadow-2xl">
-                <Zap className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-2xl">
+                <img 
+                  src="https://bachkhoaland.com/wp-content/uploads/2022/06/sovico-1.jpg" 
+                  alt="Sovico Logo" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                 <Star className="w-5 h-5 text-white" />
@@ -112,10 +118,21 @@ const SovicoHero: React.FC<SovicoHeroProps> = ({
                   {t('sovico.hero.balance.syp', 'SYP Balance')}
                 </div>
                 <div className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {sypBalance.toLocaleString()} SYP
+                  {isLoadingBalance ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Loading...</span>
+                    </div>
+                  ) : (
+                    `${sypBalance.toLocaleString()} SYP`
+                  )}
                 </div>
                 <div className={`text-xs ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
-                  ≈ {(sypBalance * exchangeRate).toLocaleString()} VND
+                  {isLoadingBalance ? (
+                    'Loading...'
+                  ) : (
+                    `≈ ${(sypBalance * exchangeRate).toLocaleString()} VND`
+                  )}
                 </div>
               </div>
             </div>
