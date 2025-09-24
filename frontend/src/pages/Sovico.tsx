@@ -160,6 +160,7 @@ const Sovico: React.FC = () => {
     updateFilters,
     resetFilters,
     selectService,
+    buyService,
     selectSolution,
     selectCompany,
     setSelectedCompany,
@@ -531,6 +532,7 @@ const Sovico: React.FC = () => {
         onSortChange={handleSortChange}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onBuyService={buyService}
         filters={filters}
         sortBy={sortBy}
         sortOrder={sortOrder}
@@ -714,7 +716,10 @@ const Sovico: React.FC = () => {
         onProcessPayment={processPayment}
         onSuggestSwap={suggestSwap}
         exchangeRates={exchangeRates}
-        balances={wallet?.balances || {}}
+        balances={{
+          ...wallet?.balances,
+          SYP: sypBalance.toString()
+        }}
         isLoading={isPaymentProcessing}
         error={paymentError?.message}
         paymentResult={paymentResult}

@@ -31,6 +31,7 @@ interface ServiceExplorerProps {
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void
   searchQuery: string
   onSearchChange: (query: string) => void
+  onBuyService: (service: SovicoService) => void
   filters: SovicoFilter
   sortBy: string
   sortOrder: 'asc' | 'desc'
@@ -44,6 +45,7 @@ const ServiceExplorer: React.FC<ServiceExplorerProps> = ({
   onSortChange,
   searchQuery,
   onSearchChange,
+  onBuyService,
   filters,
   sortBy,
   sortOrder
@@ -293,7 +295,10 @@ const ServiceExplorer: React.FC<ServiceExplorerProps> = ({
                 </div>
               )}
             </div>
-            <button className="px-4 py-2 bg-gradient-to-r from-red-500 to-yellow-500 text-white rounded-xl font-medium hover:from-red-600 hover:to-yellow-600 transition-all duration-300">
+            <button 
+              onClick={() => onBuyService(service)}
+              className="px-4 py-2 bg-gradient-to-r from-red-500 to-yellow-500 text-white rounded-xl font-medium hover:from-red-600 hover:to-yellow-600 transition-all duration-300"
+            >
               {t('sovico.services.buy', 'Mua ngay')}
             </button>
           </div>
@@ -376,7 +381,10 @@ const ServiceExplorer: React.FC<ServiceExplorerProps> = ({
               {service.priceInSYP.toLocaleString()} SYP
             </div>
           )}
-          <button className="px-6 py-2 bg-gradient-to-r from-red-500 to-yellow-500 text-white rounded-xl font-medium hover:from-red-600 hover:to-yellow-600 transition-all duration-300">
+          <button 
+            onClick={() => onBuyService(service)}
+            className="px-6 py-2 bg-gradient-to-r from-red-500 to-yellow-500 text-white rounded-xl font-medium hover:from-red-600 hover:to-yellow-600 transition-all duration-300"
+          >
             {t('sovico.services.buy', 'Mua ngay')}
           </button>
         </div>

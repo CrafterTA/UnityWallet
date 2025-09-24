@@ -30,7 +30,7 @@ const mockServices: SovicoService[] = [
     priceInSYP: 1000,
     priceInXLM: 50,
     priceInUSDC: 200,
-    paymentAddress: 'GABC123...',
+    paymentAddress: 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL',
     memo: 'HDBANK-PREMIUM-001',
     acceptedAssets: ['SYP', 'XLM', 'USDC'],
     addonOptions: [
@@ -68,7 +68,7 @@ const mockServices: SovicoService[] = [
     priceInSYP: 600,
     priceInXLM: 30,
     priceInUSDC: 120,
-    paymentAddress: 'GXYZ789...',
+    paymentAddress: 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL',
     memo: 'VJ-BUSINESS-001',
     acceptedAssets: ['SYP', 'XLM', 'USDC'],
     addonOptions: [
@@ -106,7 +106,7 @@ const mockServices: SovicoService[] = [
     priceInSYP: 500,
     priceInXLM: 25,
     priceInUSDC: 100,
-    paymentAddress: 'GDEF456...',
+    paymentAddress: 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL',
     memo: 'DV-RESORT-001',
     acceptedAssets: ['SYP', 'XLM', 'USDC'],
     addonOptions: [
@@ -144,7 +144,7 @@ const mockServices: SovicoService[] = [
     priceInSYP: 3000,
     priceInXLM: 150,
     priceInUSDC: 600,
-    paymentAddress: 'GHIJ789...',
+    paymentAddress: 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL',
     memo: 'SE-SOLAR-001',
     acceptedAssets: ['SYP', 'XLM', 'USDC'],
     addonOptions: [
@@ -980,13 +980,55 @@ export const useSovicoExperience = () => {
   // Mutations
   const paymentMutation = useMutation({
     mutationFn: async (paymentData: SovicoCheckoutState): Promise<SovicoPaymentResult> => {
-      // Mock implementation - sẽ thay thế bằng API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      if (Math.random() > 0.1) { // 90% success rate for demo
+      if (!wallet) {
+        throw new Error('Wallet not connected')
+      }
+
+      // Check if wallet is locked (no secret key available)
+      if (!wallet.secret) {
+        throw new Error('WALLET_LOCKED')
+      }
+
+      try {
+        const apiUrl = import.meta.env.VITE_CHAIN_API_BASE_URL || 'http://localhost:8000'
+
+        // Use proxy to avoid CORS issues
+        const response = await fetch('/api/send/execute', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            secret: wallet.secret,
+            destination: paymentData.paymentAddress,
+            source: {
+              code: paymentData.selectedAsset === 'SYP' ? 'SYP' : paymentData.selectedAsset,
+              issuer: paymentData.selectedAsset === 'SYP' ? 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3F06WVOUP35KEUMWPPL' : undefined
+            },
+            amount: paymentData.selectedAsset === 'SYP' 
+              ? paymentData.totalInSYP.toString() 
+              : paymentData.selectedAsset === 'XLM' 
+                ? paymentData.totalInXLM.toString()
+                : paymentData.totalInUSDC.toString()
+          })
+        })
+
+        if (!response.ok) {
+          let errorMessage = 'Payment failed'
+          try {
+            const errorData = await response.json()
+            errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          } catch (e) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`
+          }
+          throw new Error(errorMessage)
+        }
+
+        const result = await response.json()
+        
         return {
           success: true,
-          transactionHash: '0x' + Math.random().toString(16).substr(2, 64),
+          transactionHash: result.hash,
           ledger: Math.floor(Math.random() * 1000000) + 50000000,
           amount: paymentData.totalAmount,
           asset: paymentData.selectedAsset,
@@ -994,10 +1036,16 @@ export const useSovicoExperience = () => {
           memo: paymentData.memo,
           timestamp: new Date().toISOString(),
           invoiceUrl: '/invoices/' + Date.now() + '.pdf',
-          horizonUrl: 'https://horizon.stellar.org/transactions/' + Math.random().toString(16).substr(2, 64)
+          horizonUrl: 'https://stellar.expert/explorer/testnet/tx/' + result.hash
         }
-      } else {
-        throw new Error('Payment failed. Please try again.')
+      } catch (error) {
+        console.error('Payment API error:', error)
+        
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và thử lại.')
+        }
+        
+        throw new Error(error instanceof Error ? error.message : 'Payment failed. Please try again.')
       }
     },
     onSuccess: () => {
@@ -1065,7 +1113,8 @@ export const useSovicoExperience = () => {
 
     try {
       const result = await paymentMutation.mutateAsync(checkoutState)
-      setShowPaymentModal(false)
+      // Don't close modal immediately - let user see the result
+      // setShowPaymentModal(false)
       return result
     } catch (error) {
       setCheckoutState(prev => ({ 
@@ -1081,6 +1130,11 @@ export const useSovicoExperience = () => {
     // Navigate to swap page with pre-filled data
     window.location.href = `/swap?from=${fromAsset}&to=${toAsset}&amount=${amount}`
   }, [])
+
+  const buyService = useCallback((service: SovicoService) => {
+    setSelectedService(service)
+    startCheckout(service)
+  }, [startCheckout])
 
   return {
     // State
@@ -1130,6 +1184,7 @@ export const useSovicoExperience = () => {
     updateFilters,
     resetFilters,
     selectService,
+    buyService,
     selectSolution,
     selectCompany,
     setSelectedCompany,

@@ -50,11 +50,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
-  const { wallet } = useAuthStore()
+  const { wallet, unlockWallet } = useAuthStore()
   
   const [currentStep, setCurrentStep] = useState(1)
   const [showSecretKey, setShowSecretKey] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showUnlockModal, setShowUnlockModal] = useState(false)
+  const [password, setPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   
   const totalSteps = 4
   const isService = !!checkoutState.service
@@ -143,7 +146,34 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       await onProcessPayment()
     } catch (error) {
       console.error('Payment failed:', error)
+      if (error instanceof Error && error.message === 'WALLET_LOCKED') {
+        setShowUnlockModal(true)
+      }
     }
+  }
+
+  const handleUnlockWallet = async () => {
+    if (!password.trim()) {
+      setPasswordError(t('wallet.passwordRequired', 'Mật khẩu là bắt buộc'))
+      return
+    }
+
+    try {
+      await unlockWallet(password)
+      setShowUnlockModal(false)
+      setPassword('')
+      setPasswordError('')
+      // Retry payment after unlocking
+      await onProcessPayment()
+    } catch (error) {
+      setPasswordError(t('wallet.incorrectPassword', 'Mật khẩu không đúng'))
+    }
+  }
+
+  const handleCloseUnlockModal = () => {
+    setShowUnlockModal(false)
+    setPassword('')
+    setPasswordError('')
   }
 
   const copyToClipboard = (text: string) => {
@@ -634,6 +664,68 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Unlock Wallet Modal */}
+      {showUnlockModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
+          <div className={`w-full max-w-md mx-4 p-6 rounded-2xl shadow-2xl ${
+            isDark ? 'bg-gray-900 border border-white/20' : 'bg-white border border-gray-200'
+          }`}>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-8 h-8 text-white" />
+              </div>
+              <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {t('wallet.unlockWallet', 'Mở khóa ví')}
+              </h3>
+              <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                {t('wallet.unlockToPay', 'Nhập mật khẩu để mở khóa ví và thanh toán')}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-700'}`}>
+                  {t('wallet.password', 'Mật khẩu')}
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t('wallet.enterPasswordPlaceholder', 'Nhập mật khẩu ví')}
+                  className={`w-full px-4 py-3 rounded-xl border transition-colors ${
+                    isDark
+                      ? 'bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-red-500'
+                      : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-red-500'
+                  }`}
+                />
+                {passwordError && (
+                  <p className="text-red-500 text-sm mt-2">{passwordError}</p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCloseUnlockModal}
+                  className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors ${
+                    isDark
+                      ? 'bg-white/10 text-white hover:bg-white/20'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {t('common.cancel', 'Hủy')}
+                </button>
+                <button
+                  onClick={handleUnlockWallet}
+                  className="flex-1 px-4 py-3 rounded-xl font-medium transition-colors bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600"
+                >
+                  {t('wallet.unlock', 'Mở khóa')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
