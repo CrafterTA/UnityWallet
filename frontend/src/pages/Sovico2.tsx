@@ -36,7 +36,10 @@ import {
   Gift,
   BookOpen,
   Home,
-  Zap
+  Zap,
+  CreditCard,
+  Plane,
+  ExternalLink
 } from 'lucide-react'
 
 const Sovico2: React.FC = () => {
@@ -44,6 +47,22 @@ const Sovico2: React.FC = () => {
   const { isDark } = useThemeStore()
   
   const { wallet } = useAuthStore()
+
+  // Function to get company icon
+  const getCompanyIcon = (company: any) => {
+    switch (company.name) {
+      case 'HDBank':
+        return <CreditCard className="w-16 h-16 text-blue-500" />
+      case 'Vietjet Air':
+        return <Plane className="w-16 h-16 text-red-500" />
+      case 'Dragon Village':
+        return <Home className="w-16 h-16 text-green-500" />
+      case 'Sovico Energy':
+        return <Zap className="w-16 h-16 text-yellow-500" />
+      default:
+        return <Building2 className="w-16 h-16 text-red-500" />
+    }
+  }
   
   const {
     // State
@@ -337,42 +356,106 @@ const Sovico2: React.FC = () => {
       <div className="grid md:grid-cols-2 gap-6">
         {companies.map((company) => (
           <div key={company.id} className={`rounded-2xl overflow-hidden shadow-lg transition-all duration-300 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-white/80 border border-gray-200'} flex flex-col`}>
-            <div className="h-32 flex items-center justify-center">
-              <Building2 className="w-16 h-16 text-red-500" />
-            </div>
-            <div className="p-6 flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {company.name}
-                </h3>
+            {/* Header with icon and badge */}
+            <div className="h-32 flex items-center justify-center relative">
+              {getCompanyIcon(company)}
+              <div className="absolute top-4 right-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700`}>
                   {company.marketShare}
                 </span>
               </div>
-              <p className={`text-sm mb-6 ${isDark ? 'text-white/70' : 'text-gray-600'} leading-relaxed`}>
-                {company.shortDescription}
-              </p>
+            </div>
+            
+            <div className="p-6 flex-1 flex flex-col">
+              {/* Company name and description */}
+              <div className="mb-4">
+                <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {company.name}
+                </h3>
+                <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'} leading-relaxed`}>
+                  {company.shortDescription}
+                </p>
+              </div>
               
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                {company.kpis.slice(0, 3).map((kpi, index) => (
-                  <div key={index} className="text-center">
-                    <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {/* KPIs Grid - Show all 4 KPIs */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {company.kpis.map((kpi, index) => (
+                  <div key={index} className="text-center p-3 rounded-lg bg-white/5">
+                    <div className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       {kpi.value}
                     </div>
                     <div className={`text-xs ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
                       {kpi.name}
                     </div>
+                    <div className={`text-xs ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                      +{kpi.changePercent}%
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-auto">
+              {/* Company info */}
+              <div className="mb-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-green-400' : 'bg-green-500'}`}></div>
+                  <span className={`text-xs ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
+                    {company.employees.toLocaleString()} nhân viên
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-blue-400' : 'bg-blue-500'}`}></div>
+                  <span className={`text-xs ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
+                    Thành lập {company.establishedYear}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-purple-400' : 'bg-purple-500'}`}></div>
+                  <span className={`text-xs ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
+                    {company.headquarters}
+                  </span>
+                </div>
+              </div>
+
+              {/* Services preview */}
+              <div className="mb-4">
+                <h4 className={`text-sm font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Dịch vụ chính
+                </h4>
+                <div className="flex flex-wrap gap-1">
+                  {company.services.slice(0, 3).map((service, index) => (
+                    <span key={index} className={`px-2 py-1 rounded-full text-xs ${isDark ? 'bg-white/10 text-white/80' : 'bg-gray-100 text-gray-700'}`}>
+                      {service}
+                    </span>
+                  ))}
+                  {company.services.length > 3 && (
+                    <span className={`px-2 py-1 rounded-full text-xs ${isDark ? 'bg-white/10 text-white/80' : 'bg-gray-100 text-gray-700'}`}>
+                      +{company.services.length - 3} khác
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="mt-auto flex gap-3">
                 <button
                   onClick={() => selectCompany(company)}
-                  className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white px-4 py-3 rounded-xl font-medium transition-all duration-300"
                 >
                   {t('sovico.businesses.viewProfile', 'Xem hồ sơ')}
                 </button>
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 border ${
+                    isDark 
+                      ? 'border-white/20 text-white hover:bg-white/10' 
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Website
+                </a>
               </div>
             </div>
           </div>

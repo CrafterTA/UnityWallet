@@ -91,6 +91,105 @@ const mockSolutions: SovicoSolution[] = [
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
     tags: ['business', 'premium', 'combo']
+  },
+  {
+    id: '2',
+    name: 'Gia đình hạnh phúc',
+    description: 'Gói dịch vụ dành cho gia đình: Tài khoản tiết kiệm + Vé máy bay gia đình + Nghỉ dưỡng cuối tuần',
+    shortDescription: 'Tài khoản tiết kiệm + vé máy bay gia đình + nghỉ dưỡng cuối tuần',
+    category: 'family',
+    services: ['1', '2', '3'],
+    price: 8000000,
+    currency: 'VND',
+    priceInSYP: 1600,
+    originalPrice: 12000000,
+    discount: 33,
+    benefits: [
+      'Tiết kiệm 33% so với mua riêng lẻ',
+      'Ưu đãi đặc biệt cho gia đình',
+      'Hỗ trợ 24/7',
+      'Tích hợp thanh toán SYP'
+    ],
+    timeline: 'Triển khai trong 5 ngày',
+    implementationSteps: [
+      'Mở tài khoản tiết kiệm gia đình',
+      'Đăng ký chương trình khách hàng thân thiết Vietjet',
+      'Đặt phòng Dragon Village cho gia đình',
+      'Tích hợp thanh toán SYP'
+    ],
+    targetAudience: ['Gia đình', 'Cặp đôi', 'Phụ huynh'],
+    imageUrl: '/images/family-package.jpg',
+    isPopular: false,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    tags: ['family', 'savings', 'travel']
+  },
+  {
+    id: '3',
+    name: 'Startup thông minh',
+    description: 'Gói hỗ trợ startup: Tài khoản doanh nghiệp + Dịch vụ vận chuyển + Văn phòng ảo',
+    shortDescription: 'Tài khoản doanh nghiệp + dịch vụ vận chuyển + văn phòng ảo',
+    category: 'startup',
+    services: ['1', '2', '3'],
+    price: 5000000,
+    currency: 'VND',
+    priceInSYP: 1000,
+    originalPrice: 8000000,
+    discount: 37,
+    benefits: [
+      'Tiết kiệm 37% so với mua riêng lẻ',
+      'Hỗ trợ đặc biệt cho startup',
+      'Tư vấn miễn phí',
+      'Tích hợp thanh toán SYP'
+    ],
+    timeline: 'Triển khai trong 3 ngày',
+    implementationSteps: [
+      'Mở tài khoản doanh nghiệp HDBank',
+      'Đăng ký dịch vụ vận chuyển Vietjet',
+      'Thuê văn phòng ảo Dragon Village',
+      'Tích hợp thanh toán SYP'
+    ],
+    targetAudience: ['Startup', 'Doanh nghiệp nhỏ', 'Freelancer'],
+    imageUrl: '/images/startup-package.jpg',
+    isPopular: false,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    tags: ['startup', 'business', 'innovation']
+  },
+  {
+    id: '4',
+    name: 'Du lịch cao cấp',
+    description: 'Gói du lịch cao cấp: Tài khoản du lịch + Vé máy bay hạng nhất + Resort 5 sao',
+    shortDescription: 'Tài khoản du lịch + vé máy bay hạng nhất + resort 5 sao',
+    category: 'luxury',
+    services: ['1', '2', '3'],
+    price: 25000000,
+    currency: 'VND',
+    priceInSYP: 5000,
+    originalPrice: 35000000,
+    discount: 28,
+    benefits: [
+      'Tiết kiệm 28% so với mua riêng lẻ',
+      'Dịch vụ cao cấp nhất',
+      'Hỗ trợ 24/7',
+      'Tích hợp thanh toán SYP'
+    ],
+    timeline: 'Triển khai trong 10 ngày',
+    implementationSteps: [
+      'Mở tài khoản du lịch cao cấp HDBank',
+      'Đặt vé máy bay hạng nhất Vietjet',
+      'Đặt phòng resort 5 sao Dragon Village',
+      'Tích hợp thanh toán SYP'
+    ],
+    targetAudience: ['Du lịch cao cấp', 'VIP', 'Celebrity'],
+    imageUrl: '/images/luxury-package.jpg',
+    isPopular: true,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    tags: ['luxury', 'travel', 'premium']
   }
 ]
 
@@ -98,7 +197,7 @@ const mockCompanies: SovicoCompany[] = [
   {
     id: '1',
     name: 'HDBank',
-    description: 'Ngân hàng TMCP Phát triển TP.HCM - Một trong những ngân hàng thương mại cổ phần hàng đầu Việt Nam',
+    description: 'Ngân hàng TMCP Phát triển TP.HCM - Một trong những ngân hàng thương mại cổ phần hàng đầu Việt Nam với hơn 30 năm kinh nghiệm',
     shortDescription: 'Ngân hàng hàng đầu Việt Nam',
     category: 'banking',
     website: 'https://hdbank.com.vn',
@@ -109,6 +208,8 @@ const mockCompanies: SovicoCompany[] = [
     revenue: 15000000000000,
     currency: 'VND',
     marketShare: 'Top 10 VN',
+    icon: 'CreditCard',
+    color: 'blue',
     kpis: [
       {
         name: 'Khách hàng',
@@ -125,23 +226,54 @@ const mockCompanies: SovicoCompany[] = [
         trend: 'up',
         changePercent: 12,
         lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Chi nhánh',
+        value: '300+',
+        unit: 'chi nhánh',
+        trend: 'up',
+        changePercent: 8,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Tài sản',
+        value: '500,000',
+        unit: 'tỷ VND',
+        trend: 'up',
+        changePercent: 18,
+        lastUpdated: '2024-01-01T00:00:00Z'
       }
     ],
-    services: ['Tài khoản cá nhân', 'Tài khoản doanh nghiệp', 'Thẻ tín dụng', 'Vay vốn'],
+    services: [
+      'Tài khoản cá nhân & doanh nghiệp',
+      'Thẻ tín dụng & ghi nợ',
+      'Vay vốn & tín dụng',
+      'Đầu tư & bảo hiểm',
+      'Dịch vụ ngân hàng số',
+      'Chuyển tiền quốc tế',
+      'Dịch vụ ngoại hối',
+      'Tư vấn tài chính'
+    ],
     achievements: [
       'Ngân hàng tốt nhất Việt Nam 2023',
-      'Chứng nhận ISO 27001',
-      'Giải thưởng Fintech Innovation'
+      'Chứng nhận ISO 27001 về bảo mật',
+      'Giải thưởng Fintech Innovation',
+      'Xếp hạng A+ từ Moody\'s',
+      'Giải thưởng Digital Banking Excellence',
+      'Chứng nhận PCI DSS Level 1'
     ],
-    partnerships: ['Vietjet Air', 'Dragon Village', 'Sovico Group'],
+    partnerships: ['Vietjet Air', 'Dragon Village', 'Sovico Group', 'Visa', 'Mastercard'],
     socialMedia: {
       facebook: 'https://facebook.com/hdbank',
-      linkedin: 'https://linkedin.com/company/hdbank'
+      linkedin: 'https://linkedin.com/company/hdbank',
+      twitter: 'https://twitter.com/hdbank',
+      youtube: 'https://youtube.com/hdbank'
     },
     contact: {
       phone: '1900 5555 88',
       email: 'info@hdbank.com.vn',
-      address: '25Bis Nguyễn Thị Minh Khai, Q1, TP.HCM'
+      address: '25Bis Nguyễn Thị Minh Khai, Q1, TP.HCM',
+      hotline: '028 3822 0888'
     },
     isVerified: true,
     isActive: true,
@@ -151,7 +283,7 @@ const mockCompanies: SovicoCompany[] = [
   {
     id: '2',
     name: 'Vietjet Air',
-    description: 'Hãng hàng không giá rẻ hàng đầu Việt Nam - Mang đến trải nghiệm bay tiện lợi và tiết kiệm',
+    description: 'Hãng hàng không giá rẻ hàng đầu Việt Nam - Mang đến trải nghiệm bay tiện lợi và tiết kiệm với mạng lưới bay rộng khắp châu Á',
     shortDescription: 'Hãng hàng không giá rẻ',
     category: 'aviation',
     website: 'https://vietjetair.com',
@@ -162,6 +294,8 @@ const mockCompanies: SovicoCompany[] = [
     revenue: 5000000000000,
     currency: 'VND',
     marketShare: 'Top 3 VN',
+    icon: 'Plane',
+    color: 'red',
     kpis: [
       {
         name: 'Khách hàng',
@@ -178,23 +312,226 @@ const mockCompanies: SovicoCompany[] = [
         trend: 'up',
         changePercent: 18,
         lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Tuyến bay',
+        value: '80+',
+        unit: 'tuyến',
+        trend: 'up',
+        changePercent: 12,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Máy bay',
+        value: '100+',
+        unit: 'chiếc',
+        trend: 'up',
+        changePercent: 20,
+        lastUpdated: '2024-01-01T00:00:00Z'
       }
     ],
-    services: ['Vé máy bay', 'Dịch vụ hành lý', 'Bảo hiểm du lịch', 'Thuê xe'],
+    services: [
+      'Vé máy bay nội địa & quốc tế',
+      'Dịch vụ hành lý & ăn uống',
+      'Chương trình khách hàng thân thiết',
+      'Dịch vụ thuê máy bay',
+      'Bảo hiểm du lịch',
+      'Dịch vụ thuê xe',
+      'Dịch vụ khách sạn',
+      'Dịch vụ visa'
+    ],
     achievements: [
       'Hãng hàng không giá rẻ tốt nhất châu Á 2023',
       'Chứng nhận IATA Operational Safety Audit',
-      'Giải thưởng Best Low-Cost Airline'
+      'Giải thưởng Best Low-Cost Airline',
+      'Hãng bay có tốc độ tăng trưởng nhanh nhất thế giới',
+      'Chứng nhận IOSA (IATA Operational Safety Audit)',
+      'Giải thưởng Airline of the Year 2023'
     ],
-    partnerships: ['HDBank', 'Dragon Village', 'Sovico Group'],
+    partnerships: ['HDBank', 'Dragon Village', 'Sovico Group', 'Airbus', 'Boeing'],
     socialMedia: {
       facebook: 'https://facebook.com/vietjetair',
-      linkedin: 'https://linkedin.com/company/vietjet-air'
+      linkedin: 'https://linkedin.com/company/vietjet-air',
+      twitter: 'https://twitter.com/vietjetair',
+      instagram: 'https://instagram.com/vietjetair'
     },
     contact: {
       phone: '1900 1886',
       email: 'info@vietjetair.com',
-      address: 'Tòa nhà Vietjet, Sân bay Nội Bài, Hà Nội'
+      address: 'Tòa nhà Vietjet, Sân bay Nội Bài, Hà Nội',
+      hotline: '028 7300 1886'
+    },
+    isVerified: true,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '3',
+    name: 'Dragon Village',
+    description: 'Khu đô thị cao cấp với các dự án bất động sản quy mô lớn và dịch vụ du lịch thông minh, tích hợp công nghệ blockchain',
+    shortDescription: 'Khu đô thị cao cấp',
+    category: 'realestate',
+    website: 'https://dragonvillage.vn',
+    logoUrl: '/images/dragon-village-logo.png',
+    establishedYear: 2010,
+    headquarters: 'TP.HCM, Việt Nam',
+    employees: 3000,
+    revenue: 100000000000000,
+    currency: 'VND',
+    marketShare: 'Top 5 VN',
+    icon: 'Home',
+    color: 'green',
+    kpis: [
+      {
+        name: 'Cư dân',
+        value: '50K+',
+        unit: 'người',
+        trend: 'up',
+        changePercent: 20,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Dự án',
+        value: '25+',
+        unit: 'dự án',
+        trend: 'up',
+        changePercent: 15,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Diện tích',
+        value: '500',
+        unit: 'ha',
+        trend: 'up',
+        changePercent: 10,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Khách sạn',
+        value: '15+',
+        unit: 'khách sạn',
+        trend: 'up',
+        changePercent: 25,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      }
+    ],
+    services: [
+      'Biệt thự cao cấp & căn hộ thông minh',
+      'Resort 5 sao & khách sạn',
+      'Dịch vụ du lịch & nghỉ dưỡng',
+      'Trung tâm thương mại & giải trí',
+      'Dịch vụ quản lý tài sản',
+      'Dịch vụ bảo trì & vận hành',
+      'Dịch vụ an ninh 24/7',
+      'Dịch vụ tiện ích thông minh'
+    ],
+    achievements: [
+      'Dự án đô thị thông minh đầu tiên tại Việt Nam',
+      'Giải thưởng Bất động sản tốt nhất 2023',
+      'Chứng nhận LEED Platinum',
+      'Khu đô thị xanh nhất Việt Nam',
+      'Giải thưởng Smart City Innovation',
+      'Chứng nhận ISO 14001 về môi trường'
+    ],
+    partnerships: ['HDBank', 'Vietjet Air', 'Sovico Group', 'Marriott', 'Hilton'],
+    socialMedia: {
+      facebook: 'https://facebook.com/dragonvillage',
+      linkedin: 'https://linkedin.com/company/dragon-village',
+      instagram: 'https://instagram.com/dragonvillage',
+      youtube: 'https://youtube.com/dragonvillage'
+    },
+    contact: {
+      phone: '1900 9999 88',
+      email: 'info@dragonvillage.vn',
+      address: 'Khu đô thị Dragon Village, Q7, TP.HCM',
+      hotline: '028 7300 9999'
+    },
+    isVerified: true,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '4',
+    name: 'Sovico Energy',
+    description: 'Công ty năng lượng tái tạo hàng đầu với các dự án xanh và giải pháp năng lượng bền vững, góp phần xây dựng tương lai xanh',
+    shortDescription: 'Năng lượng tái tạo',
+    category: 'energy',
+    website: 'https://sovicoenergy.vn',
+    logoUrl: '/images/sovico-energy-logo.png',
+    establishedYear: 2015,
+    headquarters: 'Hà Nội, Việt Nam',
+    employees: 2000,
+    revenue: 5000000000000,
+    currency: 'VND',
+    marketShare: '15% VN',
+    icon: 'Zap',
+    color: 'yellow',
+    kpis: [
+      {
+        name: 'Công suất',
+        value: '500MW',
+        unit: 'MW',
+        trend: 'up',
+        changePercent: 30,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Dự án',
+        value: '50+',
+        unit: 'dự án',
+        trend: 'up',
+        changePercent: 25,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Tiết kiệm CO2',
+        value: '100K+',
+        unit: 'tấn/năm',
+        trend: 'up',
+        changePercent: 40,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      },
+      {
+        name: 'Tỷ lệ tái tạo',
+        value: '85%',
+        unit: '%',
+        trend: 'up',
+        changePercent: 15,
+        lastUpdated: '2024-01-01T00:00:00Z'
+      }
+    ],
+    services: [
+      'Điện mặt trời & điện gió',
+      'Hệ thống lưu trữ năng lượng',
+      'Tư vấn năng lượng xanh',
+      'Dịch vụ bảo trì & vận hành',
+      'Giải pháp năng lượng thông minh',
+      'Dịch vụ đo đạc & kiểm định',
+      'Tư vấn chính sách năng lượng',
+      'Dịch vụ tài chính xanh'
+    ],
+    achievements: [
+      'Nhà sản xuất năng lượng mặt trời lớn nhất Việt Nam',
+      'Giải thưởng Doanh nghiệp xanh 2023',
+      'Chứng nhận ISO 14001',
+      'Giải thưởng Renewable Energy Excellence',
+      'Chứng nhận Carbon Trust Standard',
+      'Giải thưởng Green Innovation Award'
+    ],
+    partnerships: ['HDBank', 'Vietjet Air', 'Dragon Village', 'Siemens', 'GE'],
+    socialMedia: {
+      facebook: 'https://facebook.com/sovicoenergy',
+      linkedin: 'https://linkedin.com/company/sovico-energy',
+      twitter: 'https://twitter.com/sovicoenergy',
+      youtube: 'https://youtube.com/sovicoenergy'
+    },
+    contact: {
+      phone: '1900 7777 88',
+      email: 'info@sovicoenergy.vn',
+      address: 'Tòa nhà Sovico Energy, Cầu Giấy, Hà Nội',
+      hotline: '028 7300 7777'
     },
     isVerified: true,
     isActive: true,

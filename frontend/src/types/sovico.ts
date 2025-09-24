@@ -82,6 +82,8 @@ export interface SovicoCompany {
   revenue: number
   currency: 'VND' | 'USD'
   marketShare: string
+  icon?: string
+  color?: string
   kpis: SovicoKPI[]
   services: string[]
   achievements: string[]
@@ -91,12 +93,14 @@ export interface SovicoCompany {
     linkedin?: string
     twitter?: string
     youtube?: string
+    instagram?: string
   }
   contact: {
     phone: string
     email: string
     address: string
     mapUrl?: string
+    hotline?: string
   }
   isVerified: boolean
   isActive: boolean

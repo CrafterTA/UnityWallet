@@ -395,7 +395,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   const renderStories = () => {
     // Filter stories by company
     const companyStories = stories.filter(story => 
-      story.company.toLowerCase() === company.name.toLowerCase()
+      story.company && story.company.toLowerCase() === company.name.toLowerCase()
     )
 
     return (
@@ -409,33 +409,57 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
           </p>
         </div>
 
-        {companyStories.length === 0 ? (
-        <div className="text-center py-12">
-          <BookOpen className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <h4 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {t('company.stories.noStories', 'Chưa có stories')}
-          </h4>
-          <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-            {t('company.stories.noStoriesDesc', 'Stories sẽ được cập nhật sớm')}
-          </p>
-        </div>
-      ) : (
+        {stories.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="animate-spin w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <h4 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('company.stories.loading', 'Đang tải stories...')}
+            </h4>
+          </div>
+        ) : companyStories.length === 0 ? (
+          <div className="text-center py-12">
+            <BookOpen className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h4 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('company.stories.noStories', 'Chưa có stories')}
+            </h4>
+            <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+              {t('company.stories.noStoriesDesc', 'Stories sẽ được cập nhật sớm')}
+            </p>
+          </div>
+        ) : (
         <div className="space-y-4">
           {/* Story Carousel */}
           <div className={`relative rounded-2xl overflow-hidden ${isDark ? 'bg-white/5 border border-white/10' : 'bg-white/80 border border-gray-200'} backdrop-blur-sm`}>
-            <div className="aspect-video bg-black">
+            <div className="aspect-video bg-black relative hover:cursor-pointer">
               {companyStories[currentStoryIndex]?.mediaType === 'video' ? (
-                <iframe
-                  src={companyStories[currentStoryIndex]?.mediaUrl}
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allowFullScreen
-                  title={companyStories[currentStoryIndex]?.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-popups-to-escape-sandbox"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  loading="lazy"
-                />
+                <>
+                  <iframe
+                    src={companyStories[currentStoryIndex]?.mediaUrl}
+                    className="w-full h-full cursor-pointer"
+                    frameBorder="0"
+                    allowFullScreen
+                    title={companyStories[currentStoryIndex]?.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    loading="lazy"
+                    style={{ 
+                      pointerEvents: 'auto',
+                      zIndex: 1,
+                      position: 'relative'
+                    }}
+                  />
+                  {/* Fallback button if iframe doesn't work */}
+                  <div className="absolute top-4 right-4">
+                    <a
+                      href={companyStories[currentStoryIndex]?.mediaUrl?.replace('/embed/', '/watch?v=')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Mở trong YouTube
+                    </a>
+                  </div>
+                </>
               ) : companyStories[currentStoryIndex]?.mediaType === 'audio' ? (
                 <div className="w-full h-full bg-gradient-to-br from-red-500/20 to-yellow-500/20 flex items-center justify-center">
                   <button
@@ -456,48 +480,53 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
               )}
             </div>
             
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6 text-white">
-              <h4 className="text-xl font-bold mb-2">
-                {companyStories[currentStoryIndex]?.title}
-              </h4>
-              <p className="text-white/80 mb-4">
-                {companyStories[currentStoryIndex]?.excerpt}
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-semibold">
-                      {companyStories[currentStoryIndex]?.author?.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium">
-                      {companyStories[currentStoryIndex]?.author}
+            {/* Overlay chỉ hiển thị khi không phải video */}
+            {companyStories[currentStoryIndex]?.mediaType !== 'video' && (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6 text-white">
+                  <h4 className="text-xl font-bold mb-2">
+                    {companyStories[currentStoryIndex]?.title}
+                  </h4>
+                  <p className="text-white/80 mb-4">
+                    {companyStories[currentStoryIndex]?.excerpt}
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-semibold">
+                          {companyStories[currentStoryIndex]?.author?.charAt(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">
+                          {companyStories[currentStoryIndex]?.author}
+                        </div>
+                        <div className="text-xs text-white/70">
+                          {companyStories[currentStoryIndex]?.authorRole}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-white/70">
-                      {companyStories[currentStoryIndex]?.authorRole}
+                    <div className="ml-auto flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentStoryIndex(Math.max(0, currentStoryIndex - 1))}
+                        disabled={currentStoryIndex === 0}
+                        className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors disabled:opacity-50"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setCurrentStoryIndex(Math.min(companyStories.length - 1, currentStoryIndex + 1))}
+                        disabled={currentStoryIndex === companyStories.length - 1}
+                        className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors disabled:opacity-50"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
-                <div className="ml-auto flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentStoryIndex(Math.max(0, currentStoryIndex - 1))}
-                    disabled={currentStoryIndex === 0}
-                    className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors disabled:opacity-50"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setCurrentStoryIndex(Math.min(companyStories.length - 1, currentStoryIndex + 1))}
-                    disabled={currentStoryIndex === companyStories.length - 1}
-                    className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors disabled:opacity-50"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
 
           {/* Story List */}

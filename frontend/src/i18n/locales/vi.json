@@ -792,6 +792,7 @@
     "stories": {
       "title": "Stories thành công",
       "subtitle": "Câu chuyện thành công và trải nghiệm từ khách hàng",
+      "loading": "Đang tải stories...",
       "noStories": "Chưa có stories",
       "noStoriesDesc": "Stories sẽ được cập nhật sớm"
     },

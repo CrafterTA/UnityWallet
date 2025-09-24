@@ -790,6 +790,7 @@
     "stories": {
       "title": "Success Stories",
       "subtitle": "Customer success stories and experiences",
+      "loading": "Loading stories...",
       "noStories": "No stories yet",
       "noStoriesDesc": "Stories will be updated soon"
     },
