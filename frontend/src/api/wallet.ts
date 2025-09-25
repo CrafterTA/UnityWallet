@@ -240,13 +240,9 @@ export const walletApi = {
     amount: string
   ): Promise<QuoteResponse> {
     try {
-      // Try different wallet storage keys
-      let publicKey = localStorage.getItem('stellar_public_key')
-      
-      if (!publicKey) {
-        const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
-        publicKey = wallet.state?.wallet?.public_key
-      }
+      // Get public key from wallet store
+      const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
+      const publicKey = wallet.state?.wallet?.public_key
 
       if (!publicKey) {
         throw new Error('No wallet found. Please login first.')

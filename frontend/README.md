@@ -1,12 +1,12 @@
 # UnityWallet Frontend
 
-UnityWallet is a digital wallet application that transforms loyalty points into digital assets using the Stellar blockchain. This is the React frontend component of the UnityWallet ecosystem.
+UnityWallet is a digital wallet application that transforms loyalty points into digital assets using the Solana blockchain. This is the React frontend component of the UnityWallet ecosystem.
 
 ## 🚀 Features
 
 - **Digital Asset Management**: View and manage SkyPoints (SYP), XLM, and USDC balances
 - **QR Payments**: Create and scan QR codes for seamless payments
-- **Asset Swapping**: Exchange assets through Stellar DEX with real-time quotes
+- **Asset Swapping**: Exchange assets through Solana DEX with real-time quotes
 - **Financial Insights**: AI-powered spending analysis and recommendations
 - **Credit Scoring**: Internal credit assessment based on transaction history
 - **Smart Assistant**: Rule-based financial assistant for queries and advice
@@ -62,8 +62,8 @@ Create a `.env` file in the root directory:
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 VITE_USE_MOCK=true
-VITE_STELLAR_NETWORK=testnet
-VITE_HORIZON_URL=https://horizon-testnet.stellar.org
+VITE_SOLANA_NETWORK=devnet
+VITE_RPC_URL=https://api.devnet.solana.com
 ```
 
 ## 📱 App Structure

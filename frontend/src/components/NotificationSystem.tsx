@@ -186,7 +186,7 @@ export const usePaymentNotifications = () => {
       icon: <CreditCard className="w-5 h-5 text-green-500" />,
       action: {
         label: 'Xem giao dịch',
-        onClick: () => window.open(`https://stellar.expert/explorer/testnet/tx/${txHash}`, '_blank')
+        onClick: () => window.open(`https://explorer.solana.com/tx/${txHash}?cluster=devnet`, '_blank')
       }
     })
   }, [addNotification])

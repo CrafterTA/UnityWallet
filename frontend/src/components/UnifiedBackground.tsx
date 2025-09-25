@@ -313,7 +313,7 @@ const UnifiedBackground: React.FC = () => {
       {/* Noise texture */}
       <div className="absolute inset-0 opacity-[0.02] bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cfilter%20id%3D%22noise%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noise)%22/%3E%3C/svg%3E')]" />
 
-      {/* Stellar Logo Effects - Multiple rotating logos */}
+      {/* Solana Logo Effects - Multiple rotating logos */}
       
       {/* Top left - Large rotating logo */}
       <div className="absolute top-20 left-20 w-32 h-32 animate-spin-slow opacity-20">

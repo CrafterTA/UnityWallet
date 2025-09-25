@@ -132,7 +132,7 @@ const SupportSection: React.FC<SupportSectionProps> = ({
     {
       id: 2,
       question: t('support.faq.paymentMethods', 'Các phương thức thanh toán nào được hỗ trợ?'),
-      answer: t('support.faq.paymentMethodsAnswer', 'Chúng tôi hỗ trợ thanh toán bằng SYP, XLM, USDC và các loại tiền điện tử khác thông qua mạng Stellar.')
+      answer: t('support.faq.paymentMethodsAnswer', 'Chúng tôi hỗ trợ thanh toán bằng SOL, USDC, USDT và các loại tiền điện tử khác thông qua mạng Solana.')
     },
     {
       id: 3,
@@ -142,7 +142,7 @@ const SupportSection: React.FC<SupportSectionProps> = ({
     {
       id: 4,
       question: t('support.faq.fees', 'Có phí giao dịch nào không?'),
-      answer: t('support.faq.feesAnswer', 'Phí giao dịch rất thấp và được tính dựa trên mạng Stellar. Chúng tôi cung cấp bảng phí minh bạch.')
+      answer: t('support.faq.feesAnswer', 'Phí giao dịch rất thấp và được tính dựa trên mạng Solana. Chúng tôi cung cấp bảng phí minh bạch.')
     },
     {
       id: 5,

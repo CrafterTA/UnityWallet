@@ -447,7 +447,7 @@
     "trustlineRequired": "트러스트라인 필요",
     "toReceiveSYPTokens": "SYP 토큰을 받으려면 먼저 트러스트라인을 설정해야 합니다.",
     "whatIsTrustline": "트러스트라인이 무엇인가요?",
-    "trustlineExplanation": "트러스트라인을 통해 계정이 SYP 토큰을 보유할 수 있습니다. 이는 Stellar 네트워크에서 필요한 일회성 설정입니다.",
+    "trustlineExplanation": "트러스트라인을 통해 계정이 SYP 토큰을 보유할 수 있습니다. 이는 Solana 네트워크에서 필요한 일회성 설정입니다.",
     "confirmTrustline": "트러스트라인 확인",
     "skipForNow": "지금은 건너뛰기",
     "confirmTransaction": "거래 확인",

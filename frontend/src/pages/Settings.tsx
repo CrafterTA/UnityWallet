@@ -17,7 +17,7 @@ function Settings() {
   const [passwordError, setPasswordError] = useState('')
   const [secretKeyCopied, setSecretKeyCopied] = useState(false)
   const [secretKeyMasked, setSecretKeyMasked] = useState(true)
-  const [autoMaskTimeout, setAutoMaskTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [autoMaskTimeout, setAutoMaskTimeout] = useState<number | null>(null)
   const { wallet, logout, lockWallet, unlockWallet } = useAuthStore()
   const { theme, setTheme, isDark } = useThemeStore()
   const navigate = useNavigate()
@@ -247,7 +247,7 @@ function Settings() {
                {wallet?.public_key ? `${wallet.public_key.slice(0, 8)}...${wallet.public_key.slice(-8)}` : 'Demo User'}
              </h3>
              <p className={`${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-               {wallet?.public_key ? 'Stellar Wallet' : 'Demo Account'}
+               {wallet?.public_key ? 'Solana Wallet' : 'Demo Account'}
              </p>
              <div className="flex items-center space-x-2 mt-1">
                <div className={`w-2 h-2 rounded-full ${
@@ -318,7 +318,7 @@ function Settings() {
         <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>SoviPay</h3>
         <p className={`text-sm mb-3 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>Version 1.0.0</p>
         <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-          Powered by Stellar Blockchain • Built for Hackathon Demo
+          Powered by Solana Blockchain • Built for Hackathon Demo
         </p>
       </div>
 

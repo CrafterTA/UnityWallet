@@ -375,32 +375,6 @@ export interface TransactionHistoryResponse {
   next_before?: string
 }
 
-// Onboard API Types
-export interface OnboardBeginRequest {
-  public_key: string
-}
-
-export interface OnboardBeginResponse {
-  status: 'ready_to_sign' | 'skip_sign'
-  user_public_key: string
-  xdr?: string
-  note: string
-  steps: Record<string, any>
-}
-
-export interface OnboardCompleteRequest {
-  public_key: string
-  signed_xdr: string
-}
-
-export interface OnboardCompleteResponse {
-  status: 'success'
-  user_public_key: string
-  airdrop_amount: number
-  steps: Record<string, any>
-  balances: Record<string, string>
-  env_snapshot: Record<string, boolean>
-}
 
 // Chain API functions
 export const chainApi = {
@@ -500,16 +474,6 @@ export const chainApi = {
     return response.data
   },
 
-  // Onboard functions
-  async beginOnboard(request: OnboardBeginRequest): Promise<OnboardBeginResponse> {
-    const response = await chainApiClient.post<OnboardBeginResponse>('/onboard/begin', request)
-    return response.data
-  },
-
-  async completeOnboard(request: OnboardCompleteRequest): Promise<OnboardCompleteResponse> {
-    const response = await chainApiClient.post<OnboardCompleteResponse>('/onboard/complete', request)
-    return response.data
-  }
 }
 
 export default chainApi

@@ -305,9 +305,7 @@ def get_account_transactions(pub: str, limit: int = 10, before: Optional[str] = 
                                             
                                             break
                     except Exception as e:
-                        print(f"Exception during parsing: {e}")
-                        import traceback
-                        traceback.print_exc()
+                        pass
                         # Try to get amount from transaction logs or other sources
                         try:
                             # Look for amount in logs
@@ -325,16 +323,10 @@ def get_account_transactions(pub: str, limit: int = 10, before: Optional[str] = 
                             pass
                         
                         # Fallback to placeholder if parsing fails
-                        print(f"Final amount before fallback check: {amount}")
                         if amount == "0":
-                            print(f"WARNING: Failed to parse amount for transaction {sig_info.signature}, using fallback")
                             amount = "0.01"  # This is just for display - real amount is parsed from transaction
-                        else:
-                            print(f"Successfully parsed amount: {amount}")
                     except Exception as e:
-                        print(f"Exception during parsing: {e}")
-                        import traceback
-                        traceback.print_exc()
+                        pass
                         # Try to get amount from transaction logs or other sources
                         try:
                             # Look for amount in logs
@@ -352,12 +344,8 @@ def get_account_transactions(pub: str, limit: int = 10, before: Optional[str] = 
                             pass
                         
                         # Fallback to placeholder if parsing fails
-                        print(f"Final amount before fallback check: {amount}")
                         if amount == "0":
-                            print(f"WARNING: Failed to parse amount for transaction {sig_info.signature}, using fallback")
                             amount = "0.01"  # This is just for display - real amount is parsed from transaction
-                        else:
-                            print(f"Successfully parsed amount: {amount}")
                 
                 transactions.append({
                     "id": str(sig_info.signature),

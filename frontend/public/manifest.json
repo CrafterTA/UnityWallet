@@ -1,7 +1,7 @@
 {
   "name": "SoviPay - Your Digital Wallet",
   "short_name": "SoviPay",
-  "description": "Transform loyalty points into digital assets with SoviPay - powered by Stellar blockchain",
+  "description": "Transform loyalty points into digital assets with SoviPay - powered by Solana blockchain",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

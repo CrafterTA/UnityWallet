@@ -12,7 +12,7 @@ export interface UserProfile {
   username: string
   full_name: string
   email?: string
-  stellar_public_key?: string
+  solana_public_key?: string
 }
 
 // Simple in-memory auth system for wallet-only app
@@ -48,7 +48,7 @@ export const authApi = {
       const defaultProfile: UserProfile = {
         username: credentials.username,
         full_name: credentials.username.charAt(0).toUpperCase() + credentials.username.slice(1),
-        stellar_public_key: localStorage.getItem('stellar_public_key') || undefined
+        solana_public_key: localStorage.getItem('solana_public_key') || undefined
       }
       localStorage.setItem('user_profile', JSON.stringify(defaultProfile))
       
@@ -66,8 +66,8 @@ export const authApi = {
       const storedProfile = localStorage.getItem('user_profile')
       if (storedProfile) {
         const profile = JSON.parse(storedProfile)
-        // Update with current stellar key if available
-        profile.stellar_public_key = localStorage.getItem('stellar_public_key') || profile.stellar_public_key
+        // Update with current solana key if available
+        profile.solana_public_key = localStorage.getItem('solana_public_key') || profile.solana_public_key
         return profile
       }
       
@@ -75,7 +75,7 @@ export const authApi = {
       return {
         username: 'user',
         full_name: 'SoviPay User',
-        stellar_public_key: localStorage.getItem('stellar_public_key') || undefined
+        solana_public_key: localStorage.getItem('solana_public_key') || undefined
       }
     } catch (error) {
       throw new Error('Failed to fetch user profile')

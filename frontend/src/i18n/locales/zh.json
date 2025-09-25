@@ -448,7 +448,7 @@
     "trustlineRequired": "需要信任线",
     "toReceiveSYPTokens": "要接收SYP代币，您需要先设置信任线。",
     "whatIsTrustline": "什么是信任线？",
-    "trustlineExplanation": "信任线允许您的账户持有SYP代币。这是Stellar网络所需的一次性设置。",
+    "trustlineExplanation": "信任线允许您的账户持有SYP代币。这是Solana网络所需的一次性设置。",
     "confirmTrustline": "确认信任线",
     "skipForNow": "暂时跳过",
     "confirmTransaction": "确认交易",

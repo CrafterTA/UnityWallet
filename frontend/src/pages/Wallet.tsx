@@ -8,18 +8,8 @@ import { walletApi } from '@/api/wallet';
 import { chainApi } from '@/api/chain';
 import { transactionsApi } from '@/api/transactions';
 import { toast } from 'react-hot-toast';
-import * as StellarBase from 'stellar-base';
-import { Buffer } from 'buffer';
 import { getUSDValue, formatUSDValue, formatAssetAmount, formatAssetAmountWithPrecision, fetchLiveRates, ExchangeRate, DEFAULT_RATES } from '@/lib/currency';
 import TransactionDetailModal from '@/components/TransactionDetailModal';
-
-// Polyfills
-if (!window.Buffer) window.Buffer = Buffer;
-if (!window.global) window.global = window;
-if (!window.process) window.process = { env: {} } as any;
-
-// Aliases
-const { TransactionBuilder, Networks, Keypair } = StellarBase;
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { 
@@ -30,11 +20,7 @@ import {
   ArrowUpDown,
   RefreshCw, 
   Eye,
-  EyeOff,
-  Coins,
-  CheckCircle,
-  AlertCircle,
-  X
+  EyeOff
 } from 'lucide-react';
 
 // Register GSAP plugins
@@ -71,230 +57,16 @@ const WalletPage: React.FC = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Onboard flow states
-  const [showTrustlineModal, setShowTrustlineModal] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showBonusResult, setShowBonusResult] = useState(false);
-  const [trustlineData, setTrustlineData] = useState<any>(null);
-  const [onboardData, setOnboardData] = useState<any>(null);
-  const [isSigning, setIsSigning] = useState(false);
-  const [isReceivingBonus, setIsReceivingBonus] = useState(false);
-  const [bonusResult, setBonusResult] = useState<any>(null);
 
-  // Check if this is first time entering wallet (show trustline modal first)
+  // Refetch balances when wallet changes
   useEffect(() => {
-    const showTrustlineModalFlag = localStorage.getItem('show_trustline_modal');
-    
-    if (isAuthenticated && wallet?.public_key && showTrustlineModalFlag === 'true') {
-      localStorage.removeItem('show_trustline_modal');
-      handleAutoBeginOnboard();
-    } else if (isAuthenticated && wallet?.public_key && !showTrustlineModalFlag) {
-      // Only refetch balances if not showing onboard modals
+    if (isAuthenticated && wallet?.public_key) {
       refetchBalances();
     }
   }, [isAuthenticated, wallet?.public_key]);
 
-  // Auto-fetch onboard data for new wallet
-  const handleAutoBeginOnboard = async () => {
-    try {
-      // First check current balances to see if wallet already has SYP tokens
-      const currentBalances = await chainApi.getBalances(wallet?.public_key || '');
-      
-      // Check if wallet already has SYP tokens
-      const hasSYPTokens = currentBalances?.balances && 
-        Object.keys(currentBalances.balances).some(key => key.startsWith('SYP:') || key === 'SYP');
-      
-      if (hasSYPTokens) {
-        // Wallet already has SYP tokens, no need for onboard
-        console.log('Wallet already has SYP tokens, skipping onboard');
-        toast.success('Welcome back! Your wallet is ready.');
-        refetchBalances();
-        return;
-      }
-      
-      const response = await chainApi.beginOnboard({
-        public_key: wallet?.public_key || ''
-      });
-      
-      setOnboardData(response);
-      
-      if (response.status === 'ready_to_sign') {
-        setTrustlineData(response);
-        setShowTrustlineModal(true);
-      } else if (response.status === 'skip_sign') {
-        // Skip directly to bonus if no trustlines needed
-        await handleCompleteOnboard(response);
-      }
-    } catch (error) {
-      toast.error('Failed to begin onboard process');
-      console.error('Begin onboard error:', error);
-      // Fallback to refetch balances
-      refetchBalances();
-    }
-  };
-
-  // Handle trustline confirmation
-  const handleConfirmTrustline = () => {
-    setShowTrustlineModal(false);
-    setShowConfirmModal(true);
-  };
-
-  // Handle skip trustline
-  const handleSkipTrustline = () => {
-    setShowTrustlineModal(false);
-    // Set loading state for skip
-    setIsReceivingBonus(true);
-    // Skip directly to bonus with empty signed_xdr
-    handleCompleteOnboard({ ...trustlineData, signed_xdr: '' });
-  };
-
-  // Function to sign XDR with user's secret key
-  const signXdrWithSecret = async (xdr: string, secret: string): Promise<string> => {
-    try {
-      const tx = TransactionBuilder.fromXDR(xdr, Networks.TESTNET);
-      const keypair = Keypair.fromSecret(secret);
-      tx.sign(keypair);
-      return tx.toXDR();
-    } catch (error) {
-      console.error('Error signing XDR:', error);
-      throw new Error('Failed to sign transaction');
-    }
-  };
-
-  // Handle transaction signing
-  const handleSignTransaction = async () => {
-    // Prevent multiple clicks
-    if (isSigning || isReceivingBonus) {
-      return;
-    }
-    
-    setIsSigning(true);
-    try {
-      if (!trustlineData?.xdr) {
-        throw new Error('Missing XDR from /onboard/begin');
-      }
-      
-      // Get secret key - either from wallet or derive from mnemonic
-      let secretKey = wallet?.secret;
-      
-      if (!secretKey && wallet?.mnemonic) {
-        // Derive secret key from mnemonic
-        secretKey = WalletUtils.deriveSecretFromMnemonic(wallet.mnemonic);
-      }
-      
-      if (!secretKey) {
-        throw new Error('No user secret to sign with. Please unlock wallet first.');
-      }
-
-      // Sign the XDR with user's secret key
-      const signedXdr = await signXdrWithSecret(trustlineData.xdr, secretKey);
-      
-      // Switch to receiving bonus state (keep confirm modal open)
-      setIsSigning(false);
-      setIsReceivingBonus(true);
-      
-      // Complete onboard with signed XDR
-      await handleCompleteOnboard({ ...trustlineData, signed_xdr: signedXdr });
-      
-      // Close confirm modal only after bonus is received
-      setShowConfirmModal(false);
-    } catch (error) {
-      toast.error('Failed to sign transaction');
-      console.error('Transaction signing error:', error);
-      setIsSigning(false);
-      setIsReceivingBonus(false);
-    }
-  };
-
-  // Handle complete onboard process
-  const handleCompleteOnboard = async (dataToUse?: any) => {
-    const data = dataToUse || trustlineData || onboardData;
-    if (!data) return;
-    
-    try {
-      const publicKey = wallet?.public_key;
-      if (!publicKey) {
-        throw new Error('No wallet public key found. Please login first.');
-      }
-      
-      // Use signed XDR if available, otherwise empty
-      const requestBody = {
-        public_key: publicKey,
-        signed_xdr: data.signed_xdr || ''
-      };
-      
-      // Complete onboard process with signed XDR
-      const response = await chainApi.completeOnboard(requestBody);
-      
-      // Find SYP balance with issuer
-      const sypKey = Object.keys(response.balances || {}).find(key => key.startsWith('SYP:'));
-      
-      if (response.status === 'success') {
-        // Show success message
-        toast.success(`Received ${response.airdrop_amount || '500'} SYP bonus tokens!`);
-        
-        // Set bonus result and show result modal
-        setBonusResult({
-          amount: response.airdrop_amount || '500',
-          steps: response.steps || { 'Account funded': 'completed', 'Trustlines set': 'completed', 'Bonus received': 'completed' }
-        });
-        setShowBonusResult(true);
-        
-        // Mark as seen
-        localStorage.setItem('has_seen_bonus', 'true');
-        
-        // Convert balances format for display
-        const formattedBalances = Object.entries(response.balances || {}).map(([key, amount]) => {
-          const [asset, issuer] = key.includes(':') ? key.split(':') : [key, ''];
-          return {
-            asset_code: asset,
-            issuer: issuer,
-            amount: amount.toString()
-          };
-        });
-        
-        setApiBalances(formattedBalances);
-        
-        // Don't refetch here - will refetch when bonus modal is closed
-      } else {
-        // Handle other statuses or errors
-        const errorMessage = (response as any).message || 'Unknown error';
-        toast.error(`Onboard failed: ${errorMessage}`);
-      }
-    } catch (error) {
-      toast.error('Failed to complete onboard process');
-      // Show more detailed error info
-      if (error instanceof Error) {
-        if (error.message?.includes('400')) {
-          toast.error('Invalid request to onboard complete. Check XDR format.');
-        } else if (error.message?.includes('500')) {
-          toast.error('Server error. Check if environment variables are set correctly.');
-        }
-      }
-    } finally {
-      setIsSigning(false);
-      setIsReceivingBonus(false);
-    }
-  };
-
-  // Close bonus result modal
-  const handleCloseBonusResult = async () => {
-    setShowBonusResult(false);
-    setBonusResult(null);
-    
-    // Now refetch balances after user acknowledges the bonus
-    try {
-      await refetchBalances();
-    } catch (error) {
-      console.error('Failed to refetch balances:', error);
-      // If refetch fails, reload the page as fallback
-      window.location.reload();
-    }
-  };
 
 
-  // State for balances from API response
-  const [apiBalances, setApiBalances] = useState<any>(null);
   
   // State for exchange rates
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate>(DEFAULT_RATES);
@@ -308,15 +80,8 @@ const WalletPage: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Always use fresh balances from API, fallback to cached apiBalances
-  const currentBalances = balances || apiBalances;
-
-  // Clear apiBalances when fresh balances are loaded
-  useEffect(() => {
-    if (balances) {
-      setApiBalances(null);
-    }
-  }, [balances]);
+  // Use fresh balances from API
+  const currentBalances = balances;
 
 
   // Fetch wallet address
@@ -355,7 +120,7 @@ const WalletPage: React.FC = () => {
     ? Object.entries(currentBalances.balances).map(([asset, amount]) => ({
         asset_code: asset as string,
         short_code: (asset as string).includes(':') ? (asset as string).split(':')[0] : (asset as string),
-        amount: amount as string,
+        amount: (amount as any).balance_ui || (amount as any).balance || (amount as unknown as string),
       }))
     : [];
 
@@ -364,7 +129,7 @@ const WalletPage: React.FC = () => {
     return sum + getUSDValue(balance.asset_code, balance.amount, exchangeRates);
   }, 0) || 0;
 
-  // Process balances for display (show only asset code like XLM, SYP, USDC)
+  // Process balances for display (show only asset code like SOL, USDC, USDT)
   const processedBalances = balancesArray?.map((balance: any) => {
     const usdValue = getUSDValue(balance.asset_code, balance.amount, exchangeRates);
     return {
@@ -611,7 +376,7 @@ const WalletPage: React.FC = () => {
             >
               <div className="text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <Coins className="w-6 h-6 text-white" />
+                  <ArrowUpDown className="w-6 h-6 text-white" />
                 </div>
                 <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.activity')}</h4>
                 <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>{t('wallet.viewHistory')}</p>
@@ -723,147 +488,6 @@ const WalletPage: React.FC = () => {
         </div>
         </div>
 
-      {/* Trustline Modal */}
-      {showTrustlineModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-2xl p-8 max-w-md w-full ${isDark ? 'bg-gray-900 border border-white/10' : 'bg-white'}`}>
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-orange-600" />
-              </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.trustlineRequired')}</h3>
-              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>{t('wallet.toReceiveSYPTokens')}</p>
-            </div>
-
-            <div className={`rounded-lg p-4 mb-6 ${isDark ? 'bg-orange-900/20 border border-orange-600/20' : 'bg-orange-50 border border-orange-200'}`}>
-              <h4 className={`font-semibold mb-2 ${isDark ? 'text-orange-300' : 'text-orange-800'}`}>{t('wallet.whatIsTrustline')}</h4>
-              <p className={`text-sm ${isDark ? 'text-orange-400' : 'text-orange-700'}`}>
-                {t('wallet.trustlineExplanation')}
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <button
-                onClick={handleConfirmTrustline}
-                className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center"
-              >
-                {t('wallet.confirmTrustline')}
-              </button>
-              <button
-                onClick={handleSkipTrustline}
-                disabled={isReceivingBonus}
-                className={`w-full disabled:opacity-50 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-              >
-                {isReceivingBonus ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                    {t('wallet.receivingBonus')}
-                  </>
-                ) : (
-                  t('wallet.skipForNow')
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Transaction Modal */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-2xl p-8 max-w-md w-full ${isDark ? 'bg-gray-900 border border-white/10' : 'bg-white'}`}>
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.confirmTransaction', 'Confirm Transaction')}</h3>
-              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>{t('wallet.reviewAndSignTrustline', 'Please review and sign the trustline transaction.')}</p>
-            </div>
-
-            <div className={`rounded-lg p-4 mb-6 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
-              <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('wallet.transactionDetails', 'Transaction Details')}</h4>
-              <div className={`space-y-2 text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-                <div className="flex justify-between">
-                  <span>{t('wallet.operation', 'Operation')}:</span>
-                  <span>{t('wallet.changeTrust', 'Change Trust')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{t('wallet.asset', 'Asset')}:</span>
-                  <span>SYP</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{t('wallet.limit', 'Limit')}:</span>
-                  <span>{t('wallet.unlimited', 'Unlimited')}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <button
-                onClick={handleSignTransaction}
-                disabled={isSigning || isReceivingBonus}
-                className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                {isSigning ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>{t('wallet.signing', 'Signing...')}</span>
-                  </>
-                ) : isReceivingBonus ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>{t('wallet.receivingBonus', 'Receiving Bonus...')}</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5" />
-                    <span>{t('wallet.signAndConfirm', 'Sign & Confirm')}</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                className={`w-full font-semibold py-3 px-6 rounded-xl transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-              >
-{t('wallet.backToReview', 'Back to Review')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bonus Result Modal */}
-      {showBonusResult && bonusResult && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-2xl p-8 max-w-md w-full ${isDark ? 'bg-gray-900 border border-white/10' : 'bg-white'}`}>
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Coins className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('wallet.bonusReceived', 'Bonus Received!')}</h3>
-              <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>{t('wallet.successfullyReceivedWelcomeBonus', 'You have successfully received your welcome bonus.')}</p>
-            </div>
-
-            <div className={`rounded-lg p-4 mb-6 ${isDark ? 'bg-green-900/20 border border-green-600/20' : 'bg-green-50 border border-green-200'}`}>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  +{bonusResult.amount} SYP
-                </div>
-                <p className={`${isDark ? 'text-green-400' : 'text-green-700'}`}>{t('wallet.welcomeBonusTokens', 'Welcome bonus tokens')}</p>
-              </div>
-            </div>
-
-
-
-            <button
-              onClick={handleCloseBonusResult}
-              className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
-            >
-{t('wallet.continueToWallet', 'Continue to Wallet')}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Transaction Detail Modal */}
       <TransactionDetailModal

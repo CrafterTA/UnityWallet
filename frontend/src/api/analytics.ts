@@ -303,7 +303,7 @@ export const analyticsApi = {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are a friendly AI assistant for SoviPay - a Stellar blockchain wallet. 
+              text: `You are a friendly AI assistant for SoviPay - a Solana blockchain wallet. 
 
 WALLET CONTEXT (use when user asks about wallet/transactions):
 - Public Key: ${context.wallet.publicKey}

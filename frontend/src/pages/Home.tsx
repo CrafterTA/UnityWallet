@@ -12,6 +12,12 @@ import LightModeBackground from "@/components/LightModeBackground";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { Buffer } from 'buffer';
+
+// Polyfills
+if (!(window as any).Buffer) (window as any).Buffer = Buffer;
+if (!(window as any).global) (window as any).global = window;
+if (!(window as any).process) (window as any).process = { env: {} } as any;
 
 import {
   Wallet,
@@ -182,9 +188,9 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
 
 // Token icon URLs mapping - using local images from public folder
 const TOKEN_ICON_URLS: Record<string, string> = {
-  SYP: "/images/stellar-xlm-logo.png", // Using XLM logo for SYP
+  SOL: "/images/coin.png", // Solana SOL logo
   USDC: "/images/usd-coin-usdc-logo.png", // Local USDC logo
-  XLM: "/images/stellar-xlm-logo.png", // Local XLM logo
+  USDT: "/images/usdt.png", // Tether USDT logo
 };
 
 const DEFAULT_ICON_URL = "/images/logo.png"; // Using SoviPay logo as fallback
@@ -433,31 +439,31 @@ export default function Web3ModernLayout() {
   // Calculate total balance with USD conversion like Wallet
   const totalBalance = isAuthenticated 
     ? (balances?.reduce((sum, balance) => {
-        return sum + getUSDValue(balance.asset_code, balance.amount, exchangeRates);
+        return sum + getUSDValue(balance.symbol, balance.balance_ui, exchangeRates);
       }, 0) || 0)
-    : 15450.00; // Demo balance for unauthenticated users
+    : 15500.00; // Demo balance for unauthenticated users (SOL + USDC + USDT)
 
   // Process balance data for display with USD conversion
   const assets = isAuthenticated 
     ? (balances?.map((balance, index) => {
-        const usdValue = getUSDValue(balance.asset_code, balance.amount, exchangeRates);
+        const usdValue = getUSDValue(balance.symbol, balance.balance_ui, exchangeRates);
         return {
           id: index + 1,
-          name: balance.asset_code === 'SYP' ? 'Sky Point' : 
-                balance.asset_code === 'USDC' ? 'USD Coin' :
-                balance.asset_code === 'XLM' ? 'Lumens' : balance.asset_code,
-          symbol: balance.asset_code,
-          balance: formatAssetAmountWithPrecision(balance.amount || '0', balance.asset_code, 6),
+          name: balance.symbol === 'SOL' ? 'Solana' : 
+                balance.symbol === 'USDC' ? 'USD Coin' :
+                balance.symbol === 'USDT' ? 'Tether' : balance.symbol,
+          symbol: balance.symbol,
+          balance: formatAssetAmountWithPrecision(balance.balance_ui || '0', balance.symbol, 6),
           value: usdValue, // Real USD value with live conversion rates
         };
       }) || [])
     : [
         {
           id: 1,
-          name: 'Sky Point',
-          symbol: 'SYP',
-          balance: '450.000',
-          value: 450.00 // USD value
+          name: 'Solana',
+          symbol: 'SOL',
+          balance: '2.500',
+          value: 500.00 // USD value
         },
         {
           id: 2,
@@ -468,10 +474,10 @@ export default function Web3ModernLayout() {
         },
         {
           id: 3,
-          name: 'Lumens',
-          symbol: 'XLM',
+          name: 'Tether',
+          symbol: 'USDT',
           balance: '10,000.000',
-          value: 1100.00 // USD value (10,000 * 0.11 rate)
+          value: 10000.00 // USD value
         }
       ];
 

@@ -1040,7 +1040,7 @@ export const useSovicoExperience = () => {
           memo: paymentData.memo,
           timestamp: new Date().toISOString(),
           invoiceUrl: '/invoices/' + Date.now() + '.pdf',
-          horizonUrl: 'https://stellar.expert/explorer/testnet/tx/' + result.hash
+          horizonUrl: 'https://explorer.solana.com/tx/' + result.hash + '?cluster=devnet'
         }
       } catch (error) {
         console.error('Payment API error:', error)

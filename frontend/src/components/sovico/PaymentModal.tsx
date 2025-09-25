@@ -665,7 +665,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                           rel="noopener noreferrer"
                           className="text-sm text-blue-500 hover:text-blue-600 underline"
                         >
-                          Xem trên Stellar Explorer
+                          Xem trên Solana Explorer
                         </a>
                       </div>
                     </div>
@@ -714,7 +714,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       Thanh toán thành công
                     </h4>
                     <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-                      Giao dịch đã được xác nhận trên Stellar network
+                      Giao dịch đã được xác nhận trên Solana network
                     </p>
                   </div>
                 </div>

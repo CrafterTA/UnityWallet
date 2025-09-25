@@ -447,7 +447,7 @@
     "trustlineRequired": "トラストラインが必要です",
     "toReceiveSYPTokens": "SYPトークンを受け取るには、まずトラストラインを設定する必要があります。",
     "whatIsTrustline": "トラストラインとは何ですか？",
-    "trustlineExplanation": "トラストラインにより、アカウントがSYPトークンを保持できるようになります。これはStellarネットワークで必要な一回限りの設定です。",
+    "trustlineExplanation": "トラストラインにより、アカウントがSYPトークンを保持できるようになります。これはSolanaネットワークで必要な一回限りの設定です。",
     "confirmTrustline": "トラストラインを確認",
     "skipForNow": "今はスキップ",
     "confirmTransaction": "取引を確認",

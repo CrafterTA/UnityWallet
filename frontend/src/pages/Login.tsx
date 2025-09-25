@@ -170,21 +170,6 @@ const Login: React.FC = () => {
       // Don't save password - use mnemonic verification instead
       localStorage.setItem('wallet_public_key', createdWallet.public_key);
       
-      // Only show trustline modal for newly created wallets
-      // For imported wallets, check if they already have SYP tokens
-      if (isNewWallet) {
-        // Always show for new wallets
-        localStorage.setItem('show_trustline_modal', 'true');
-      } else {
-        // For imported wallets, check if they already have SYP tokens
-        const hasSYPTokens = createdWallet.balances && 
-          Object.keys(createdWallet.balances).some(key => key.startsWith('SYP:') || key === 'SYP');
-        
-        // Only show trustline modal for imported wallets without SYP tokens
-        if (!hasSYPTokens) {
-          localStorage.setItem('show_trustline_modal', 'true');
-        }
-      }
 
       // Web3 standard: encrypt secret key with password
       try {

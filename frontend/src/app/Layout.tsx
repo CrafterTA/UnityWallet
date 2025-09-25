@@ -37,19 +37,24 @@ function Layout({ children }: LayoutProps) {
       {/* Conditional Background Rendering */}
       {isDark ? (
         <>
-          {/* Dark mode background - matching Login page */}
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-900 via-navy-800 to-primary"></div>
+          {/* Dark mode background - Fixed position to prevent scrolling */}
+          <div 
+            className="fixed inset-0 -z-10" 
+            style={{
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+            }}
+          ></div>
           
-          {/* Subtle background pattern */}
-          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          {/* Subtle background pattern - Fixed position */}
+          <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
             {/* Subtle grid pattern */}
             <div
               className="absolute inset-0 [background-size:32px_32px] opacity-20 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.03)_1px,transparent_0)]"
               aria-hidden
             />
-            {/* Subtle accent blobs */}
-            <div className="absolute -top-24 left-1/2 h-[40rem] w-[40rem] -translate-x-1/2 rounded-full bg-gradient-to-tr from-primary/10 via-accent/8 to-transparent blur-3xl" />
-            <div className="absolute bottom-[-8rem] right-[-8rem] h-[30rem] w-[30rem] rounded-full bg-gradient-to-tl from-accent/8 via-primary/6 to-transparent blur-3xl" />
+            {/* Subtle accent blobs - Fixed position to prevent scrolling */}
+            <div className="fixed -top-24 left-1/2 h-[40rem] w-[40rem] -translate-x-1/2 rounded-full bg-gradient-to-tr from-primary/10 via-accent/8 to-transparent blur-3xl" />
+            <div className="fixed bottom-[-8rem] right-[-8rem] h-[30rem] w-[30rem] rounded-full bg-gradient-to-tl from-accent/8 via-primary/6 to-transparent blur-3xl" />
           </div>
         </>
       ) : (
