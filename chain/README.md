@@ -61,10 +61,10 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 ### Swap
 - `POST /swap/validate` - Validate swap request (frontend pre-check)
-- `POST /swap/quote` - Lấy quote swap
+- `POST /swap/quote` - Lấy quote swap (Jupiter)
 - `POST /swap/begin` - Tạo swap transaction để frontend ký
 - `POST /swap/complete` - Submit swap transaction đã ký
-- `POST /swap/execute` - Thực hiện swap (backend ký - legacy)
+- `POST /swap/execute` - Thực hiện swap (Jupiter, backend ký - legacy)
 
 ### Onboarding
 - `POST /onboard/begin` - Bắt đầu onboarding
@@ -73,6 +73,12 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ### Transaction History
 - `GET /tx/lookup` - Tra cứu giao dịch
 - `GET /tx/history` - Lịch sử giao dịch
+
+### Price Information
+- `GET /prices/` - Lấy giá tất cả token
+- `GET /prices/token/{mint}` - Lấy giá token cụ thể
+- `POST /prices/calculate` - Tính giá trị USD
+- `GET /prices/supported` - Danh sách token được hỗ trợ
 
 ## 🔧 Cấu hình
 
@@ -322,6 +328,7 @@ curl -X POST "http://localhost:8000/swap/execute" \
     "dest_min": "change_here_minimum_usdt_amount_from_quote"
   }'
 ```
+
 **⚠️ Lưu ý**: Backend signing không khuyến nghị cho production
 
 ### 7b. Thực hiện swap SOL → USDT (Frontend ký - Khuyến nghị)
@@ -359,6 +366,28 @@ curl -X GET "http://localhost:8000/tx/lookup?signature=change_here_transaction_s
 ### 9. Xem lịch sử giao dịch
 ```bash
 curl -X GET "http://localhost:8000/tx/history?public_key=change_here_your_public_key&limit=10"
+```
+
+### 10. Lấy giá token
+```bash
+# Lấy giá tất cả token
+curl -X GET "http://localhost:8000/prices/"
+
+# Lấy giá SOL
+curl -X GET "http://localhost:8000/prices/token/native"
+
+# Lấy giá USDT
+curl -X GET "http://localhost:8000/prices/token/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+```
+
+### 11. Tính giá trị USD
+```bash
+curl -X POST "http://localhost:8000/prices/calculate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "1.0",
+    "token_mint": "native"
+  }'
 ```
 
 ## 📋 Response Examples
@@ -509,6 +538,67 @@ curl -X GET "http://localhost:8000/tx/history?public_key=change_here_your_public
   },
   "explorer_link": "https://explorer.solana.com/tx/5J7X8Y9Z...?cluster=devnet",
   "solscan_link": "https://solscan.io/tx/5J7X8Y9Z...?cluster=devnet"
+}
+```
+
+### Price API Response
+```json
+{
+  "success": true,
+  "data": {
+    "prices": {
+      "solana": 201.25,
+      "tether": 1.00
+    },
+    "timestamp": 1703123456,
+    "cached": false
+  },
+  "supported_tokens": {
+    "SOL": {
+      "mint": "native",
+      "coin_id": "solana",
+      "symbol": "SOL",
+      "name": "Solana"
+    },
+    "USDT": {
+      "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "coin_id": "tether",
+      "symbol": "USDT", 
+      "name": "Tether USD"
+    }
+  }
+}
+```
+
+### Token Price Response
+```json
+{
+  "success": true,
+  "data": {
+    "mint": "native",
+    "coin_id": "solana",
+    "supported": true,
+    "price_usd": 201.25,
+    "price_formatted": "$201.250000",
+    "price_change_24h": 2.5,
+    "price_change_24h_formatted": "+2.50%",
+    "symbol": "SOL",
+    "name": "Solana",
+    "decimals": 9
+  }
+}
+```
+
+### Calculate Value Response
+```json
+{
+  "success": true,
+  "data": {
+    "amount": "1.0",
+    "token_mint": "native",
+    "usd_value": 201.25,
+    "usd_value_formatted": "$201.25"
+  }
 }
 ```
 

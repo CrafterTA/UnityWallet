@@ -15,18 +15,21 @@ from services.solana import (
 )
 from models.schemas import TokenRef
 
+SOL_MINT = "So11111111111111111111111111111111111111112"
+
+
 def _convert_ui_to_lamports(amount: str, token_ref: TokenRef) -> str:
-    """Convert UI amount to lamports/smallest unit"""
+    """Convert UI amount (e.g. 1.0 SOL) to lamports/smallest unit"""
     try:
         ui_amount = Decimal(amount)
-        if token_ref.mint == "native":
-            # SOL: 1 SOL = 1,000,000,000 lamports
-            return str(int(ui_amount * Decimal("1000000000")))
+        mint = (token_ref.mint or "").strip()
+        if mint in ("native", SOL_MINT):
+            # SOL or wrapped SOL always use 9 decimals
+            multiplier = Decimal("1000000000")
         else:
-            # SPL tokens: use decimals from token_ref
-            decimals = token_ref.decimals or 6  # Default to 6 decimals
+            decimals = token_ref.decimals if token_ref.decimals is not None else 6  # fallback
             multiplier = Decimal(10) ** decimals
-            return str(int(ui_amount * multiplier))
+        return str(int(ui_amount * multiplier))
     except (InvalidOperation, ValueError):
         return amount  # Return original if conversion fails
 

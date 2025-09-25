@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import wallet, send, swap, tx
+from routers import wallet, send, swap, tx, prices
 
 app = FastAPI(title="Solana Wallet API", version="2.1.0", description="Wallet API for Solana blockchain with USDT support")
 
@@ -24,6 +24,7 @@ app.include_router(wallet.router)
 app.include_router(send.router)
 app.include_router(swap.router)
 app.include_router(tx.router)
+app.include_router(prices.router)
 
 @app.get("/")
 def root():

@@ -14,7 +14,7 @@ from spl.token.constants import TOKEN_PROGRAM_ID
 from spl.token.instructions import transfer, TransferParams
 from core.config import (
     client, tx_opts, RPC_URL, FAUCET_URL,
-    USDT_MINT
+    USDT_MINT, USDC_MINT
 )
 
 def valid_secret(s: str) -> bool:
@@ -85,10 +85,10 @@ def get_token_balance(pub: str, mint: str) -> int:
         return 0
 
 def balances_of(pub: str) -> Dict[str, Any]:
-    """Get all balances (SOL + USDT) for an account"""
+    """Get all balances (SOL + USDT + USDC) for an account from on-chain devnet"""
     balances = {}
     
-    # SOL balance (in lamports)
+    # SOL balance (in lamports) - from on-chain devnet
     sol_balance = get_balance(pub)
     balances["SOL"] = {
         "balance": str(sol_balance),
@@ -98,7 +98,7 @@ def balances_of(pub: str) -> Dict[str, Any]:
         "symbol": "SOL"
     }
     
-    # USDT balance (in smallest unit)
+    # USDT balance (in smallest unit) - from on-chain devnet
     usdt_balance = get_token_balance(pub, USDT_MINT)
     balances["USDT"] = {
         "balance": str(usdt_balance),
@@ -106,6 +106,16 @@ def balances_of(pub: str) -> Dict[str, Any]:
         "mint": USDT_MINT,
         "decimals": 6,
         "symbol": "USDT"
+    }
+    
+    # USDC balance (in smallest unit) - from on-chain devnet
+    usdc_balance = get_token_balance(pub, USDC_MINT)
+    balances["USDC"] = {
+        "balance": str(usdc_balance),
+        "balance_ui": str(usdc_balance / 1_000_000),  # USDC has 6 decimals
+        "mint": USDC_MINT,
+        "decimals": 6,
+        "symbol": "USDC"
     }
     
     return balances

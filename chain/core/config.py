@@ -21,6 +21,7 @@ NETWORK = os.getenv("SOLANA_NETWORK", "devnet")
 
 # ---- Token Configuration ----
 USDT_MINT = os.getenv("USDT_MINT", "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB")  # Devnet USDT (Tether)
+USDC_MINT = os.getenv("USDC_MINT", "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU")  # Devnet USDC
 
 # ---- Faucet Configuration ----
 FAUCET_URL = os.getenv("FAUCET_URL", "https://faucet.solana.com")

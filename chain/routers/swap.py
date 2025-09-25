@@ -10,7 +10,9 @@ from models.schemas import (
 )
 from services.swap import (
     quote_send, quote_receive, exec_send, exec_receive,
-    build_path_send_transaction, build_path_receive_transaction
+    build_path_send_transaction, build_path_receive_transaction,
+    quote_send_raydium, quote_receive_raydium, exec_send_raydium, exec_receive_raydium,
+    exec_real_sol_transfer_devnet
 )
 from services.solana import (
     valid_pub, balances_of, balances_of_with_retry, submit_transaction,
@@ -19,6 +21,72 @@ from services.solana import (
 from core.config import client, tx_opts
 
 router = APIRouter(prefix="/swap", tags=["swap"])
+
+def _is_devnet() -> bool:
+    """Check if we're running on devnet"""
+    try:
+        # Try to get a simple account info to determine network
+        from core.config import RPC_URL
+        return "devnet" in RPC_URL.lower()
+    except:
+        return False
+
+@router.get("/network-status")
+def get_network_status():
+    """Get current network status and supported DEX information"""
+    is_devnet = _is_devnet()
+    
+    if is_devnet:
+        return {
+            "network": "devnet",
+            "supported_dex": "Raydium",
+            "jupiter_support": False,
+            "note": "Jupiter API does not support devnet. Using Raydium with USDC/USDT for devnet testing.",
+            "features": {
+                "real_swap": True,
+                "raydium_swap": True,
+                "quote_support": True,
+                "execute_support": True
+            },
+                   "supported_tokens": {
+                       "SOL": "So11111111111111111111111111111111111111112",
+                       "USDC": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+                       "USDT": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                   },
+            "raydium_pools": {
+                "SOL_USDC": {
+                    "pool_id": "mock_pool_sol_usdc",
+                    "base_mint": "So11111111111111111111111111111111111111112",
+                    "quote_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+                    "rate": "1 SOL = 200 USDC"
+                },
+                "SOL_USDT": {
+                    "pool_id": "mock_pool_sol_usdt",
+                    "base_mint": "So11111111111111111111111111111111111111112",
+                    "quote_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "rate": "1 SOL = 180 USDT"
+                },
+                "USDC_USDT": {
+                    "pool_id": "mock_pool_usdc_usdt",
+                    "base_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+                    "quote_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "rate": "1 USDC = 1 USDT"
+                }
+            }
+        }
+    else:
+        return {
+            "network": "mainnet",
+            "supported_dex": "Jupiter",
+            "jupiter_support": True,
+            "note": "Full Jupiter API support available for real swaps.",
+            "features": {
+                "real_swap": True,
+                "mock_swap": False,
+                "quote_support": True,
+                "execute_support": True
+            }
+        }
 
 @router.post("/quote")
 def quote(body: QuoteBody):
@@ -41,6 +109,9 @@ def quote(body: QuoteBody):
         raise HTTPException(400, "Source account does not exist on blockchain")
     
     try:
+        # Check if we're on devnet and use appropriate service
+        use_devnet = _is_devnet()
+        
         if body.mode == "send":
             # Validate source amount
             try:
@@ -50,13 +121,22 @@ def quote(body: QuoteBody):
             except ValueError:
                 raise HTTPException(400, "Invalid source_amount format")
             
-            result = quote_send(
-                source_token=body.source_token,
-                source_amount=body.source_amount,
-                dest_token=body.dest_token,
-                source_account=body.source_account,
-                slippage_bps=body.slippage_bps,
-            )
+            if use_devnet:
+                result = quote_send_raydium(
+                    source_token=body.source_token,
+                    source_amount=body.source_amount,
+                    dest_token=body.dest_token,
+                    source_account=body.source_account,
+                    slippage_bps=body.slippage_bps,
+                )
+            else:
+                result = quote_send(
+                    source_token=body.source_token,
+                    source_amount=body.source_amount,
+                    dest_token=body.dest_token,
+                    source_account=body.source_account,
+                    slippage_bps=body.slippage_bps,
+                )
         else:
             # Validate dest amount
             try:
@@ -66,13 +146,22 @@ def quote(body: QuoteBody):
             except ValueError:
                 raise HTTPException(400, "Invalid dest_amount format")
             
-            result = quote_receive(
-                dest_token=body.dest_token,
-                dest_amount=body.dest_amount,
-                source_token=body.source_token,
-                source_account=body.source_account,
-                slippage_bps=body.slippage_bps,
-            )
+            if use_devnet:
+                result = quote_receive_raydium(
+                    dest_token=body.dest_token,
+                    dest_amount=body.dest_amount,
+                    source_token=body.source_token,
+                    source_account=body.source_account,
+                    slippage_bps=body.slippage_bps,
+                )
+            else:
+                result = quote_receive(
+                    dest_token=body.dest_token,
+                    dest_amount=body.dest_amount,
+                    source_token=body.source_token,
+                    source_account=body.source_account,
+                    slippage_bps=body.slippage_bps,
+                )
         
         # Add metadata to result
         result["quote_metadata"] = {
@@ -213,17 +302,47 @@ def exec_swap_unified(body: ExecuteSwapReq):
 
     try:
         if body.mode == "send":
-            if not body.source_amount or not body.dest_min:
-                raise HTTPException(400, "source_amount and dest_min are required for mode=send")
+            if not body.source_amount:
+                raise HTTPException(400, "source_amount is required for mode=send")
             
-            # Validate amounts
+            # Validate source amount
             try:
                 source_amount_float = float(body.source_amount)
-                dest_min_float = float(body.dest_min)
-                if source_amount_float <= 0 or dest_min_float <= 0:
-                    raise HTTPException(400, "Amounts must be greater than 0")
+                if source_amount_float <= 0:
+                    raise HTTPException(400, "source_amount must be greater than 0")
             except ValueError:
-                raise HTTPException(400, "Invalid amount format")
+                raise HTTPException(400, "Invalid source_amount format")
+            
+            # Get quote to calculate dest_min automatically
+            use_devnet = _is_devnet()
+            if use_devnet:
+                quote_result = quote_send_raydium(
+                    source_token=body.source_token,
+                    source_amount=body.source_amount,
+                    dest_token=body.dest_token,
+                    source_account=source_public,
+                    slippage_bps=200
+                )
+            else:
+                quote_result = quote_send(
+                    source_token=body.source_token,
+                    source_amount=body.source_amount,
+                    dest_token=body.dest_token,
+                    source_account=source_public,
+                    slippage_bps=200
+                )
+            
+            if not quote_result.get("found"):
+                raise HTTPException(400, "No swap route found")
+            
+            # Use calculated dest_min from quote
+            dest_min = quote_result.get("dest_min_suggest", "0")
+            try:
+                dest_min_float = float(dest_min)
+                if dest_min_float <= 0:
+                    raise HTTPException(400, "Calculated dest_min is invalid")
+            except ValueError:
+                raise HTTPException(400, "Invalid calculated dest_min format")
             
             # Check source balance
             if body.source_token.mint == "native" or body.source_token.mint == "So11111111111111111111111111111111111111112":
@@ -239,83 +358,96 @@ def exec_swap_unified(body: ExecuteSwapReq):
                     available_ui = current_balance / (10 ** decimals)
                     raise HTTPException(400, f"Insufficient token balance. Required: {body.source_amount}, Available: {available_ui}")
             
-            # Get balances before swap
-            balances_before = balances_of(source_public)
-            
-            # Execute swap
-            result = exec_send(body.secret, destination, body.source_token,
-                             body.source_amount, body.dest_token, body.dest_min, body.route)
-            
-            # Get updated balances
-            updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
-            result["balances"] = updated_balances
-            
-            # Calculate balance changes
-            balance_changes = {}
-            for token, new_balance in updated_balances.items():
-                if token in balances_before:
-                    old_balance = balances_before[token]
-                    change = float(new_balance["balance_ui"]) - float(old_balance["balance_ui"])
-                    balance_changes[token] = {
-                        "before": old_balance["balance_ui"],
-                        "after": new_balance["balance_ui"],
-                        "change": f"{change:+.9f}" if token == "SOL" else f"{change:+.6f}"
-                    }
-            
-            result["balance_changes"] = balance_changes
+            # Execute swap with calculated dest_min
+            if use_devnet:
+                result = exec_send_raydium(body.secret, destination, body.source_token,
+                                          body.source_amount, body.dest_token, dest_min, body.route)
+                if result.get("raydium_mode"):
+                    # Keep simulated balances for mock Raydium execution and expose actual on-chain snapshot separately
+                    result["balances_onchain"] = balances_of(source_public)
+                else:
+                    updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
+                    result["balances"] = updated_balances
+            else:
+                result = exec_send(body.secret, destination, body.source_token,
+                                 body.source_amount, body.dest_token, dest_min, body.route)
+                updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
+                result["balances"] = updated_balances
             result["swap_info"] = {
                 "mode": "send",
                 "source_token": body.source_token.mint,
                 "dest_token": body.dest_token.mint,
                 "source_amount": body.source_amount,
-                "dest_min": body.dest_min
+                "dest_min": dest_min,
+                "calculated_dest_min": True
             }
             
             return result
 
         if body.mode == "receive":
-            if not body.dest_amount or not body.source_max:
-                raise HTTPException(400, "dest_amount and source_max are required for mode=receive")
+            if not body.dest_amount:
+                raise HTTPException(400, "dest_amount is required for mode=receive")
             
-            # Validate amounts
+            # Validate dest amount
             try:
                 dest_amount_float = float(body.dest_amount)
-                source_max_float = float(body.source_max)
-                if dest_amount_float <= 0 or source_max_float <= 0:
-                    raise HTTPException(400, "Amounts must be greater than 0")
+                if dest_amount_float <= 0:
+                    raise HTTPException(400, "dest_amount must be greater than 0")
             except ValueError:
-                raise HTTPException(400, "Invalid amount format")
+                raise HTTPException(400, "Invalid dest_amount format")
             
-            # Get balances before swap
-            balances_before = balances_of(source_public)
+            # Get quote to calculate source_max automatically
+            use_devnet = _is_devnet()
+            if use_devnet:
+                quote_result = quote_receive_raydium(
+                    dest_token=body.dest_token,
+                    dest_amount=body.dest_amount,
+                    source_token=body.source_token,
+                    source_account=source_public,
+                    slippage_bps=200
+                )
+            else:
+                quote_result = quote_receive(
+                    dest_token=body.dest_token,
+                    dest_amount=body.dest_amount,
+                    source_token=body.source_token,
+                    source_account=source_public,
+                    slippage_bps=200
+                )
             
-            # Execute swap
-            result = exec_receive(body.secret, destination, body.dest_token, body.dest_amount,
-                                body.source_token, body.source_max, body.route)
+            if not quote_result.get("found"):
+                raise HTTPException(400, "No swap route found")
             
-            # Get updated balances
-            updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
-            result["balances"] = updated_balances
+            # Use calculated source_max from quote
+            source_max = quote_result.get("source_max_suggest", "0")
+            try:
+                source_max_float = float(source_max)
+                if source_max_float <= 0:
+                    raise HTTPException(400, "Calculated source_max is invalid")
+            except ValueError:
+                raise HTTPException(400, "Invalid calculated source_max format")
             
-            # Calculate balance changes
-            balance_changes = {}
-            for token, new_balance in updated_balances.items():
-                if token in balances_before:
-                    old_balance = balances_before[token]
-                    change = float(new_balance["balance_ui"]) - float(old_balance["balance_ui"])
-                    balance_changes[token] = {
-                        "before": old_balance["balance_ui"],
-                        "after": new_balance["balance_ui"],
-                        "change": f"{change:+.9f}" if token == "SOL" else f"{change:+.6f}"
-                    }
-            
-            result["balance_changes"] = balance_changes
+            # Execute swap with calculated source_max
+            if use_devnet:
+                result = exec_receive_raydium(body.secret, destination, body.dest_token, body.dest_amount,
+                                              body.source_token, source_max, body.route)
+                if result.get("raydium_mode"):
+                    result["balances_onchain"] = balances_of(source_public)
+                else:
+                    updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
+                    result["balances"] = updated_balances
+            else:
+                result = exec_receive(body.secret, destination, body.dest_token, body.dest_amount,
+                                    body.source_token, source_max, body.route)
+                updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
+                result["balances"] = updated_balances
             result["swap_info"] = {
                 "mode": "receive",
                 "source_token": body.source_token.mint,
                 "dest_token": body.dest_token.mint,
                 "dest_amount": body.dest_amount,
-                "source_max": body.source_max
+                "source_max": source_max,
+                "calculated_source_max": True
             }
             
             return result
@@ -394,3 +526,4 @@ def swap_complete(body: SubmitSignedTransactionReq):
         }
     except Exception as e:
         raise HTTPException(400, f"Transaction submission failed: {str(e)}")
+
