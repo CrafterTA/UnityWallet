@@ -1,7 +1,7 @@
 // Utility functions for wallet operations
 // This handles deriving secret key from mnemonic when needed
 
-import { Keypair } from 'stellar-sdk';
+import { Keypair } from '@solana/web3.js';
 
 export class WalletUtils {
   /**
@@ -12,14 +12,14 @@ export class WalletUtils {
    */
   static deriveSecretFromMnemonic(mnemonic: string): string {
     try {
-      // For Stellar, we can use the mnemonic directly as seed
-      // In production, you should use proper BIP39 derivation with Stellar's derivation path
+      // For Solana, we can use the mnemonic to derive keypair
+      // In production, you should use proper BIP39 derivation with Solana's derivation path
       // This is a simplified version for demo purposes
       
       // Note: This is NOT secure for production use
-      // In real implementation, use proper BIP39 with Stellar derivation path
-      const keypair = Keypair.fromSecret(mnemonic);
-      return keypair.secret();
+      // In real implementation, use proper BIP39 with Solana derivation path
+      const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(mnemonic)));
+      return JSON.stringify(Array.from(keypair.secretKey));
     } catch (error) {
       console.error('Failed to derive secret from mnemonic:', error);
       throw new Error('Invalid mnemonic phrase');

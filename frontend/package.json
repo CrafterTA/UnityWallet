@@ -30,8 +30,8 @@
     "react-i18next": "^15.7.0",
     "react-router-dom": "^6.15.0",
     "recharts": "^2.8.0",
-    "stellar-base": "^13.1.0",
-    "stellar-sdk": "^13.3.0",
+    "@solana/web3.js": "^1.95.2",
+    "@solana/spl-token": "^0.4.8",
     "tailwind-merge": "^1.14.0",
     "zustand": "^4.5.7"
   },
