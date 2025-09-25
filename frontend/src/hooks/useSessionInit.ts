@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/session'
+import { SessionManager } from '@/lib/sessionManager'
  
 export const useSessionInit = () => {
   const [isInitializing, setIsInitializing] = useState(true)
   const [initError, setInitError] = useState<string | null>(null)
-  const { initializeFromSession, isAuthenticated, wallet } = useAuthStore()
+  const { initializeFromSession, isAuthenticated, isLocked, wallet, lockWallet } = useAuthStore()
  
   useEffect(() => {
     const initializeSession = async () => {
@@ -13,17 +14,12 @@ export const useSessionInit = () => {
         setInitError(null)
  
         // Only try to initialize session if we have a wallet in localStorage
-        // but are not currently authenticated (meaning page was reloaded)
-        if (wallet && !isAuthenticated) {
-          console.log('Attempting to restore session for wallet:', wallet.public_key)
+        // but don't have secret key (meaning page was reloaded and wallet needs to be unlocked)
+        if (wallet && isAuthenticated && !wallet.secret) {
+          // Ensure wallet is locked if no secret key
+          lockWallet()
           
           const sessionRestored = await initializeFromSession()
-          
-          if (sessionRestored) {
-            console.log('Session restored successfully')
-          } else {
-            console.log('No valid session found, wallet will remain locked')
-          }
         }
       } catch (error) {
         console.error('Session initialization error:', error)

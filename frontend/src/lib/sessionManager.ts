@@ -1,10 +1,9 @@
-// Session Manager for handling session keys and client-side encryption
 import { Web3Keystore } from './web3Keystore'
 
 interface SessionData {
-  sessionToken: string
-  expiresAt: string
-  publicKey: string
+  session_token: string
+  expires_at: string
+  public_key: string
 }
 
 interface EncryptedSecretData {
@@ -50,6 +49,17 @@ export class SessionManager {
     return bytes
   }
 
+  // Helper to ensure the input is a pure ArrayBuffer for crypto.subtle APIs
+  // This is a more robust way to handle TypeScript's strict BufferSource type checking.
+  private static ensureArrayBuffer(data: Uint8Array): ArrayBuffer {
+    // Create a new ArrayBuffer and copy the contents of the Uint8Array into it.
+    // This explicitly detaches the buffer from the Uint8Array view if it was part of a larger buffer,
+    // ensuring it's a standalone ArrayBuffer that TypeScript will accept as BufferSource.
+    const buffer = new ArrayBuffer(data.byteLength);
+    new Uint8Array(buffer).set(data);
+    return buffer;
+  }
+
   // Encrypt secret key using session token
   private static async encryptSecret(secret: string, sessionToken: string): Promise<EncryptedSecretData> {
     const iv = this.generateIV()
@@ -61,7 +71,7 @@ export class SessionManager {
     // Import session key bytes as encryption key (32 bytes = 256 bits for AES-256)
     const key = await crypto.subtle.importKey(
       'raw',
-      sessionKeyBytes.buffer, // Pass ArrayBuffer
+      this.ensureArrayBuffer(sessionKeyBytes), // Use helper to ensure a pure ArrayBuffer
       'AES-GCM',
       false,
       ['encrypt']
@@ -71,10 +81,10 @@ export class SessionManager {
     const encrypted = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
-        iv: iv
+        iv: this.ensureArrayBuffer(iv)
       },
       key,
-      secretBytes.buffer // Pass ArrayBuffer
+      this.ensureArrayBuffer(secretBytes) // Use helper to ensure a pure ArrayBuffer
     )
 
     return {
@@ -96,7 +106,7 @@ export class SessionManager {
     // Import session key bytes as decryption key (32 bytes = 256 bits for AES-256)
     const key = await crypto.subtle.importKey(
       'raw',
-      sessionKeyBytes.buffer, // Pass ArrayBuffer
+      this.ensureArrayBuffer(sessionKeyBytes), // Use helper to ensure a pure ArrayBuffer
       'AES-GCM',
       false,
       ['decrypt']
@@ -106,10 +116,10 @@ export class SessionManager {
     const decrypted = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
-        iv: iv
+        iv: this.ensureArrayBuffer(iv)
       },
       key,
-      encryptedBytes.buffer // Pass ArrayBuffer
+      this.ensureArrayBuffer(encryptedBytes) // Use helper to ensure a pure ArrayBuffer
     )
 
     return this.uint8ArrayToString(new Uint8Array(decrypted))
@@ -148,15 +158,15 @@ export class SessionManager {
       const sessionData: SessionData = await response.json()
 
       // Encrypt secret key with session token and store in sessionStorage
-      const encryptedData = await this.encryptSecret(secret, sessionData.sessionToken)
+      const encryptedData = await this.encryptSecret(secret, sessionData.session_token)
       encryptedData.publicKey = publicKey
 
       sessionStorage.setItem(this.ENCRYPTED_SECRET_KEY, JSON.stringify(encryptedData))
 
       // Store session info (without session token for security)
       const sessionInfo = {
-        expiresAt: sessionData.expiresAt,
-        publicKey: sessionData.publicKey,
+        expiresAt: sessionData.expires_at,
+        publicKey: sessionData.public_key,
         hasSession: true
       }
       sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(sessionInfo))

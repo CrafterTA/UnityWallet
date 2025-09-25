@@ -15,7 +15,7 @@ import Settings from '@/pages/Settings'
 import Sovico from '@/pages/Sovico'
 
 function App() {
-  const { isAuthenticated, isLocked } = useAuthStore()
+  const { isAuthenticated, isLocked, wallet } = useAuthStore()
   const { isInitializing, initError } = useSessionInit()
 
   // Show loading screen while initializing session
@@ -33,7 +33,7 @@ function App() {
     )
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !wallet) {
     return (
       <Routes>
         <Route path="/" element={<Layout><Home /></Layout>} />

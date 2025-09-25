@@ -166,7 +166,7 @@ export const useAuthStore = create<AuthState>()(
             // Get wallet data from localStorage
             const currentWallet = get().wallet
             
-            if (currentWallet && currentWallet.public_key === result.publicKey) {
+            if (currentWallet) {
               // Restore wallet with secret from session
               set({
                 wallet: {
