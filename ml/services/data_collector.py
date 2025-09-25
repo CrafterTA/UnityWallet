@@ -6,8 +6,8 @@ import asyncio
 import httpx
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from ml.core.config import settings
-from ml.models.schemas import TransactionRecord, TransactionType, AssetInfo, WalletBalance
+from core.config import settings
+from models.schemas import TransactionRecord, TransactionType, AssetInfo, WalletBalance
 
 class StellarDataCollector:
     """Collector để lấy dữ liệu từ Stellar Horizon API"""

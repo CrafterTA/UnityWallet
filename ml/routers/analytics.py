@@ -8,13 +8,13 @@ from typing import Optional
 import asyncio
 from datetime import datetime
 
-from ml.models.schemas import (
+from models.schemas import (
     AnalyticsRequest, AnalyticsResponse, FeatureEngineering, 
     TimeSeriesData
 )
-from ml.services.data_collector import stellar_collector
-from ml.services.feature_engineering import feature_service
-from ml.services.anomaly_detection import anomaly_service
+from services.solana_data_collector import solana_collector
+from services.feature_engineering import feature_service
+from services.anomaly_detection import anomaly_service
 
 router = APIRouter()
 
@@ -28,12 +28,12 @@ async def analyze_wallet(
     Phân tích toàn diện wallet với feature engineering và anomaly detection
     """
     try:
-        # Validate public key format
-        if not public_key.startswith('G') or len(public_key) != 56:
-            raise HTTPException(400, "Invalid Stellar public key format")
+        # Validate public key format (Solana addresses are base58, ~44 chars)
+        if len(public_key) < 32 or len(public_key) > 48:
+            raise HTTPException(400, "Invalid Solana public key format")
         
         # Collect transaction history
-        transactions = await stellar_collector.collect_full_history(
+        transactions = await solana_collector.collect_full_history(
             account=public_key,
             days_back=days_back,
             max_records=5000
@@ -43,7 +43,7 @@ async def analyze_wallet(
             raise HTTPException(404, "No transaction history found for this account")
         
         # Get current balances
-        balances = await stellar_collector.get_account_balances(public_key)
+        balances = await solana_collector.get_account_balances(public_key)
         
         # Calculate features
         features = feature_service.calculate_features(
@@ -88,16 +88,16 @@ async def get_wallet_features(
     Chỉ lấy features engineering (nhanh hơn)
     """
     try:
-        if not public_key.startswith('G') or len(public_key) != 56:
-            raise HTTPException(400, "Invalid Stellar public key format")
+        if len(public_key) < 32 or len(public_key) > 48:
+            raise HTTPException(400, "Invalid Solana public key format")
         
-        transactions = await stellar_collector.collect_full_history(
+        transactions = await solana_collector.collect_full_history(
             account=public_key,
             days_back=days_back,
             max_records=2000
         )
         
-        balances = await stellar_collector.get_account_balances(public_key)
+        balances = await solana_collector.get_account_balances(public_key)
         
         features = feature_service.calculate_features(
             transactions=transactions,
@@ -119,16 +119,16 @@ async def detect_wallet_anomalies(
     Chỉ phát hiện anomalies
     """
     try:
-        if not public_key.startswith('G') or len(public_key) != 56:
-            raise HTTPException(400, "Invalid Stellar public key format")
+        if len(public_key) < 32 or len(public_key) > 48:
+            raise HTTPException(400, "Invalid Solana public key format")
         
-        transactions = await stellar_collector.collect_full_history(
+        transactions = await solana_collector.collect_full_history(
             account=public_key,
             days_back=days_back,
             max_records=1000
         )
         
-        balances = await stellar_collector.get_account_balances(public_key)
+        balances = await solana_collector.get_account_balances(public_key)
         
         features = feature_service.calculate_features(
             transactions=transactions,
@@ -163,15 +163,15 @@ async def get_balance_history(
     Lấy lịch sử biến động số dư
     """
     try:
-        if not public_key.startswith('G') or len(public_key) != 56:
-            raise HTTPException(400, "Invalid Stellar public key format")
+        if len(public_key) < 32 or len(public_key) > 48:
+            raise HTTPException(400, "Invalid Solana public key format")
         
-        transactions = await stellar_collector.collect_full_history(
+        transactions = await solana_collector.collect_full_history(
             account=public_key,
             days_back=days_back
         )
         
-        balances = await stellar_collector.get_account_balances(public_key)
+        balances = await solana_collector.get_account_balances(public_key)
         
         balance_history = _prepare_balance_timeseries(transactions, balances, asset)
         
@@ -189,17 +189,17 @@ async def get_wallet_summary(
     Tóm tắt nhanh về wallet
     """
     try:
-        if not public_key.startswith('G') or len(public_key) != 56:
-            raise HTTPException(400, "Invalid Stellar public key format")
+        if len(public_key) < 32 or len(public_key) > 48:
+            raise HTTPException(400, "Invalid Solana public key format")
         
         # Collect basic data
-        transactions = await stellar_collector.collect_full_history(
+        transactions = await solana_collector.collect_full_history(
             account=public_key,
             days_back=days_back,
             max_records=1000
         )
         
-        balances = await stellar_collector.get_account_balances(public_key)
+        balances = await solana_collector.get_account_balances(public_key)
         
         # Quick calculations
         total_txs = len(transactions)
