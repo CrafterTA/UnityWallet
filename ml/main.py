@@ -5,8 +5,8 @@ Cung cấp feature engineering, phân tích giao dịch và cảnh báo bất th
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from ml.routers import analytics, anomaly_detection, chatbot
-from ml.core.config import settings
+from routers import analytics, anomaly_detection, chatbot
+from core.config import settings
 
 app = FastAPI(
     title="UnityWallet ML Service",

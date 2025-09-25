@@ -6,11 +6,11 @@ AI Assistant cho phân tích giao dịch
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import List, Dict, Any, Optional
 
-from ml.models.schemas import ChatbotRequest, ChatbotResponse
-from ml.services.data_collector import stellar_collector
-from ml.services.feature_engineering import feature_service
-from ml.services.anomaly_detection import anomaly_service
-from ml.services.chatbot import chatbot_service
+from models.schemas import ChatbotRequest, ChatbotResponse
+from services.solana_data_collector import solana_collector
+from services.feature_engineering import feature_service
+from services.anomaly_detection import anomaly_service
+from services.chatbot import chatbot_service
 
 router = APIRouter()
 
@@ -20,8 +20,8 @@ async def chat_with_assistant(request: ChatbotRequest):
     Chat với AI assistant về giao dịch và phân tích
     """
     try:
-        if not request.public_key.startswith('G') or len(request.public_key) != 56:
-            raise HTTPException(400, "Invalid Stellar public key format")
+        if len(request.public_key) < 32 or len(request.public_key) > 48:
+            raise HTTPException(400, "Invalid Solana public key format")
         
         if not request.message.strip():
             raise HTTPException(400, "Message cannot be empty")
@@ -33,7 +33,7 @@ async def chat_with_assistant(request: ChatbotRequest):
         elif "tuần" in request.message.lower() or "week" in request.message.lower():
             days_back = 7
         
-        transactions = await stellar_collector.collect_full_history(
+        transactions = await solana_collector.collect_full_history(
             account=request.public_key,
             days_back=days_back,
             max_records=1000
@@ -50,7 +50,7 @@ async def chat_with_assistant(request: ChatbotRequest):
                 ]
             )
         
-        balances = await stellar_collector.get_account_balances(request.public_key)
+        balances = await solana_collector.get_account_balances(request.public_key)
         
         # Calculate features and detect anomalies
         features = feature_service.calculate_features(
@@ -85,11 +85,11 @@ async def get_chat_suggestions(public_key: str):
     Lấy gợi ý câu hỏi dựa trên hoạt động của wallet
     """
     try:
-        if not public_key.startswith('G') or len(public_key) != 56:
-            raise HTTPException(400, "Invalid Stellar public key format")
+        if len(public_key) < 32 or len(public_key) > 48:
+            raise HTTPException(400, "Invalid Solana public key format")
         
         # Quick analysis for suggestions
-        transactions = await stellar_collector.collect_full_history(
+        transactions = await solana_collector.collect_full_history(
             account=public_key,
             days_back=30,
             max_records=200
@@ -167,13 +167,13 @@ async def get_quick_stats(request: Dict[str, str]):
             raise HTTPException(400, "Valid public_key required")
         
         # Quick data collection
-        transactions = await stellar_collector.collect_full_history(
+        transactions = await solana_collector.collect_full_history(
             account=public_key,
             days_back=30,
             max_records=500
         )
         
-        balances = await stellar_collector.get_account_balances(public_key)
+        balances = await solana_collector.get_account_balances(public_key)
         
         if not transactions:
             return {

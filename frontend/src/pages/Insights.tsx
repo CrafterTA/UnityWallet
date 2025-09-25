@@ -1,6 +1,7 @@
 /**
- * Advanced AI-Powered Wallet Insights Page
+ * Advanced AI-Powered Wallet Insights Page  
  * Comprehensive analytics dashboard with ML-driven insights
+ * Updated for Solana blockchain integration with Gemini chatbot
  */
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
@@ -41,71 +42,90 @@ const CHART_COLORS = {
 }
 
 // ====== Helper Functions ======
-const formatCurrency = (amount: number, currency: string = 'XLM') => 
-  `${amount.toFixed(3)} ${currency}`
+const formatCurrency = (amount: number, currency: string = 'SOL') => 
+  `${amount.toFixed(6)} ${currency}`
 
 const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`
 
 const maskAddress = (address: string) => 
-  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Unknown'
+  address ? `${address.slice(0, 8)}...${address.slice(-6)}` : 'Unknown'
 
 const formatChatResponse = (content: string) => {
   // Clean up the content first
   let cleaned = content
-    .replace(/SYP:GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL:/g, 'SYP:')
-    .replace(/USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5:/g, 'USDC:')
-    .replace(/GAFV4WZIFH76JEGW5R5GQZKBO27EY46C2BSAQONBKQC5XTTCPNDM6LIF/g, 'GAFV4WZIF...M6LIF')
+    .replace(/USDT:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/g, 'USDT')
+    .replace(/SOL:/g, 'SOL')
+    .replace(/[A-Za-z0-9]{32,}/g, (match) => `${match.slice(0, 6)}...${match.slice(-4)}`) // Shorten Solana addresses
     .replace(/\[Asset Address\]/g, '')
     .replace(/\[Address\]/g, '')
     .replace(/\[Recipient Address\]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
 
-  // Format with proper line breaks and structure
   let formatted = cleaned
 
-  // Balance information formatting
-  if (formatted.includes('Số dư trung bình')) {
+  // 🎯 Enhanced Balance Information Formatting
+  if (formatted.includes('Số dư') || formatted.includes('balance')) {
     formatted = formatted
-      .replace(/Số dư trung bình của bạn:/g, '**Số dư trung bình của bạn:**\n')
-      .replace(/- (SYP|USDC|XLM):\s*([\d.]+)/g, '  • $1: $2\n')
-      .replace(/Tài sản có biến động cao:/g, '\n**Tài sản có biến động cao:**')
-      .replace(/:\s*(SYP|USDC|XLM)/g, ': $1')
+      .replace(/Số dư trung bình của bạn:?/gi, '💰 **Tình hình tài sản hiện tại:**')
+      .replace(/- (SOL|USDT):\s*([\d.]+)/g, (match, asset, amount) => {
+        const emoji = asset === 'SOL' ? '🔥' : '💵'
+        return `\n  ${emoji} **${asset}**: ${parseFloat(amount).toFixed(asset === 'SOL' ? 4 : 2)}`
+      })
+      .replace(/Tài sản có biến động cao:?/gi, '\n\n📊 **Phân tích biến động:**')
   }
 
-  // Spending analysis formatting
-  if (formatted.includes('Tổng chi tiêu')) {
+  // 📈 Transaction Summary Formatting
+  if (formatted.includes('Tổng giao dịch') || formatted.includes('transactions')) {
     formatted = formatted
-      .replace(/Tổng chi tiêu: ([\d.]+)/g, '**Tổng chi tiêu:** $1\n')
-      .replace(/Chi tiết theo tài sản:/g, '**Chi tiết theo tài sản:**\n')
-      .replace(/- (SYP|USDC|XLM):\s*([\d.]+)\s*\(([\d.]+)%\)/g, '  • $1: $2 ($3%)\n')
-      .replace(/Bạn thường gửi tiền cho:/g, '\n**Bạn thường gửi tiền cho:**\n')
-      .replace(/(GAFV4WZIF[^:]*)/g, '  • $1\n')
+      .replace(/📈 Tóm tắt hoạt động tài khoản:/g, '📈 **Tóm tắt hoạt động tài khoản:**')
+      .replace(/• Tổng giao dịch:\s*(\d+)/g, '\n🔄 **Tổng giao dịch:** $1')
+      .replace(/• Trung bình\/tháng:\s*([\d.]+)/g, '\n📅 **Trung bình/tháng:** $1')
+      .replace(/• Cảnh báo:\s*(\d+)\s*hoạt động bất thường/g, '\n⚠️ **Cảnh báo:** $1 hoạt động bất thường')
+      .replace(/💡 Hỏi tôi về:/g, '\n\n💡 **Bạn có thể hỏi tôi về:**')
   }
 
-  // Anomaly detection formatting
-  if (formatted.includes('Phát hiện') || formatted.includes('bất thường')) {
+  // 💸 Spending Analysis Formatting
+  if (formatted.includes('Tổng chi tiêu') || formatted.includes('spending')) {
     formatted = formatted
-      .replace(/Phát hiện (\d+) hoạt động bất thường:/g, '**Phát hiện $1 hoạt động bất thường:**\n')
-      .replace(/- ([^:]+):\s*([^.\n]+)/g, '  • $1: $2\n')
-      .replace(/Khuyến nghị:/g, '\n**Khuyến nghị:**\n')
+      .replace(/Tổng chi tiêu:\s*([\d.]+)/g, '💸 **Tổng chi tiêu:** $1 SOL')
+      .replace(/Chi tiết theo tài sản:/gi, '\n\n📋 **Chi tiết theo từng loại tài sản:**')
+      .replace(/- (SOL|USDT):\s*([\d.]+)\s*\(([\d.]+)%\)/g, (match, asset, amount, percent) => {
+        const emoji = asset === 'SOL' ? '🔥' : '💵'
+        return `\n  ${emoji} **${asset}**: ${amount} (${percent}%)`
+      })
+      .replace(/Bạn thường gửi tiền cho:/gi, '\n\n👥 **Địa chỉ thường giao dịch:**')
   }
 
-  // Pattern analysis formatting
-  if (formatted.includes('Pattern số tròn') || formatted.includes('Xu hướng')) {
+  // 🚨 Anomaly Detection Enhanced Formatting
+  if (formatted.includes('Phát hiện') || formatted.includes('bất thường') || formatted.includes('anomal')) {
     formatted = formatted
-      .replace(/Pattern số tròn: (\d+) trường hợp/g, '**Pattern số tròn:** $1 trường hợp\n')
-      .replace(/Xu hướng giao dịch số tròn bất thường:/g, '**Xu hướng giao dịch số tròn bất thường:**\n')
-      .replace(/(\d+\/\d+ giao dịch)/g, '$1\n')
+      .replace(/Phát hiện\s*(\d+)\s*hoạt động bất thường:?/gi, '🚨 **Phát hiện $1 hoạt động bất thường:**')
+      .replace(/- ([^:]+):\s*([^.\n]+)/g, '\n  ⚠️ **$1**: $2')
+      .replace(/Khuyến nghị:/gi, '\n\n💡 **Khuyến nghị từ AI:**')
+      .replace(/Pattern số tròn:\s*(\d+)\s*trường hợp/gi, '🔄 **Pattern số tròn:** $1 trường hợp')
+      .replace(/Xu hướng giao dịch số tròn bất thường:/gi, '📊 **Phân tích xu hướng:**')
   }
 
-  // General formatting improvements
+  // 🎨 General Enhancements
   formatted = formatted
-    .replace(/(\d+)\s*giao dịch/g, '$1 giao dịch')
+    // Add proper spacing around sections
+    .replace(/(\*\*[^*]+\*\*)/g, '\n$1')
+    // Clean up multiple line breaks
+    .replace(/\n\s*\n\s*\n/g, '\n\n')
+    // Add proper punctuation
+    .replace(/(\d+)\s*giao dịch(?!\s*[.,])/g, '$1 giao dịch')
     .replace(/(\d+)\s*transactions/g, '$1 transactions')
-    .replace(/\n\s*\n/g, '\n') // Remove multiple empty lines
-    .replace(/\n$/, '') // Remove trailing newline
+    // Enhance readability with proper spacing
+    .replace(/([.!?])\s*([A-ZĐẤ])/g, '$1\n\n$2')
+    // Clean trailing spaces and newlines
+    .replace(/\s+$/g, '')
     .trim()
+
+  // 🌟 Add a friendly closing if response is substantial
+  if (formatted.length > 100 && !formatted.includes('Hỏi tôi') && !formatted.includes('💡')) {
+    formatted += '\n\n💬 *Còn thắc mắc gì khác không? Tôi luôn sẵn sàng hỗ trợ bạn!*'
+  }
 
   return formatted
 }
@@ -282,8 +302,12 @@ export default function Insights() {
         // Format asset name for display
         let displayName = asset
         if (asset.includes(':')) {
-          // For assets with issuer, show just the code
+          // For Solana tokens with mint address, show just the code
           displayName = asset.split(':')[0]
+        } else if (asset === 'SOL') {
+          displayName = 'SOL'
+        } else if (asset.startsWith('USDT')) {
+          displayName = 'USDT'
         }
         
         return {
@@ -1005,7 +1029,7 @@ export default function Insights() {
                         labelStyle={{ color: isDark ? '#E2E8F0' : '#334155', fontWeight: 700, marginBottom: 6 }}
                         itemStyle={{ color: isDark ? '#F8FAFC' : '#0F172A', fontWeight: 600 }}
                         formatter={(v: any, name: any) => [
-                          `${Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(Number(v))} XLM`,
+                          `${Intl.NumberFormat('en-US', { maximumFractionDigits: 6 }).format(Number(v))} SOL`,
                           (name as string).includes(':') ? (name as string).split(':')[0] : (name as string),
                         ]}
                       />
@@ -1070,7 +1094,7 @@ export default function Insights() {
                               </span>
                             </div>
                             <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                              {`${curr.toFixed(3)} XLM`}
+                              {`${curr.toFixed(6)} SOL`}
                             </div>
                           </div>
                         )
@@ -1541,26 +1565,93 @@ export default function Insights() {
                               ? 'bg-white/10 text-white border border-white/20'
                               : 'bg-white text-slate-900 border border-slate-200'
                         }`}>
-                          <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                            {message.content.split('\n').map((line, index) => {
-                              // Handle bullet points
-                              if (line.trim().startsWith('•')) {
+                          <div className="text-sm leading-relaxed">
+                            {message.content.split('\n').map((line, lineIndex) => {
+                              const trimmed = line.trim()
+                              
+                              // Skip empty lines but add spacing
+                              if (!trimmed) {
+                                return <div key={lineIndex} className="h-2" />
+                              }
+                              
+                              // Handle emoji bullet points (🔄, 💰, 📅, etc.)
+                              if (/^[🔄💰📅⚠️💡🚨💸📋👥🔥💵📊💬]\s/.test(trimmed)) {
+                                const emoji = trimmed.match(/^([🔄💰📅⚠️💡🚨💸📋👥🔥💵📊💬])/)?.[1] || ''
+                                const content = trimmed.slice(emoji.length).trim()
+                                
                                 return (
-                                  <div key={index} className="flex items-start gap-2 mb-1">
-                                    <span className="text-blue-400 dark:text-blue-400 mt-1 flex-shrink-0">•</span>
-                                    <span className="flex-1">{line.replace('•', '').trim()}</span>
+                                  <div key={lineIndex} className="flex items-start gap-3 mb-3">
+                                    <span className="text-lg mt-0.5 flex-shrink-0">{emoji}</span>
+                                    <div className="flex-1">
+                                      {content.includes('**') ? (
+                                        <div className="space-y-1">
+                                          {content.split(/(\*\*.*?\*\*)/g).map((part, partIndex) => {
+                                            if (part.startsWith('**') && part.endsWith('**')) {
+                                              return (
+                                                <strong key={partIndex} className="font-semibold text-slate-900 dark:text-slate-50">
+                                                  {part.slice(2, -2)}
+                                                </strong>
+                                              )
+                                            }
+                                            return <span key={partIndex}>{part}</span>
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <span>{content}</span>
+                                      )}
+                                    </div>
                                   </div>
                                 )
                               }
-                              // Handle bold text
-                              if (line.includes('**')) {
-                                const parts = line.split(/(\*\*.*?\*\*)/g)
+                              
+                              // Handle indented items (starting with spaces)
+                              if (trimmed.startsWith('  ')) {
+                                const indentContent = trimmed.slice(2)
                                 return (
-                                  <div key={index} className="mb-2">
+                                  <div key={lineIndex} className="ml-6 mb-1 flex items-start gap-2">
+                                    <span className="text-xs text-blue-400 dark:text-blue-300 mt-1.5 flex-shrink-0">▪</span>
+                                    <span className="flex-1 text-sm">
+                                      {indentContent.includes('**') ? (
+                                        <>
+                                          {indentContent.split(/(\*\*.*?\*\*)/g).map((part, partIndex) => {
+                                            if (part.startsWith('**') && part.endsWith('**')) {
+                                              return (
+                                                <strong key={partIndex} className="font-medium">
+                                                  {part.slice(2, -2)}
+                                                </strong>
+                                              )
+                                            }
+                                            return <span key={partIndex}>{part}</span>
+                                          })}
+                                        </>
+                                      ) : (
+                                        indentContent
+                                      )}
+                                    </span>
+                                  </div>
+                                )
+                              }
+                              
+                              // Handle italic text (for closing messages)
+                              if (trimmed.startsWith('*') && trimmed.endsWith('*') && !trimmed.includes('**')) {
+                                return (
+                                  <div key={lineIndex} className="mt-3 pt-2 border-t border-slate-200/50 dark:border-white/10">
+                                    <em className="text-xs text-slate-600 dark:text-slate-400">
+                                      {trimmed.slice(1, -1)}
+                                    </em>
+                                  </div>
+                                )
+                              }
+                              
+                              // Handle bold headers
+                              if (trimmed.includes('**')) {
+                                const parts = trimmed.split(/(\*\*.*?\*\*)/g)
+                                return (
+                                  <div key={lineIndex} className="mb-2">
                                     {parts.map((part, partIndex) => {
                                       if (part.startsWith('**') && part.endsWith('**')) {
                                         return (
-                                          <strong key={partIndex} className="font-bold text-slate-900 dark:text-slate-100">
+                                          <strong key={partIndex} className="font-semibold text-slate-900 dark:text-slate-50">
                                             {part.slice(2, -2)}
                                           </strong>
                                         )
@@ -1570,10 +1661,11 @@ export default function Insights() {
                                   </div>
                                 )
                               }
+                              
                               // Regular lines
                               return (
-                                <div key={index} className={line.trim() ? 'mb-2' : 'mb-1'}>
-                                  {line}
+                                <div key={lineIndex} className="mb-2">
+                                  {trimmed}
                                 </div>
                               )
                             })}

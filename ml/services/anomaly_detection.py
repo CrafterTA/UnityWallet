@@ -10,10 +10,10 @@ from datetime import datetime, timedelta
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import DBSCAN
-from ml.models.schemas import (
+from models.schemas import (
     TransactionRecord, AnomalyDetection, FeatureEngineering
 )
-from ml.core.config import settings
+from core.config import settings
 
 class AnomalyDetectionService:
     """Service phát hiện anomalies trong giao dịch"""
