@@ -6,11 +6,11 @@ AI Assistant cho phân tích giao dịch
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import List, Dict, Any, Optional
 
-from ml.models.schemas import ChatbotRequest, ChatbotResponse
-from ml.services.data_collector import stellar_collector
-from ml.services.feature_engineering import feature_service
-from ml.services.anomaly_detection import anomaly_service
-from ml.services.chatbot import chatbot_service
+from models.schemas import ChatbotRequest, ChatbotResponse
+from services.data_collector import stellar_collector
+from services.feature_engineering import feature_service
+from services.anomaly_detection import anomaly_service
+from services.chatbot import chatbot_service
 
 router = APIRouter()
 

@@ -7,10 +7,9 @@ import re
 import json
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-import openai
 import google.generativeai as genai
-from ml.core.config import settings
-from ml.models.schemas import (
+from core.config import settings
+from models.schemas import (
     TransactionRecord, FeatureEngineering, AnomalyDetection,
     ChatbotRequest, ChatbotResponse
 )
@@ -30,15 +29,8 @@ class EnhancedChatbotService:
         else:
             self.use_gemini = False
         
-        # Configure OpenAI as fallback
-        if settings.openai_api_key:
-            openai.api_key = settings.openai_api_key
-            self.use_openai = True
-        else:
-            self.use_openai = False
-            
-        if not self.use_gemini and not self.use_openai:
-            print("Warning: No LLM API keys found, using rule-based responses")
+        if not self.use_gemini:
+            print("Warning: No Gemini API key found, using rule-based responses")
         
         # System prompt for financial analysis
         self.system_prompt = """
@@ -172,36 +164,7 @@ Hãy phân tích và trả lời một cách thông minh, đưa ra insights và 
             print(f"Gemini LLM Error: {e}")
             return self._process_with_rules(message, context_data)
     
-    async def _process_with_openai(self, message: str, context_data: Dict[str, Any]) -> str:
-        """Xử lý với OpenAI LLM"""
-        try:
-            # Prepare context for LLM
-            context_summary = json.dumps(context_data, indent=2, ensure_ascii=False, default=str)
-            
-            messages = [
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": f"""
-Dữ liệu tài khoản:
-{context_summary}
 
-Câu hỏi của người dùng: {message}
-
-Hãy phân tích và trả lời một cách thông minh, đưa ra insights và suggestions phù hợp.
-"""}
-            ]
-            
-            response = openai.ChatCompletion.create(
-                model=settings.llm_model,
-                messages=messages,
-                max_tokens=500,
-                temperature=0.7
-            )
-            
-            return response.choices[0].message.content.strip()
-            
-        except Exception as e:
-            print(f"OpenAI LLM Error: {e}")
-            return self._process_with_rules(message, context_data)
     
     def _process_with_rules(self, message: str, context_data: Dict[str, Any]) -> str:
         """Fallback rule-based processing"""

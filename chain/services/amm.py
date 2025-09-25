@@ -1,7 +1,7 @@
 from stellar_sdk import Asset, Keypair, TransactionBuilder, LiquidityPoolAsset
-from chain.core.config import server, NET
-from chain.services.stellar import asset_from_ref, balances_of
-from chain.models.schemas import AssetRef
+from core.config import server, NET
+from services.stellar import asset_from_ref, balances_of
+from models.schemas import AssetRef
 
 def pool_id_from_pair(a: Asset, b: Asset, fee_bps: int) -> str:
     lpa = LiquidityPoolAsset(a, b, fee_bps)

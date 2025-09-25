@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from stellar_sdk import Keypair, TransactionBuilder
-from chain.core.config import server, NET
-from chain.services.stellar import valid_secret, valid_pub, asset_from_ref, balances_of, base_fee
-from chain.models.schemas import AssetRef
+from core.config import server, NET
+from services.stellar import valid_secret, valid_pub, asset_from_ref, balances_of, base_fee
+from models.schemas import AssetRef
 
 def estimate_payment_fee(op_count: int = 1) -> int:
     return base_fee() * op_count

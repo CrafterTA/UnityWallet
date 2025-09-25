@@ -7,10 +7,10 @@ from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 
-from ml.models.schemas import AnomalyDetection
-from ml.services.data_collector import stellar_collector
-from ml.services.feature_engineering import feature_service
-from ml.services.anomaly_detection import anomaly_service
+from models.schemas import AnomalyDetection
+from services.data_collector import stellar_collector
+from services.feature_engineering import feature_service
+from services.anomaly_detection import anomaly_service
 
 router = APIRouter()
 

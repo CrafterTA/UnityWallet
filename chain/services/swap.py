@@ -2,11 +2,11 @@ from typing import Optional, Dict, Any, List
 from decimal import Decimal, ROUND_DOWN, InvalidOperation
 from fastapi import HTTPException
 from stellar_sdk import Keypair, TransactionBuilder, Asset
-from chain.core.config import server, NET
-from chain.services.stellar import (
+from core.config import server, NET
+from services.stellar import (
     valid_secret, valid_pub, asset_from_ref, balances_of, base_fee, asset_to_str
 )
-from chain.models.schemas import AssetRef
+from models.schemas import AssetRef
 
 def _path_to_assets_str(path: List[dict]) -> List[str]:
     out = []

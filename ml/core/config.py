@@ -2,7 +2,10 @@
 import os
 from typing import Optional
 
-from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:
+    from pydantic import BaseSettings
 from pydantic import Field
 
 class Settings(BaseSettings):
@@ -29,14 +32,10 @@ class Settings(BaseSettings):
     # Pagination
     max_page_size: int = Field(default=1000, env="MAX_PAGE_SIZE")
     
-    # LLM Configuration
-    openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
+    # LLM Configuration (Gemini only)
     gemini_api_key: Optional[str] = Field(default=None, env="GEMINI_API_KEY")
-    llm_model: str = Field(default="gpt-3.5-turbo", env="LLM_MODEL")
     gemini_model: str = Field(default="gemini-2.0-flash", env="GEMINI_MODEL")
-    use_local_llm: bool = Field(default=False, env="USE_LOCAL_LLM")
     use_gemini: bool = Field(default=True, env="USE_GEMINI")
-    local_llm_url: Optional[str] = Field(default="http://localhost:1234/v1", env="LOCAL_LLM_URL")
     
     class Config:
         env_file = ".env"

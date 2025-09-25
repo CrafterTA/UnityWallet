@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from stellar_sdk import TransactionEnvelope, Keypair
-from chain.models.schemas import SendEstimateReq, SendExecReq, SendBeginReq, SubmitSignedXDRReq
-from chain.services.payments import estimate_payment_fee, execute_payment, build_payment_xdr
-from chain.core.config import server, NET
-from chain.services.stellar import balances_of, valid_pub
+from models.schemas import SendEstimateReq, SendExecReq, SendBeginReq, SubmitSignedXDRReq
+from services.payments import estimate_payment_fee, execute_payment, build_payment_xdr
+from core.config import server, NET
+from services.stellar import balances_of, valid_pub
 
 router = APIRouter(prefix="/send", tags=["send"])
 

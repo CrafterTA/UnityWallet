@@ -6,7 +6,7 @@ Trợ lý AI để trả lời câu hỏi về giao dịch và phân tích
 import re
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from ml.models.schemas import (
+from models.schemas import (
     TransactionRecord, FeatureEngineering, AnomalyDetection,
     ChatbotRequest, ChatbotResponse
 )

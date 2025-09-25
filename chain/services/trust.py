@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import HTTPException
 from stellar_sdk import Asset, TransactionBuilder, LiquidityPoolAsset
-from chain.core.config import (
+from core.config import (
     server, NET, SYP_CODE, ISS_PUB, ISS_SEC, DST_PUB, DST_SEC,
     AIRDROP_AMOUNT, AUTH_REQUIRED_FALLBACK
 )

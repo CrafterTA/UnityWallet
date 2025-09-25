@@ -3,8 +3,8 @@ import time
 from fastapi import APIRouter, HTTPException
 from stellar_sdk import Asset, TransactionEnvelope
 
-from chain.models.schemas import OnboardBeginReq, OnboardCompleteReq
-from chain.core.config import (
+from models.schemas import OnboardBeginReq, OnboardCompleteReq
+from core.config import (
     server, NET,
     SYP_CODE as CFG_SYP_CODE,
     ISS_PUB as CFG_ISS_PUB, ISS_SEC as CFG_ISS_SEC,
@@ -12,10 +12,10 @@ from chain.core.config import (
     AIRDROP_AMOUNT as CFG_AIRDROP_AMOUNT,
     USDC_CODE as CFG_USDC_CODE, USDC_ISSUER as CFG_USDC_ISSUER,
 )
-from chain.services.stellar import (
+from services.stellar import (
     balances_of, account_exists, friendbot_fund, valid_pub,
 )
-from chain.services.trust import (
+from services.trust import (
     has_trustline, issuer_auth_required,
     build_change_trust_multi_tx, build_allow_trust_tx, build_payment_tx,
 )

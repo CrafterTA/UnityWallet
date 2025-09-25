@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from chain.routers import wallet, onboard, send, swap, tx
+from routers import wallet, onboard, send, swap, tx
 
 app = FastAPI(title="Wallet API", version="1.0.0")
 

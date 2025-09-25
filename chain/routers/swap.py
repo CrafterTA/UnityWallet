@@ -1,16 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from stellar_sdk import Keypair, TransactionEnvelope
-from chain.models.schemas import (
+from models.schemas import (
     QuoteBody, QuoteSendReq, QuoteReceiveReq,
     ExecuteSwapReq, DexQuoteReq, DexExecuteReq, AssetRef,
     SwapBeginBody, SwapBeginSendReq, SwapBeginReceiveReq, SubmitSignedXDRReq
 )
-from chain.services.swap import (
+from services.swap import (
     quote_send, quote_receive, exec_send, exec_receive,
     build_path_send_xdr, build_path_receive_xdr
 )
-from chain.services.stellar import asset_from_ref, asset_to_str, valid_pub, balances_of
-from chain.core.config import server, NET
+from services.stellar import asset_from_ref, asset_to_str, valid_pub, balances_of
+from core.config import server, NET
 
 router = APIRouter(prefix="/swap", tags=["swap"])
 

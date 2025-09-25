@@ -2,7 +2,7 @@ import requests
 from typing import Optional
 from fastapi import HTTPException
 from stellar_sdk import Keypair, Asset
-from chain.core.config import (
+from core.config import (
     server, FRIENDBOT,
     SYP_CODE, ISS_PUB,
     USDC_CODE, USDC_ISSUER,

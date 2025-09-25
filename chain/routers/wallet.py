@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from stellar_sdk import Keypair
-from chain.models.schemas import CreateWalletReq, ImportSecretReq, ImportMnemonicReq
-from chain.services.stellar import friendbot_fund, balances_of, valid_secret, account_exists
-from chain.services.mnemonic import generate_mnemonic, derive_keypair_from_mnemonic
+from models.schemas import CreateWalletReq, ImportSecretReq, ImportMnemonicReq
+from services.stellar import friendbot_fund, balances_of, valid_secret, account_exists
+from services.mnemonic import generate_mnemonic, derive_keypair_from_mnemonic
 
 router = APIRouter(prefix="/wallet", tags=["wallet"])
 

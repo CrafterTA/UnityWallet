@@ -8,13 +8,13 @@ from typing import Optional
 import asyncio
 from datetime import datetime
 
-from ml.models.schemas import (
+from models.schemas import (
     AnalyticsRequest, AnalyticsResponse, FeatureEngineering, 
     TimeSeriesData
 )
-from ml.services.data_collector import stellar_collector
-from ml.services.feature_engineering import feature_service
-from ml.services.anomaly_detection import anomaly_service
+from services.data_collector import stellar_collector
+from services.feature_engineering import feature_service
+from services.anomaly_detection import anomaly_service
 
 router = APIRouter()
 
