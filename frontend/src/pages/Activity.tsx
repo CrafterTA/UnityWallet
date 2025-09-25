@@ -17,11 +17,7 @@ import {
   Zap,
   Star,
   TrendingUp,
-  TrendingDown,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle
+  TrendingDown
 } from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
 import { useNavigate } from 'react-router-dom'
@@ -105,18 +101,6 @@ function ActivityPage() {
     }
   }
 
-  const getTransactionStatusIcon = (status: string) => {
-    switch (status) {
-      case 'success':
-        return <CheckCircle className="w-4 h-4 text-green-500" />
-      case 'failed':
-        return <XCircle className="w-4 h-4 text-red-500" />
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-500" />
-      default:
-        return <AlertCircle className="w-4 h-4 text-gray-500" />
-    }
-  }
 
   // Fetch real transaction summary data
   const { data: transactionSummary, isLoading: summaryLoading, error: summaryError, refetch: refetchSummary } = useQuery({
@@ -397,7 +381,6 @@ function ActivityPage() {
                               {transaction.type}
                             </h3>
                             <div className="flex items-center space-x-1">
-                              {getTransactionStatusIcon(transaction.status)}
                               <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
                                 {transaction.status}
                               </span>
