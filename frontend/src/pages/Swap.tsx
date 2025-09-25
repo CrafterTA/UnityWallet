@@ -16,8 +16,8 @@ function Swap() {
   const { isLocked, lockWallet } = useAuthStore()
   const queryClient = useQueryClient()
   
-  const [fromAsset, setFromAsset] = useState('SYP')
-  const [toAsset, setToAsset] = useState('USD')
+  const [fromAsset, setFromAsset] = useState('SOL')
+  const [toAsset, setToAsset] = useState('USDT')
   const [fromAmount, setFromAmount] = useState('')
   const [isSwapping, setIsSwapping] = useState(false)
   const [fromAssetOpen, setFromAssetOpen] = useState(false)
@@ -51,7 +51,7 @@ function Swap() {
   // Auto-select first available asset when balances load
   useEffect(() => {
     if (balances && balances.length > 0) {
-      const availableAssets = balances.map(b => b.asset_code)
+      const availableAssets = balances.map(b => b.symbol)
       if (!availableAssets.includes(fromAsset)) {
         setFromAsset(availableAssets[0])
       }
@@ -148,8 +148,19 @@ function Swap() {
   }
 
   const getAssetBalance = (assetCode: string) => {
-    const balance = balances?.find(b => b.asset_code === assetCode)
-    return balance ? parseFloat(balance.amount) : 0
+    if (!balances || !Array.isArray(balances)) return 0
+    
+    const balance = balances.find(b => {
+      // For Solana, check symbol
+      return b.symbol === assetCode
+    })
+    
+    if (!balance) return 0
+    
+    // For Solana balance format, use balance_ui
+    const amount = balance.balance_ui || '0'
+    const parsed = parseFloat(amount)
+    return isNaN(parsed) ? 0 : parsed
   }
 
   const isValidAmount = fromAmount && parseFloat(fromAmount) > 0 && parseFloat(fromAmount) <= getAssetBalance(fromAsset) && fromAsset !== toAsset
@@ -215,9 +226,9 @@ function Swap() {
                     ? 'bg-white/10 border-white/20 text-white placeholder-white/50' 
                     : 'bg-slate-100/80 border-slate-300 text-slate-900 placeholder-slate-500'
                 )}
-                placeholder={t('swap.enterAmount', '0.00')}
+                placeholder={t('swap.enterAmount', '0.01')}
                 min="0"
-                step="0.01"
+                step="0.001"
               />
               
               <div className="relative min-w-[120px]" ref={fromAssetRef}>
@@ -244,23 +255,30 @@ function Swap() {
                       : 'bg-white border-slate-200 shadow-2xl'
                   }`}>
                     {balances
-                      .filter(balance => balance.asset_code !== toAsset)
-                      .map((balance) => (
-                        <button
-                          key={balance.asset_code}
-                          onClick={() => {
-                            setFromAsset(balance.asset_code)
-                            setFromAssetOpen(false)
-                          }}
-                          className={`w-full px-4 py-3 text-left transition-colors ${
-                            balance.asset_code === fromAsset
-                              ? (isDark ? 'bg-slate-700 text-white' : 'bg-yellow-100 text-slate-900')
-                              : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
-                          } ${balance.asset_code === fromAsset ? 'font-semibold' : ''}`}
-                        >
-                          {balance.asset_code} ({formatAssetAmountWithPrecision(balance.amount, balance.asset_code, 6)})
-                        </button>
-                      ))}
+                      .filter(balance => {
+                        const symbol = balance.symbol || balance.symbol
+                        return symbol !== toAsset
+                      })
+                      .map((balance) => {
+                        const symbol = balance.symbol || balance.symbol
+                        const amount = balance.balance_ui || '0'
+                        return (
+                          <button
+                            key={symbol}
+                            onClick={() => {
+                              setFromAsset(symbol)
+                              setFromAssetOpen(false)
+                            }}
+                            className={`w-full px-4 py-3 text-left transition-colors ${
+                              symbol === fromAsset
+                                ? (isDark ? 'bg-slate-700 text-white' : 'bg-yellow-100 text-slate-900')
+                                : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
+                            } ${symbol === fromAsset ? 'font-semibold' : ''}`}
+                          >
+                            {symbol} ({formatAssetAmountWithPrecision(amount, symbol, 6)})
+                          </button>
+                        )
+                      })}
                   </div>
                 )}
               </div>
@@ -330,23 +348,30 @@ function Swap() {
                        : 'bg-white border-slate-200 shadow-2xl'
                    }`}>
                      {balances
-                       .filter(balance => balance.asset_code !== fromAsset)
-                       .map((balance) => (
-                         <button
-                           key={balance.asset_code}
-                           onClick={() => {
-                             setToAsset(balance.asset_code)
-                             setToAssetOpen(false)
-                           }}
-                           className={`w-full px-4 py-3 text-left transition-colors ${
-                             balance.asset_code === toAsset
-                               ? (isDark ? 'bg-slate-700 text-white' : 'bg-yellow-100 text-slate-900')
-                               : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
-                           } ${balance.asset_code === toAsset ? 'font-semibold' : ''}`}
-                         >
-                           {balance.asset_code} ({formatAssetAmountWithPrecision(balance.amount, balance.asset_code, 6)})
-                         </button>
-                       ))}
+                       .filter(balance => {
+                         const symbol = balance.symbol || balance.symbol
+                         return symbol !== fromAsset
+                       })
+                       .map((balance) => {
+                         const symbol = balance.symbol || balance.symbol
+                         const amount = balance.balance_ui || '0'
+                         return (
+                           <button
+                             key={symbol}
+                             onClick={() => {
+                               setToAsset(symbol)
+                               setToAssetOpen(false)
+                             }}
+                             className={`w-full px-4 py-3 text-left transition-colors ${
+                               symbol === toAsset
+                                 ? (isDark ? 'bg-slate-700 text-white' : 'bg-yellow-100 text-slate-900')
+                                 : (isDark ? 'text-white/80 hover:bg-slate-700/50 hover:text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900')
+                             } ${symbol === toAsset ? 'font-semibold' : ''}`}
+                           >
+                             {symbol} ({formatAssetAmountWithPrecision(amount, symbol, 6)})
+                           </button>
+                         )
+                       })}
                    </div>
                  )}
                </div>
@@ -365,7 +390,7 @@ function Swap() {
                 
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('swap.networkFee', 'Network Fee')}:</span>
-                  <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{quote.fee_amount} XLM</span>
+                  <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{quote.fee_amount} SOL</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
@@ -439,7 +464,7 @@ function Swap() {
            <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl backdrop-blur-sm">
              <p className="text-sm text-yellow-400 font-medium">💡 {t('swap.proTip', 'Pro Tip')}</p>
              <p className={`text-sm mt-1 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-               {t('swap.tip', 'Convert SkyPoints to USDC for easier spending, or to XLM for lower transaction fees.')}
+               {t('swap.tip', 'Convert SOL to USDT for easier spending, or swap between different tokens on Solana.')}
              </p>
            </div>
          </div>

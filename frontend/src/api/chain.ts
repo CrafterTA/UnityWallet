@@ -1,7 +1,7 @@
 import { chainApiClient } from './client'
 
 // Chain API base URL - should be different from main backend
-const CHAIN_API_BASE_URL = import.meta.env.VITE_CHAIN_API_BASE_URL || 'http://localhost:8000'
+const CHAIN_API_BASE_URL = '/api'
 
 class ChainApiClient {
   private baseURL: string
@@ -52,56 +52,69 @@ class ChainApiClient {
 
 // Using imported chainApiClient from client.ts
 
-// Chain API interfaces
+// Solana Chain API interfaces
+export interface TokenRef {
+  mint: string
+  symbol?: string
+  decimals?: number
+}
+
 export interface DexQuoteRequest {
-  side: 'sell' | 'buy'
-  from_code: string
-  to_code: string
-  amount: string
-  account?: string
+  mode: 'send' | 'receive'
+  source_token: TokenRef
+  dest_token: TokenRef
+  source_amount?: string
+  dest_amount?: string
+  source_account?: string
   slippage_bps?: number
 }
 
 export interface DexQuoteResponse {
   found: boolean
-  side: 'sell' | 'buy'
-  from: string
-  to: string
-  amount_in: string
-  amount_out: string
-  price: string
-  price_inverse: string
+  mode: 'send' | 'receive'
+  source_token: string
+  destination_token: string
+  source_amount: string
+  destination_amount: string
+  implied_price: string
+  implied_price_inverse: string
   slippage_bps: number
-  min_received?: string
-  max_sold?: string
-  network_fee_xlm: string
-  route: string[]
+  dest_min_suggest?: string
+  source_max_suggest?: string
+  route_tokens: string[]
+  network_fee_lamports: string
+  network_fee_sol: string
+  estimated_base_fee: string
   execute_suggest: {
     mode: 'send' | 'receive'
     source_amount?: string
     dest_min?: string
     dest_amount?: string
     source_max?: string
-    path: any[]
+    route: any[]
   }
   raw: any
 }
 
 export interface DexExecuteRequest {
-  side: 'sell' | 'buy'
+  mode: 'send' | 'receive'
   secret: string
-  from_code: string
-  to_code: string
-  amount: string
+  source_token: TokenRef
+  dest_token: TokenRef
+  source_amount?: string
+  dest_min?: string
+  dest_amount?: string
+  source_max?: string
   destination?: string
-  slippage_bps?: number
+  route?: any[]
 }
 
 export interface DexExecuteResponse {
-  success: boolean
-  tx_hash?: string
-  error?: string
-  result?: any
+  signature: string
+  transaction: string
+  balances: Record<string, any>
+  explorer_link?: string
+  solscan_link?: string
 }
 
 // Wallet API Types
@@ -123,7 +136,7 @@ export interface CreateWalletResponse {
   account_exists: boolean
   funded_or_existing: boolean
   fund_error?: string
-  balances: Record<string, string>
+  balances: Record<string, any>
 }
 
 export interface ImportWalletRequest {
@@ -136,7 +149,7 @@ export interface ImportWalletResponse {
   account_exists: boolean
   funded_now: boolean
   fund_error?: string
-  balances: Record<string, string>
+  balances: Record<string, any>
 }
 
 export interface ImportMnemonicRequest {
@@ -152,188 +165,214 @@ export interface ImportMnemonicResponse {
   account_exists: boolean
   funded_now: boolean
   fund_error?: string
-  balances: Record<string, string>
+  balances: Record<string, any>
 }
 
 export interface WalletBalancesResponse {
   public_key: string
-  balances: Record<string, string>
+  balances: Record<string, {
+    balance: string
+    balance_ui: string
+    mint: string
+    decimals: number
+    symbol: string
+  }>
 }
 
 // Send API Types
 export interface SendEstimateRequest {
-  source: { code: string; issuer?: string }
+  source: TokenRef
   amount: string
   destination: string
 }
 
 export interface SendEstimateResponse {
-  estimated_base_fee_stroops: number
+  estimated_base_fee_lamports: number
+  estimated_base_fee_sol: string
   note: string
 }
 
 export interface SendBeginRequest {
   source_public: string
   destination: string
-  asset: { code: string; issuer?: string }
+  token: TokenRef
   amount: string
 }
 
 export interface SendBeginResponse {
-  xdr: string
-  network_passphrase: string
+  transaction: string
+  network: string
   estimated_base_fee: number
-  op_count: number
+  estimated_base_fee_sol: string
+  current_balances: Record<string, any>
+  transfer_info: {
+    source: string
+    destination: string
+    token: TokenRef
+    amount: string
+  }
+  note: string
+  status: string
 }
 
 export interface SendCompleteRequest {
   public_key?: string
-  signed_xdr: string
+  signed_transaction: string
 }
 
 export interface SendCompleteResponse {
-  hash: string
-  envelope_xdr?: string
-  result_xdr?: string
-  balances: Record<string, string>
+  success: boolean
+  signature: string
+  transaction: string
+  balances: Record<string, any>
+  balance_changes: Record<string, any>
+  explorer_link?: string
+  solscan_link?: string
+  network: string
+  note: string
+  status: string
 }
 
 export interface SendExecRequest {
   secret: string
   destination: string
-  source: { code: string; issuer?: string }
+  source: TokenRef
   amount: string
 }
 
 export interface SendExecResponse {
-  hash: string
-  fee_charged?: string
-  envelope_xdr?: string
-  result_xdr?: string
-  balances: Record<string, string>
+  signature: string
+  transaction: string
+  balances: Record<string, any>
+  explorer_link?: string
+  solscan_link?: string
 }
 
 // Swap API Types
 export interface SwapQuoteRequest {
   mode: 'send' | 'receive'
-  source_asset: { code: string; issuer?: string }
-  dest_asset: { code: string; issuer?: string }
+  source_token: TokenRef
+  dest_token: TokenRef
   source_amount?: string
   dest_amount?: string
   source_account?: string
-  max_paths?: number
   slippage_bps?: number
 }
 
 export interface SwapQuoteResponse {
+  found: boolean
   mode: 'send' | 'receive'
-  source_asset: string
-  dest_asset: string
+  source_token: string
+  destination_token: string
   source_amount: string
-  dest_amount: string
-  price: string
-  path: any[]
-  raw: any
-  // Additional fields from chain service
+  destination_amount: string
+  implied_price: string
+  implied_price_inverse: string
+  slippage_bps: number
   dest_min_suggest?: string
-  destination_amount?: string
-  implied_price?: string
-  implied_price_inverse?: string
-  network_fee_xlm?: string
-  network_fee_stroops?: string
-  op_count_estimate?: number
-  path_assets?: string[]
-  execute_suggest?: any
+  source_max_suggest?: string
+  route_tokens: string[]
+  network_fee_lamports: string
+  network_fee_sol: string
+  estimated_base_fee: string
+  execute_suggest: {
+    mode: 'send' | 'receive'
+    source_amount?: string
+    dest_min?: string
+    dest_amount?: string
+    source_max?: string
+    route: any[]
+  }
+  raw: any
 }
 
 export interface SwapBeginRequest {
   mode: 'send' | 'receive'
   source_public: string
   destination?: string
-  source_asset: { code: string; issuer?: string }
-  dest_asset: { code: string; issuer?: string }
+  source_token: TokenRef
+  dest_token: TokenRef
   source_amount?: string
   dest_min?: string
   dest_amount?: string
   source_max?: string
-  path?: any[]
+  route?: any[]
 }
 
 export interface SwapBeginResponse {
-  xdr: string
-  network_passphrase: string
+  transaction: string
+  network: string
   estimated_base_fee: number
-  op_count: number
+  note: string
 }
 
 export interface SwapCompleteRequest {
   public_key?: string
-  signed_xdr: string
+  signed_transaction: string
 }
 
 export interface SwapCompleteResponse {
-  hash: string
-  envelope_xdr?: string
-  result_xdr?: string
-  balances: Record<string, string>
+  signature: string
+  transaction: string
+  balances: Record<string, any>
+  explorer_link?: string
+  solscan_link?: string
+  note: string
 }
 
 export interface SwapExecRequest {
   mode: 'send' | 'receive'
   secret: string
   destination?: string
-  source_asset: { code: string; issuer?: string }
-  dest_asset: { code: string; issuer?: string }
+  source_token: TokenRef
+  dest_token: TokenRef
   source_amount?: string
   dest_min?: string
   dest_amount?: string
   source_max?: string
-  path?: any[]
+  route?: any[]
 }
 
 export interface SwapExecResponse {
-  hash: string
-  fee_charged?: string
-  envelope_xdr?: string
-  result_xdr?: string
-  balances: Record<string, string>
+  signature: string
+  transaction: string
+  balances: Record<string, any>
+  balance_changes?: Record<string, any>
+  swap_info?: any
+  explorer_link?: string
+  solscan_link?: string
 }
 
 // Transaction API Types
 export interface TransactionLookupResponse {
-  hash: string
-  successful: boolean
-  ledger: number
-  created_at: string
-  fee_charged: string
-  operation_count: number
-  envelope_xdr: string
-  result_xdr: string
-  horizon_link: string
+  signature: string
+  success: boolean
+  slot: number
+  block_time: number
+  fee: number
+  logs: string[]
+  explorer_link: string
+  solscan_link: string
 }
 
 export interface ChainTransaction {
-  id: string
-  hash: string
-  tx_type: 'PAYMENT' | 'SWAP'
-  direction: 'sent' | 'received'
-  asset_code: string
-  asset_issuer?: string
-  amount: string
-  source: string
-  destination: string
-  source_asset_code?: string
-  source_amount?: string
-  memo?: string
-  status: 'success' | 'failed'
-  created_at: string
-  ledger?: number
-  fee_charged?: string
+  signature: string
+  slot: number
+  block_time: number
+  fee: number
+  success: boolean
+  logs: string[]
+  // Additional fields from backend parsing
+  amount?: string
+  destination?: string
+  source?: string
+  symbol?: string
+  direction?: string
 }
 
 export interface TransactionHistoryResponse {
   transactions: ChainTransaction[]
-  next_cursor?: string
+  next_before?: string
 }
 
 // Onboard API Types
@@ -392,6 +431,11 @@ export const chainApi = {
     return response.data
   },
 
+  async validateSend(request: SendBeginRequest): Promise<any> {
+    const response = await chainApiClient.post<any>('/send/validate', request)
+    return response.data
+  },
+
   async beginSend(request: SendBeginRequest): Promise<SendBeginResponse> {
     const response = await chainApiClient.post<SendBeginResponse>('/send/begin', request)
     return response.data
@@ -413,6 +457,11 @@ export const chainApi = {
     return response.data
   },
 
+  async validateSwap(request: SwapQuoteRequest): Promise<any> {
+    const response = await chainApiClient.post<any>('/swap/validate', request)
+    return response.data
+  },
+
   async beginSwap(request: SwapBeginRequest): Promise<SwapBeginResponse> {
     const response = await chainApiClient.post<SwapBeginResponse>('/swap/begin', request)
     return response.data
@@ -429,18 +478,23 @@ export const chainApi = {
   },
 
   // Transaction functions
-  async lookupTransaction(hash: string): Promise<TransactionLookupResponse> {
-    const response = await chainApiClient.get<TransactionLookupResponse>(`/tx/lookup?hash=${hash}`)
+  async lookupTransaction(signature: string): Promise<TransactionLookupResponse> {
+    const response = await chainApiClient.get<TransactionLookupResponse>(`/tx/lookup?signature=${signature}`)
     return response.data
   },
 
-  async getTransactionHistory(publicKey: string, limit: number = 10, cursor?: string, type: string = 'all'): Promise<TransactionHistoryResponse> {
+  async viewTransaction(signature: string): Promise<any> {
+    const response = await chainApiClient.get<any>(`/tx/view/${signature}`)
+    return response.data
+  },
+
+  async getTransactionHistory(publicKey: string, limit: number = 10, before?: string, type: string = 'all'): Promise<TransactionHistoryResponse> {
     const params = new URLSearchParams({
       public_key: publicKey,
       limit: limit.toString(),
       type
     })
-    if (cursor) params.append('cursor', cursor)
+    if (before) params.append('before', before)
     
     const response = await chainApiClient.get<TransactionHistoryResponse>(`/tx/history?${params.toString()}`)
     return response.data

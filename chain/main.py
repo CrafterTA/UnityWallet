@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from chain.routers import wallet, onboard, send, swap, tx, auth
+from routers import wallet, send, swap, tx, auth
 
-app = FastAPI(title="Wallet API", version="1.0.0")
+app = FastAPI(title="Solana Wallet API", version="2.1.0", description="Wallet API for Solana blockchain with USDT support")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,11 +20,24 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(auth.router)  # Add auth router first
+app.include_router(auth.router)
 app.include_router(wallet.router)
-app.include_router(onboard.router)
 app.include_router(send.router)
 app.include_router(swap.router)
 app.include_router(tx.router)
+
+@app.get("/")
+def root():
+    return {
+        "message": "Solana Wallet API",
+        "version": "2.1.0",
+        "network": "devnet",
+        "supported_tokens": ["SOL", "USDT"],
+        "docs": "/docs"
+    }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "network": "solana-devnet"}
 
 

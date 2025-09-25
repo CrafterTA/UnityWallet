@@ -83,24 +83,32 @@ export default function Pay() {
     queryKey: ['wallet-balances-pay'],
     queryFn: walletApi.getBalances,
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     refetchOnMount: true, // Always refetch when component mounts
+    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchIntervalInBackground: true, // Continue refetching in background
   })
 
   // Fetch recent transactions
-  const { data: transactionsData, isLoading: transactionsLoading, refetch: refetchTransactions } = useQuery({
-    queryKey: ['recent-transactions-pay'],
-    queryFn: () => transactionsApi.getTransactions({ page: 1, per_page: 20 }), // Lấy nhiều hơn để có đủ 5 non-swap
+  const { data: transactionsData, isLoading: transactionsLoading, error: transactionsError, refetch: refetchTransactions } = useQuery({
+    queryKey: ['recent-transactions-pay'], // Remove Date.now() to allow caching
+    queryFn: async () => {
+      return await transactionsApi.getTransactions({ page: 1, per_page: 20 })
+    },
     retry: 1,
     refetchOnWindowFocus: true,
     refetchOnMount: true, // Always refetch when component mounts
+    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchIntervalInBackground: true, // Continue refetching in background
+    staleTime: 5000, // Cache for 5 seconds
   })
 
+  
   // Process recent transactions (exclude swap transactions, take first 5)
   const recentTransactions = transactionsData?.transactions
-    .filter((tx) => tx.tx_type !== 'SWAP') // Bỏ qua swap transactions
-    .slice(0, 5) // Lấy 5 giao dịch gần nhất (không phải swap)
-    .map((tx) => {
+    ?.filter((tx: any) => tx.tx_type !== 'SWAP') // Bỏ qua swap transactions
+    ?.slice(0, 5) // Lấy 5 giao dịch gần nhất (không phải swap)
+    ?.map((tx: any) => {
       let type = 'sent' // default fallback
       
       if (tx.tx_type === 'PAYMENT') {
@@ -110,16 +118,18 @@ export default function Pay() {
       const from = type === 'received' ? tx.source : undefined // Địa chỉ người gửi cho received
       const to = type === 'sent' ? tx.destination : undefined // Địa chỉ người nhận cho sent
     
-    return {
-      id: tx.id,
+      return {
+        id: tx.id,
         type: type,
-      amount: tx.amount,
-      symbol: tx.asset_code,
-      to,
-      from,
-      time: new Date(tx.created_at).toLocaleDateString(),
-      status: tx.status.toLowerCase()
-    }
+        amount: tx.amount || '0',
+        symbol: tx.symbol || tx.asset_code || 'SOL',
+        to,
+        from,
+        time: typeof tx.created_at === 'number' 
+          ? new Date(tx.created_at * 1000).toLocaleDateString()
+          : new Date(tx.created_at).toLocaleDateString(),
+        status: tx.status.toLowerCase()
+      }
   }) || []
 
   // Fetch wallet address
@@ -134,9 +144,9 @@ export default function Pay() {
   useEffect(() => {
     if (balances && balances.length > 0) {
       // Check if current asset exists in balances, if not select first available
-      const currentAssetExists = balances.some(b => b.asset_code === asset)
+      const currentAssetExists = balances.some(b => b.symbol === asset)
       if (!currentAssetExists) {
-        setAsset(balances[0].asset_code)
+        setAsset(balances[0].symbol)
       }
     }
   }, [balances, asset]) // Add asset back to dependencies
@@ -154,22 +164,23 @@ export default function Pay() {
 
   // Process real contacts from recent transactions - chỉ lấy địa chỉ của người khác
   const recentContacts = transactionsData?.transactions
-    .filter(tx => tx.destination && tx.direction === 'sent') // Chỉ lấy transactions gửi đi (không phải nhận về)
-    .map(tx => ({
+    ?.filter((tx: any) => tx.destination && tx.direction === 'sent') // Chỉ lấy transactions gửi đi (không phải nhận về)
+    ?.map((tx: any) => ({
       name: tx.destination?.substring(0, 8) + '...' + tx.destination?.slice(-4) || 'Unknown',
       address: tx.destination || 'Unknown',
       avatar: tx.destination?.substring(0, 2).toUpperCase() || 'U'
     }))
-    .filter((contact, index, self) => 
-      index === self.findIndex(c => c.address === contact.address)
+    ?.filter((contact: any, index: number, self: any[]) => 
+      index === self.findIndex((c: any) => c.address === contact.address)
     ) // Remove duplicates
-    .slice(0, 3) || [] // Limit to 3 contacts
+    ?.slice(0, 3) || [] // Limit to 3 contacts
+  
 
   const quickAmounts = ['$10', '$25', '$50', '$100']
 
   // Get current asset balance
-  const currentAssetBalance = balances?.find(b => b.asset_code === asset)
-  const availableBalance = currentAssetBalance ? parseFloat(currentAssetBalance.amount) : 0
+  const currentAssetBalance = balances?.find(b => b.symbol === asset)
+  const availableBalance = currentAssetBalance ? parseFloat(currentAssetBalance.balance_ui || '0') || 0 : 0
 
   useEffect(() => {
     if (!copied) return
@@ -194,7 +205,7 @@ export default function Pay() {
       return
     }
 
-    if (amountNum > availableBalance) {
+    if (amountNum > (isNaN(availableBalance) ? 0 : availableBalance)) {
       toast.error(t('pay.insufficientBalance', 'Insufficient balance'))
       return
     }
@@ -205,7 +216,7 @@ export default function Pay() {
     try {
       const result = await walletApi.payment({
         destination: recipient,
-        asset_code: asset,
+        token: { mint: asset === 'SOL' ? 'native' : asset, symbol: asset },
         amount: amount,
         memo: note
       })
@@ -216,16 +227,18 @@ export default function Pay() {
         setAmount('')
         setNote('')
         
-        // Refetch data immediately to update UI
-        await Promise.all([
-          refetchBalances(),
-          refetchTransactions(),
-          queryClient.invalidateQueries({ queryKey: ['wallet-balances'] }),
-          queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-          queryClient.invalidateQueries({ queryKey: ['activity-summary'] }),
-          queryClient.invalidateQueries({ queryKey: ['recent-transactions-wallet'] }),
-          queryClient.invalidateQueries({ queryKey: ['activity-transactions'] })
-        ])
+         // Refetch data immediately to update UI
+         await Promise.all([
+           refetchBalances(),
+           refetchTransactions(),
+           queryClient.invalidateQueries({ queryKey: ['wallet-balances'] }),
+           queryClient.invalidateQueries({ queryKey: ['wallet-balances-pay'] }),
+           queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+           queryClient.invalidateQueries({ queryKey: ['recent-transactions-pay'] }),
+           queryClient.invalidateQueries({ queryKey: ['activity-summary'] }),
+           queryClient.invalidateQueries({ queryKey: ['recent-transactions-wallet'] }),
+           queryClient.invalidateQueries({ queryKey: ['activity-transactions'] })
+         ])
       } else {
         toast.error(t('pay.paymentFailed', 'Payment failed. Please try again.'), { id: 'payment' })
       }
@@ -380,14 +393,14 @@ export default function Pay() {
                         type="number"
                         inputMode="decimal"
                         step="any"
-                        max={availableBalance}
+                        max={isNaN(availableBalance) ? 0 : availableBalance}
                         value={amount}
                         onChange={handleAmountChange}
                         placeholder={balancesLoading ? t('pay.loadingBalance', 'Loading balance...') : "0.00"}
                         disabled={balancesLoading}
                         className={classNames(
                           'w-full rounded-xl px-4 py-3 text-xl font-semibold outline-none ring-1 focus:ring-2',
-                          parseFloat(amount) > availableBalance && amount && !balancesLoading ? 'ring-red-500' : '',
+                          parseFloat(amount) > (isNaN(availableBalance) ? 0 : availableBalance) && amount && !balancesLoading ? 'ring-red-500' : '',
                           balancesLoading ? 'opacity-50 cursor-not-allowed' : '',
                           isDark ? 'bg-white/10 ring-white/20 text-white placeholder-white/40 focus:ring-red-500'
                                  : 'bg-slate-100/80 ring-slate-300 text-slate-900 placeholder-slate-500 focus:ring-red-500'
@@ -402,7 +415,7 @@ export default function Pay() {
                         {t('pay.loadingBalance', 'Loading balance...')}
                       </p>
                     )}
-                    {!balancesLoading && parseFloat(amount) > availableBalance && amount && (
+                    {!balancesLoading && parseFloat(amount) > (isNaN(availableBalance) ? 0 : availableBalance) && amount && (
                       <p className="text-red-500 text-sm mt-1">{t('pay.insufficientBalance', 'Insufficient balance')}</p>
                     )}
                     
@@ -441,14 +454,14 @@ export default function Pay() {
                     >
                       {balances?.map((balance) => (
                         <option 
-                          key={balance.asset_code} 
-                          value={balance.asset_code} 
+                          key={balance.symbol} 
+                          value={balance.symbol} 
                           className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}
                         >
-                          {balance.asset_code} ({formatAssetAmountWithPrecision(balance.amount, balance.asset_code, 6)})
+                          {balance.symbol} ({formatAssetAmountWithPrecision(balance.balance_ui || '0', balance.symbol, 6)})
                         </option>
                       )) || (
-                        <option value="" className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>
+                        <option key="no-assets" value="" className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>
                           {balancesLoading ? t('common.loading', 'Loading...') : t('pay.noAssets', 'No assets available')}
                         </option>
                       )}
@@ -476,10 +489,10 @@ export default function Pay() {
                 <div className="mt-8 flex justify-end">
                   <button
                     onClick={handleSend}
-                    disabled={!recipient || !amount || isSubmitting || balancesLoading || !!balancesError || parseFloat(amount) > availableBalance}
+                    disabled={!recipient || !amount || isSubmitting || balancesLoading || !!balancesError || parseFloat(amount) > (isNaN(availableBalance) ? 0 : availableBalance)}
                     className={classNames(
                       'inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 shadow-lg',
-                      (!recipient || !amount || isSubmitting || balancesLoading || !!balancesError || parseFloat(amount) > availableBalance)
+                      (!recipient || !amount || isSubmitting || balancesLoading || !!balancesError || parseFloat(amount) > (isNaN(availableBalance) ? 0 : availableBalance))
                         ? 'opacity-60 cursor-not-allowed'
                         : 'hover:scale-[1.02]',
                       isDark ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/30' : 'bg-yellow-400 text-slate-900 hover:bg-yellow-500'
@@ -498,7 +511,7 @@ export default function Pay() {
               {/* Recent Contacts */}
               <SectionCard dark={isDark} title={<span className="flex items-center gap-2"><Users className="h-5 w-5 text-yellow-400" />{t('pay.recentContacts','Recent Contacts')}</span>}>
                 <div className="space-y-3">
-                  {recentContacts.map((c, idx) => (
+                  {recentContacts.map((c: any, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => setRecipient(c.address)}
@@ -540,12 +553,12 @@ export default function Pay() {
               <SectionCard dark={isDark} title={<span className="flex items-center gap-2"><Clock className="h-5 w-5 text-blue-400" />{t('activity.recentActivity','Recent Activity')}</span>}>
                 {recentTransactions.length > 0 ? (
                   <div className="space-y-3">
-                    {recentTransactions.map((tx) => (
+                    {recentTransactions.map((tx: any) => (
                       <div 
                         key={tx.id} 
                         onClick={() => {
                           // Tìm transaction gốc từ API data
-                          const originalTx = transactionsData?.transactions.find(transaction => transaction.id === tx.id)
+                          const originalTx = transactionsData?.transactions.find((transaction: any) => transaction.id === tx.id)
                           if (originalTx) {
                             setSelectedTransaction(originalTx)
                             setIsModalOpen(true)
@@ -668,12 +681,12 @@ export default function Pay() {
               <SectionCard dark={isDark} title={<span className="flex items-center gap-2"><Clock className="h-5 w-5 text-blue-400" />{t('activity.recentActivity','Recent Activity')}</span>}>
                 {recentTransactions.length > 0 ? (
                   <div className="space-y-3">
-                    {recentTransactions.map((tx) => (
+                    {recentTransactions.map((tx: any) => (
                       <div 
                         key={tx.id} 
                         onClick={() => {
                           // Tìm transaction gốc từ API data
-                          const originalTx = transactionsData?.transactions.find(transaction => transaction.id === tx.id)
+                          const originalTx = transactionsData?.transactions.find((transaction: any) => transaction.id === tx.id)
                           if (originalTx) {
                             setSelectedTransaction(originalTx)
                             setIsModalOpen(true)

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from stellar_sdk import Keypair
-from chain.models.schemas import CreateWalletReq, ImportSecretReq, ImportMnemonicReq
-from chain.services.stellar import friendbot_fund, balances_of, valid_secret, account_exists
-from chain.services.mnemonic import generate_mnemonic, derive_keypair_from_mnemonic
+from solders.keypair import Keypair
+from models.schemas import CreateWalletReq, ImportSecretReq, ImportMnemonicReq
+from services.solana import faucet_fund, balances_of, balances_of_with_retry, valid_secret, account_exists
+from services.mnemonic import generate_mnemonic, derive_keypair_from_mnemonic, derive_keypair_from_secret
 
 router = APIRouter(prefix="/wallet", tags=["wallet"])
 
@@ -16,21 +16,15 @@ def create_wallet(body: CreateWalletReq):
             mnemonic, body.passphrase, body.account_index
         )
     else:
-        kp = Keypair.random()
+        kp = Keypair()
         mnemonic = None
-        public_key, secret = kp.public_key, kp.secret
+        public_key, secret = str(kp.pubkey()), str(kp)
 
     funded = False
     fund_error = None
     if body.fund:
-        try:
-            if not account_exists(public_key):
-                friendbot_fund(public_key)
-                funded = True
-            else:
-                funded = True
-        except Exception as e:
-            fund_error = str(e)
+        # Faucet temporarily disabled
+        fund_error = "Faucet temporarily disabled. Please use external faucet: https://faucet.solana.com"
 
     return {
         "mode": "mnemonic" if body.use_mnemonic else "random",
@@ -49,26 +43,24 @@ def create_wallet(body: CreateWalletReq):
 def import_wallet(body: ImportSecretReq):
     if not valid_secret(body.secret):
         raise HTTPException(400, "Invalid secret")
-    kp = Keypair.from_secret(body.secret)
+    
+    public_key, secret = derive_keypair_from_secret(body.secret)
 
-    existed = account_exists(kp.public_key)
+    existed = account_exists(public_key)
     funded = False
     fund_error = None
 
     if body.fund and not existed:
-        try:
-            friendbot_fund(kp.public_key)
-            funded = True
-        except Exception as e:
-            fund_error = str(e)
+        # Faucet temporarily disabled
+        fund_error = "Faucet temporarily disabled. Please use external faucet: https://faucet.solana.com"
 
     can_read_bal = existed or funded
     return {
-        "public_key": kp.public_key,
+        "public_key": public_key,
         "account_exists": existed,
         "funded_now": funded,
         "fund_error": fund_error,
-        "balances": balances_of(kp.public_key) if can_read_bal else {},
+        "balances": balances_of(public_key) if can_read_bal else {},
     }
 
 @router.post("/import-mnemonic")
@@ -80,11 +72,8 @@ def import_wallet_from_mnemonic(body: ImportMnemonicReq):
     fund_error = None
 
     if body.fund and not existed:
-        try:
-            friendbot_fund(pub)
-            funded = True
-        except Exception as e:
-            fund_error = str(e)
+        # Faucet temporarily disabled
+        fund_error = "Faucet temporarily disabled. Please use external faucet: https://faucet.solana.com"
 
     can_read_bal = existed or funded
     return {
@@ -98,6 +87,26 @@ def import_wallet_from_mnemonic(body: ImportMnemonicReq):
 
 @router.get("/balances")
 def get_balances(public_key: str):
-    if not account_exists(public_key):
-        raise HTTPException(404, "Account not found on testnet")
+    # Always return balances, even if account doesn't exist (will show 0)
     return {"public_key": public_key, "balances": balances_of(public_key)}
+
+@router.get("/balances/refresh")
+def refresh_balances(public_key: str, wait_for_confirmation: bool = False):
+    """
+    Refresh balances with optional retry mechanism
+    - wait_for_confirmation: If True, will retry up to 3 times with delay for fresh updates
+    """
+    if wait_for_confirmation:
+        balances = balances_of_with_retry(public_key, max_retries=3, delay=2.0)
+        return {
+            "public_key": public_key, 
+            "balances": balances,
+            "note": "Balances refreshed with confirmation wait"
+        }
+    else:
+        balances = balances_of(public_key)
+        return {
+            "public_key": public_key, 
+            "balances": balances,
+            "note": "Balances refreshed immediately"
+        }

@@ -7,8 +7,8 @@ export interface ExchangeRate {
 // Default exchange rates (fallback values)
 export const DEFAULT_RATES: ExchangeRate = {
   'USDC': 1.0,          // 1 USDC = $1 USD
-  'XLM': 0.11,          // 1 XLM ≈ $0.11 USD (approximate)
-  'SYP': 1.0,           // 1 SYP = $1 USD (assuming pegged to USD)
+  'USDT': 1.0,          // 1 USDT = $1 USD
+  'SOL': 100.0,         // 1 SOL ≈ $100 USD (approximate)
   'BTC': 43000,         // 1 BTC ≈ $43,000 USD
   'ETH': 2600,          // 1 ETH ≈ $2,600 USD
 };
@@ -65,31 +65,37 @@ export const formatAssetAmountWithPrecision = (amount: string, assetCode: string
 };
 
 /**
- * Fetch live exchange rates from Stellar DEX via chain service
+ * Fetch live exchange rates from Solana DEX via chain service
  */
 export const fetchLiveRates = async (chainApi: any): Promise<ExchangeRate> => {
   try {
     const rates: ExchangeRate = { ...DEFAULT_RATES };
     
-    // Fetch rates for each asset against USDC (as base)
-    const assets = ['XLM', 'SYP'];
+    // Fetch rates for each asset against USDT (as base)
+    const assets = ['SOL'];
     
     for (const asset of assets) {
       try {
-        // Skip if asset is already USDC
-        if (asset === 'USDC') continue;
+        // Skip if asset is already USDT
+        if (asset === 'USDT') continue;
         
-        // Get quote from chain service: 1 ASSET -> USDC
+        // Get quote from chain service: 1 ASSET -> USDT
         const quote = await chainApi.getSwapQuote({
           mode: 'send',
-          source_asset: { code: asset },
-          dest_asset: { code: 'USDC' },
-          source_amount: '1',
-          source_account: 'GDUMMY' // Dummy account for price query
+          source_token: { 
+            mint: asset === 'SOL' ? 'native' : asset,
+            symbol: asset
+          },
+          dest_token: { 
+            mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // USDT mint on devnet
+            symbol: 'USDT'
+          },
+          source_amount: '0.01'
+          // No source_account needed for price queries
         });
         
         // Extract rate from quote
-        const rate = parseFloat(quote.implied_price || quote.price || '1');
+        const rate = parseFloat(quote.implied_price || '1');
         if (rate > 0) {
           rates[asset] = rate;
         }

@@ -1,5 +1,5 @@
 // Chain service configuration
-const CHAIN_API_BASE_URL = import.meta.env.VITE_CHAIN_API_BASE_URL || 'http://localhost:8000'
+const CHAIN_API_BASE_URL = '/api'
 // ML service configuration
 const ML_API_BASE_URL = import.meta.env.VITE_ML_API_BASE_URL || 'http://localhost:8001'
 

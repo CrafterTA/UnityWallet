@@ -6,35 +6,35 @@ import jwt
 from datetime import datetime, timedelta
 from typing import Optional
 import os
- 
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 security = HTTPBearer()
- 
+
 # Secret key for JWT signing (in production, use environment variable)
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key-change-in-production")
 JWT_ALGORITHM = "HS256"
 SESSION_EXPIRE_HOURS = 24
- 
+
 # In-memory session store (in production, use Redis or database)
 active_sessions = {}
- 
+
 class LoginRequest(BaseModel):
     public_key: str
     password_verified: bool = True  # Frontend đã verify password với keystore
- 
+
 class SessionResponse(BaseModel):
     session_token: str
     expires_at: str
     public_key: str
- 
+
 class RefreshRequest(BaseModel):
     refresh_token: str
- 
+
 def generate_session_key() -> str:
     """Generate a secure random session key (32 bytes = 256 bits for AES-256)"""
     session_key_bytes = secrets.token_bytes(32)
     return session_key_bytes.hex()
- 
+
 def create_jwt_token(public_key: str, session_key: str) -> str:
     """Create JWT token containing session information"""
     payload = {
@@ -45,7 +45,7 @@ def create_jwt_token(public_key: str, session_key: str) -> str:
         "type": "session"
     }
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
- 
+
 def verify_jwt_token(token: str) -> dict:
     """Verify and decode JWT token"""
     try:
@@ -55,7 +55,7 @@ def verify_jwt_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Session expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid session token")
- 
+
 @router.post("/login", response_model=SessionResponse)
 async def login(request: LoginRequest, response: Response):
     """
@@ -83,8 +83,8 @@ async def login(request: LoginRequest, response: Response):
         key="session_token",
         value=jwt_token,
         httponly=True,
-        secure=True,  # Use HTTPS in production
-        samesite="strict",
+        secure=False,  # Set to False for development (HTTP)
+        samesite="lax",  # Changed to lax for development
         max_age=SESSION_EXPIRE_HOURS * 3600,
         path="/"
     )
@@ -94,8 +94,8 @@ async def login(request: LoginRequest, response: Response):
         key="session_id",
         value=session_id,
         httponly=True,
-        secure=True,
-        samesite="strict",
+        secure=False,  # Set to False for development (HTTP)
+        samesite="lax",  # Changed to lax for development
         max_age=SESSION_EXPIRE_HOURS * 3600,
         path="/"
     )
@@ -105,7 +105,7 @@ async def login(request: LoginRequest, response: Response):
         expires_at=(datetime.utcnow() + timedelta(hours=SESSION_EXPIRE_HOURS)).isoformat(),
         public_key=request.public_key
     )
- 
+
 @router.post("/refresh")
 async def refresh_session(request: Request, response: Response):
     """
@@ -153,8 +153,8 @@ async def refresh_session(request: Request, response: Response):
         key="session_token",
         value=new_jwt_token,
         httponly=True,
-        secure=True,
-        samesite="strict",
+        secure=False,  # Set to False for development (HTTP)
+        samesite="lax",  # Changed to lax for development
         max_age=SESSION_EXPIRE_HOURS * 3600,
         path="/"
     )
@@ -164,7 +164,7 @@ async def refresh_session(request: Request, response: Response):
         "expires_at": (datetime.utcnow() + timedelta(hours=SESSION_EXPIRE_HOURS)).isoformat(),
         "public_key": public_key
     }
- 
+
 @router.post("/logout")
 async def logout(request: Request, response: Response):
     """
@@ -181,7 +181,7 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_id", path="/")
     
     return {"message": "Logged out successfully"}
- 
+
 @router.get("/verify")
 async def verify_session(request: Request):
     """
@@ -218,7 +218,7 @@ async def verify_session(request: Request):
         raise
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid session")
- 
+
 # Dependency to get current session
 async def get_current_session(request: Request) -> dict:
     """

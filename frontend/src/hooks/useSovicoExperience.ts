@@ -990,7 +990,7 @@ export const useSovicoExperience = () => {
       }
 
       try {
-        const apiUrl = import.meta.env.VITE_CHAIN_API_BASE_URL || 'http://localhost:8000'
+        const apiUrl = '/api'
 
         // Use proxy to avoid CORS issues
         const response = await fetch('/api/send/execute', {

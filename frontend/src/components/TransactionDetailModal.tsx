@@ -20,22 +20,23 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
 
-  // Fetch detailed transaction info from Stellar
+  // Fetch detailed transaction info from Solana
   useEffect(() => {
-    if (isOpen && transaction?.stellar_tx_hash) {
+    if (isOpen && transaction?.signature) {
       setLoading(true)
-      chainApi.lookupTransaction(transaction.stellar_tx_hash)
-        .then(details => {
-          setTxDetails(details)
-        })
-        .catch(error => {
-          console.error('Failed to fetch transaction details:', error)
-        })
-        .finally(() => {
-          setLoading(false)
-        })
+      // For now, we'll use the transaction data we already have
+      // In the future, we could fetch more details from Solana RPC
+      setTxDetails({
+        signature: transaction.signature,
+        slot: transaction.slot,
+        blockTime: transaction.block_time,
+        fee: transaction.fee,
+        success: transaction.status === 'SUCCESS',
+        logs: transaction.logs
+      })
+      setLoading(false)
     }
-  }, [isOpen, transaction?.stellar_tx_hash])
+  }, [isOpen, transaction?.signature])
 
   const copyToClipboard = async (text: string, type: string) => {
     try {
@@ -47,8 +48,8 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     }
   }
 
-  const openInStellarExpert = (hash: string) => {
-    window.open(`https://stellar.expert/explorer/testnet/tx/${hash}`, '_blank')
+  const openInSolanaExplorer = (signature: string) => {
+    window.open(`https://explorer.solana.com/tx/${signature}?cluster=devnet`, '_blank')
   }
 
   if (!isOpen || !transaction) return null
@@ -95,18 +96,18 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     return `${num.toFixed(7)} ${symbol}`
   }
 
-  const formatStellarHash = (hash: string) => {
-    if (!hash) return 'N/A'
-    return `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}`
+  const formatSolanaSignature = (signature: string) => {
+    if (!signature) return 'N/A'
+    return `${signature.substring(0, 8)}...${signature.substring(signature.length - 8)}`
   }
 
-  const formatStellarAddress = (address: string) => {
+  const formatSolanaAddress = (address: string) => {
     if (!address) return 'N/A'
     return `${address.substring(0, 8)}...${address.substring(address.length - 8)}`
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -170,7 +171,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 <div className={`
                   text-2xl font-bold text-green-400
                 `}>
-                  +{formatAmount(transaction.amount, transaction.asset_code)}
+                  +{formatAmount(transaction.amount, transaction.asset_code || 'SOL')}
                 </div>
               </div>
             ) : (
@@ -180,7 +181,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   transaction.direction === 'received' ? 'text-green-400' :
                   'text-blue-400'}
               `}>
-                {formatAmount(transaction.amount, transaction.asset_code)}
+                {formatAmount(transaction.amount, transaction.asset_code || 'SOL')}
               </div>
             )}
             <div className={`
@@ -223,40 +224,40 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 text-sm
                 ${isDark ? 'text-gray-400' : 'text-gray-700'}
               `}>
-                {formatDate(transaction.created_at)}
+                {formatDate(transaction.created_at.toString())}
               </span>
             </div>
 
-            {/* Transaction Hash */}
-            {transaction.stellar_tx_hash && (
+            {/* Transaction Signature */}
+            {transaction.signature && (
               <div className="flex justify-between items-center">
                 <span className={` 
                   text-sm font-medium
                   ${isDark ? 'text-gray-300' : 'text-gray-600'}
                 `}>
-                  Transaction Hash
+                  Transaction Signature
                 </span>
                 <div className="flex items-center gap-2">
                   <span className={` 
                     text-xs font-mono
                     ${isDark ? 'text-gray-400' : 'text-gray-700'}
                   `}>
-                    {formatStellarHash(transaction.stellar_tx_hash)}
+                    {formatSolanaSignature(transaction.signature)}
                   </span>
                   <button
-                    onClick={() => copyToClipboard(transaction.stellar_tx_hash!, 'hash')}
+                    onClick={() => copyToClipboard(transaction.signature!, 'signature')}
                     className={`p-1 rounded transition-colors ${
                       isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                     }`}
                   >
-                    {copied === 'hash' ? (
+                    {copied === 'signature' ? (
                       <Check className="h-3 w-3 text-green-400" />
                     ) : (
                       <Copy className="h-3 w-3 text-gray-400" />
                     )}
                   </button>
                   <button
-                    onClick={() => openInStellarExpert(transaction.stellar_tx_hash!)}
+                    onClick={() => openInSolanaExplorer(transaction.signature!)}
                     className={`p-1 rounded transition-colors ${
                       isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                     }`}
@@ -267,7 +268,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               </div>
             )}
 
-            {/* Stellar Details */}
+            {/* Solana Details */}
             {txDetails && (
               <>
                 <div className="flex justify-between items-center">
@@ -275,13 +276,13 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     text-sm font-medium
                     ${isDark ? 'text-gray-300' : 'text-gray-600'}
                   `}>
-                    Ledger
+                    Slot
                   </span>
                   <span className={` 
                     text-sm font-mono
                     ${isDark ? 'text-gray-400' : 'text-gray-700'}
                   `}>
-                    #{txDetails.ledger}
+                    #{txDetails.slot}
                   </span>
                 </div>
 
@@ -290,13 +291,13 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     text-sm font-medium
                     ${isDark ? 'text-gray-300' : 'text-gray-600'}
                   `}>
-                    Fee Charged
+                    Transaction Fee
                   </span>
                   <span className={` 
                     text-sm font-mono
                     ${isDark ? 'text-gray-400' : 'text-gray-700'}
                   `}>
-                    {txDetails.fee_charged} stroops
+                    {txDetails.fee} SOL
                   </span>
                 </div>
 
@@ -305,15 +306,41 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     text-sm font-medium
                     ${isDark ? 'text-gray-300' : 'text-gray-600'}
                   `}>
-                    Operations
+                    Block Time
                   </span>
                   <span className={` 
                     text-sm
                     ${isDark ? 'text-gray-400' : 'text-gray-700'}
                   `}>
-                    {txDetails.operation_count}
+                    {txDetails.blockTime ? new Date(txDetails.blockTime * 1000).toLocaleString() : 'N/A'}
                   </span>
                 </div>
+
+                {txDetails.logs && txDetails.logs.length > 0 && (
+                  <div className="flex justify-between items-start">
+                    <span className={` 
+                      text-sm font-medium
+                      ${isDark ? 'text-gray-300' : 'text-gray-600'}
+                    `}>
+                      Logs
+                    </span>
+                    <div className={` 
+                      text-xs font-mono max-w-48 text-right
+                      ${isDark ? 'text-gray-400' : 'text-gray-700'}
+                    `}>
+                      {txDetails.logs.slice(0, 3).map((log: string, index: number) => (
+                        <div key={index} className="truncate">
+                          {log}
+                        </div>
+                      ))}
+                      {txDetails.logs.length > 3 && (
+                        <div className="text-gray-500">
+                          +{txDetails.logs.length - 3} more...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
@@ -326,7 +353,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 <span className={`ml-2 text-sm ${
                   isDark ? 'text-gray-400' : 'text-gray-600'
                 }`}>
-                  Loading Stellar details...
+                  Loading Solana details...
                 </span>
               </div>
             )}
@@ -345,7 +372,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     text-sm font-mono
                     ${isDark ? 'text-gray-400' : 'text-gray-700'}
                   `}>
-                    {formatStellarAddress(transaction.destination)}
+                    {formatSolanaAddress(transaction.destination)}
                   </span>
                   <button
                     onClick={() => copyToClipboard(transaction.destination!, 'destination')}
@@ -376,7 +403,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     text-sm font-mono
                     ${isDark ? 'text-gray-400' : 'text-gray-700'}
                   `}>
-                    {formatStellarAddress(transaction.source)}
+                    {formatSolanaAddress(transaction.source)}
                   </span>
                   <button
                     onClick={() => copyToClipboard(transaction.source!, 'source')}
@@ -393,6 +420,38 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Transaction Type */}
+            <div className="flex justify-between items-center">
+              <span className={`
+                text-sm font-medium
+                ${isDark ? 'text-gray-300' : 'text-gray-600'}
+              `}>
+                Type
+              </span>
+              <span className={`
+                text-sm font-semibold
+                ${isDark ? 'text-gray-400' : 'text-gray-700'}
+              `}>
+                {transaction.tx_type || 'PAYMENT'}
+              </span>
+            </div>
+
+            {/* Symbol */}
+            <div className="flex justify-between items-center">
+              <span className={`
+                text-sm font-medium
+                ${isDark ? 'text-gray-300' : 'text-gray-600'}
+              `}>
+                Token
+              </span>
+              <span className={`
+                text-sm font-semibold
+                ${isDark ? 'text-gray-400' : 'text-gray-700'}
+              `}>
+                {transaction.symbol || transaction.asset_code || 'SOL'}
+              </span>
+            </div>
 
             {/* Memo */}
             {transaction.memo && (
@@ -470,26 +529,26 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           p-6 border-t
           ${isDark ? 'border-gray-700' : 'border-gray-200'}
         `}>
-          <div className="flex gap-3">
-            {transaction.stellar_tx_hash && (
+          <div className="flex gap-2">
+            {transaction.signature && (
               <button
-                onClick={() => openInStellarExpert(transaction.stellar_tx_hash!)}
+                onClick={() => openInSolanaExplorer(transaction.signature!)}
                 className={`
-                  flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2
+                  flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2
                   ${isDark 
                     ? 'bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 border border-blue-500/30' 
                     : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'
                   }
                 `}
               >
-                <ExternalLink className="h-4 w-4" />
-                View on Stellar Expert
+                <ExternalLink className="h-3 w-3" />
+                View on Solana Explorer
               </button>
             )}
             <button
               onClick={onClose}
               className={`
-                flex-1 py-3 px-4 rounded-xl font-medium transition-colors
+                flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
                 ${isDark 
                   ? 'bg-gray-800 text-white hover:bg-gray-700' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

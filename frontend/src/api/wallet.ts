@@ -2,38 +2,49 @@ import { apiClient } from './client'
 import { chainApi } from './chain'
 
 export interface Balance {
-  asset_code: string
-  amount: string
+  balance: string
+  balance_ui: string
+  mint: string
+  decimals: number
+  symbol: string
 }
 
 export interface BalancesResponse {
-  balances: Balance[]
+  balances: Record<string, Balance>
 }
 
 export interface PaymentRequest {
   destination: string
-  asset_code: string
+  token: {
+    mint: string
+    symbol?: string
+    decimals?: number
+  }
   amount: string
   memo?: string
 }
 
 export interface PaymentResponse {
-  ok: boolean
-  tx_id: string
-  stellar: any
+  success: boolean
+  signature: string
+  transaction: string
+  balances: Record<string, any>
+  explorer_link?: string
+  solscan_link?: string
 }
 
 export interface SwapRequest {
-  sell_asset: string
-  buy_asset: string
+  selling_asset_code: string
+  buying_asset_code: string
   amount: string
 }
 
 export interface SwapResponse {
-  ok: boolean
-  swapped: string
-  rate: string
-  tx_id: string
+  signature: string
+  transaction: string
+  balances: Record<string, any>
+  explorer_link?: string
+  solscan_link?: string
 }
 
 export interface QuoteResponse {
@@ -51,9 +62,9 @@ export interface QuoteResponse {
 }
 
 export interface TransactionResult {
-  hash: string
+  signature: string
   status: 'pending' | 'success' | 'failed'
-  ledger?: number
+  slot?: number
 }
 
 export const walletApi = {
@@ -62,21 +73,26 @@ export const walletApi = {
       // Get wallet from store
       const wallet = JSON.parse(localStorage.getItem('unity-wallet-auth') || '{}')
       if (!wallet.state?.wallet?.public_key) {
-        throw new Error('No wallet found. Please login first.')
+        // Return empty balances if no wallet
+        return []
       }
       
       const response = await chainApi.getBalances(wallet.state.wallet.public_key)
       
       // Convert chain service response to our format
-      const balances: Balance[] = Object.entries(response.balances).map(([asset, amount]) => ({
-        asset_code: asset === 'XLM' ? 'XLM' : asset.includes(':') ? asset.split(':')[0] : asset,
-        amount: amount.toString()
+      const balances: Balance[] = Object.entries(response.balances).map(([symbol, balanceData]) => ({
+        balance: balanceData.balance,
+        balance_ui: balanceData.balance_ui,
+        mint: balanceData.mint,
+        decimals: balanceData.decimals,
+        symbol: balanceData.symbol
       }))
       
       return balances
     } catch (error) {
       console.error('Wallet balance error:', error)
-      throw new Error('Failed to fetch wallet balances from chain service')
+      // Return empty balances on error instead of throwing
+      return []
     }
   },
 
@@ -127,14 +143,14 @@ export const walletApi = {
       const response = await chainApi.executeSend({
         secret: secretKey,
         destination: request.destination,
-        source: { code: request.asset_code },
+        source: request.token,
         amount: request.amount
       })
 
       return {
-        hash: response.hash,
+        signature: response.signature,
         status: 'success' as const,
-        ledger: response.envelope_xdr ? 1 : undefined
+        slot: undefined
       }
     } catch (error) {
       console.error('Payment error:', error)
@@ -174,46 +190,42 @@ export const walletApi = {
       // Get swap quote first
       const quoteResponse = await chainApi.getSwapQuote({
         mode: 'send',
-        source_asset: { code: request.selling_asset_code },
-        dest_asset: { code: request.buying_asset_code },
+        source_token: { 
+          mint: request.selling_asset_code === 'SOL' ? 'native' : request.selling_asset_code,
+          symbol: request.selling_asset_code
+        },
+        dest_token: { 
+          mint: request.buying_asset_code === 'SOL' ? 'native' : request.buying_asset_code,
+          symbol: request.buying_asset_code
+        },
         source_amount: request.amount,
         source_account: wallet.public_key,
-        max_paths: 5,
         slippage_bps: 200
       })
       
 
-      const destMin = quoteResponse.dest_min_suggest || quoteResponse.dest_amount || '0'
-
-      // Parse asset formats from quote response
-      const parseAsset = (assetStr: string) => {
-        if (assetStr === 'XLM' || !assetStr.includes(':')) {
-          return { code: assetStr }
-        }
-        const [code, issuer] = assetStr.split(':')
-        return { code, issuer }
-      }
-
-      const sourceAsset = parseAsset(quoteResponse.source_asset || `${request.selling_asset_code}`)
-      const destAsset = parseAsset(quoteResponse.dest_asset || `${request.buying_asset_code}`)
-
-      // Use path from quote response
-      const swapPath = quoteResponse.raw?.path || quoteResponse.path || []
+      const destMin = quoteResponse.dest_min_suggest || quoteResponse.destination_amount || '0'
 
       // Execute swap using the old execute endpoint
       const swapResponse = await chainApi.executeSwap({
         mode: 'send',
         secret: secretKey,
         destination: wallet.public_key,
-        source_asset: sourceAsset,
-        dest_asset: destAsset,
+        source_token: { 
+          mint: request.selling_asset_code === 'SOL' ? 'native' : request.selling_asset_code,
+          symbol: request.selling_asset_code
+        },
+        dest_token: { 
+          mint: request.buying_asset_code === 'SOL' ? 'native' : request.buying_asset_code,
+          symbol: request.buying_asset_code
+        },
         source_amount: request.amount,
         dest_min: destMin,
-        path: swapPath
+        route: quoteResponse.raw?.routePlan || []
       })
 
       return {
-        hash: swapResponse.hash,
+        signature: swapResponse.signature,
         status: 'success' as const
       }
     } catch (error) {
@@ -242,11 +254,16 @@ export const walletApi = {
 
       const response = await chainApi.getSwapQuote({
         mode: 'send',
-        source_asset: { code: fromAsset },
-        dest_asset: { code: toAsset },
+        source_token: { 
+          mint: fromAsset === 'SOL' ? 'native' : fromAsset,
+          symbol: fromAsset
+        },
+        dest_token: { 
+          mint: toAsset === 'SOL' ? 'native' : toAsset,
+          symbol: toAsset
+        },
         source_amount: amount,
         source_account: publicKey,
-        max_paths: 5,
         slippage_bps: 200
       })
 
@@ -257,8 +274,8 @@ export const walletApi = {
         to_asset: toAsset,
         from_amount: amount,
         to_amount: response.destination_amount || response.dest_min_suggest || '0',
-        exchange_rate: response.implied_price || response.price || '1',
-        fee_amount: response.network_fee_xlm || '0.00001',
+        exchange_rate: response.implied_price || '1',
+        fee_amount: response.network_fee_sol || '0.000005',
         fee_percentage: '0.1',
         expires_at: new Date(Date.now() + 30000).toISOString(),
         created_at: new Date().toISOString(),
