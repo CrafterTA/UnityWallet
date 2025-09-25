@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/session'
+import { useSessionInit } from '@/hooks/useSessionInit'
 // Use alias path to avoid any moduleResolution quirks with relative specifier
 import Layout from '@/app/Layout'
 import Login from '@/pages/Login'
@@ -15,6 +16,22 @@ import Sovico from '@/pages/Sovico'
 
 function App() {
   const { isAuthenticated, isLocked } = useAuthStore()
+  const { isInitializing, initError } = useSessionInit()
+
+  // Show loading screen while initializing session
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Initializing wallet...</p>
+          {initError && (
+            <p className="text-red-500 text-sm mt-2">Error: {initError}</p>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated) {
     return (

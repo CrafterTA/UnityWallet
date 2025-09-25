@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { QueryClient } from '@tanstack/react-query'
 import { Web3Keystore } from '@/lib/web3Keystore'
+import { SessionManager } from '@/lib/sessionManager'
 
 interface Wallet {
   public_key: string
@@ -25,6 +26,8 @@ interface AuthState {
   lockWallet: () => void
   unlockWallet: (password: string) => Promise<boolean>
   saveSecureWalletData: (secret: string, password: string, publicKey: string, mnemonic?: string) => Promise<void>
+  initializeFromSession: () => Promise<boolean>
+  refreshSession: () => Promise<boolean>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -50,6 +53,9 @@ export const useAuthStore = create<AuthState>()(
       
       
       logout: () => {
+        // Clear session with SessionManager
+        SessionManager.logout()
+        
         // Clear only auth-related data, preserve theme and other preferences
         localStorage.removeItem('unity-wallet-auth')
         
@@ -93,17 +99,40 @@ export const useAuthStore = create<AuthState>()(
       },
       
       unlockWallet: async (password: string) => {
-        // Web3 standard: decrypt keystore to get private key
         try {
+          // Try to login with SessionManager (creates session)
+          const loginResult = await SessionManager.login(
+            get().wallet?.public_key || '', 
+            password
+          )
+
+          if (loginResult.success && loginResult.sessionData) {
+            // Verify session to get decrypted secret
+            const verifyResult = await SessionManager.verifySession()
+            
+            if (verifyResult.success && verifyResult.secret) {
+              const currentWallet = get().wallet
+              if (currentWallet) {
+                set({ 
+                  isLocked: false,
+                  wallet: {
+                    ...currentWallet,
+                    secret: verifyResult.secret,
+                  }
+                })
+              }
+              return true
+            }
+          }
+          
+          // Fallback to old method if session login fails
           const keystore = Web3Keystore.loadKeystore()
           if (!keystore) {
             return false
           }
 
-          // Decrypt keystore to get private key
           const secret = await Web3Keystore.decryptKeystore(keystore, password)
           
-          // Load secret key into memory
           const currentWallet = get().wallet
           if (currentWallet) {
             set({ 
@@ -111,16 +140,62 @@ export const useAuthStore = create<AuthState>()(
               wallet: {
                 ...currentWallet,
                 secret: secret,
-                // Keep existing mnemonic if it exists (for mnemonic-based wallets)
-                // For secret key imports, mnemonic will be undefined
               }
-            })
+            }) 
           } else {
             set({ isLocked: false })
           }
           return true
         } catch (error) {
-          console.error('Failed to verify password:', error)
+          console.error('Failed to unlock wallet:', error)
+          return false
+        }
+      },
+
+      initializeFromSession: async () => {
+        try {
+          // Check if we have a valid session
+          if (!SessionManager.hasSession()) {
+            return false
+          }
+
+          // Verify and restore session
+          const result = await SessionManager.verifySession()
+          
+          if (result.success && result.secret && result.publicKey) {
+            // Get wallet data from localStorage
+            const currentWallet = get().wallet
+            
+            if (currentWallet && currentWallet.public_key === result.publicKey) {
+              // Restore wallet with secret from session
+              set({
+                wallet: {
+                  ...currentWallet,
+                  secret: result.secret
+                },
+                isAuthenticated: true,
+                isLocked: false
+              })
+              return true
+            }
+          }
+          
+          // Session invalid or doesn't match current wallet
+          SessionManager.clearSession()
+          return false
+        } catch (error) {
+          console.error('Failed to initialize from session:', error)
+          SessionManager.clearSession()
+          return false
+        }
+      },
+
+      refreshSession: async () => {
+        try {
+          const result = await SessionManager.refreshSession()
+          return result.success
+        } catch (error) {
+          console.error('Failed to refresh session:', error)
           return false
         }
       },

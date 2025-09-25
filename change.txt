@@ -1,0 +1,1374 @@
+Hướng dẫn Triển khai Giải pháp Session Key với Mã hóa Client-side
+Đây là tài liệu hướng dẫn chi tiết các thay đổi đã được thực hiện trong dự án SoviPay để triển khai giải pháp "Session Key với Mã hóa Client-side". Giải pháp này giúp duy trì trạng thái đăng nhập và sử dụng ví (secret key) sau khi reload trang mà vẫn đảm bảo tính bảo mật cao.
+
+Mục lục
+1	Tổng quan về Giải pháp
+2	Thay đổi Backend (chain/)
+◦	Tạo file auth.py mới
+◦	Cập nhật main.py
+◦	Cài đặt thư viện
+3	Thay đổi Frontend (frontend/)
+◦	Tạo file sessionManager.ts mới
+◦	Cập nhật session.ts
+◦	Tạo file useSessionInit.ts mới
+◦	Cập nhật App.tsx
+4	Hướng dẫn Thực hiện
+5	Kiểm thử
+
+
+
+1. Tổng quan về Giải pháp
+Giải pháp "Session Key với Mã hóa Client-side" hoạt động như sau:
+
+•	Khi đăng nhập/mở khóa lần đầu: Người dùng nhập mật khẩu. Frontend giải mã secret key từ Keystore đã lưu. Sau đó, frontend gọi API backend để tạo một session key ngẫu nhiên. Backend sẽ trả về session key này và đặt một HttpOnly cookie chứa JWT token (đã ký bằng session key và public key). Frontend sẽ sử dụng session key nhận được để mã hóa secret key và lưu encrypted secret key vào sessionStorage.
+•	Khi reload trang: Frontend kiểm tra sessionStorage để xem có encrypted secret key và thông tin session không. Nếu có, nó sẽ gọi API backend để xác minh session. Backend sẽ đọc HttpOnly cookie (chứa JWT token), xác thực JWT và trả về session key hiện tại. Frontend sử dụng session key này để giải mã encrypted secret key từ sessionStorage và tải secret key vào bộ nhớ ứng dụng. Ví sẽ được mở khóa tự động.
+•	Bảo mật: secret key không bao giờ được lưu trữ dưới dạng plaintext trong localStorage hoặc sessionStorage. Session key được truyền qua HttpOnly cookie giúp chống lại các cuộc tấn công XSS. Ngay cả khi sessionStorage bị lộ, secret key vẫn được mã hóa và cần session key từ backend để giải mã.
+
+2. Thay đổi Backend (chain/)
+2.1 Tạo file auth.py mới
+Bạn cần tạo một file mới có tên auth.py trong thư mục chain/routers/. File này sẽ chứa các endpoint API để xử lý việc đăng nhập, làm mới session, đăng xuất và xác minh session.
+
+Đường dẫn: chain/routers/auth.py
+
+Nội dung file auth.py:
+
+from fastapi import APIRouter, HTTPException, Response, Request, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
+import secrets
+import jwt
+from datetime import datetime, timedelta
+from typing import Optional
+import os
+ 
+router = APIRouter(prefix="/auth", tags=["Authentication"])
+security = HTTPBearer()
+ 
+# Secret key for JWT signing (in production, use environment variable)
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key-change-in-production")
+JWT_ALGORITHM = "HS256"
+SESSION_EXPIRE_HOURS = 24
+ 
+# In-memory session store (in production, use Redis or database)
+active_sessions = {}
+ 
+class LoginRequest(BaseModel):
+    public_key: str
+    password_verified: bool = True  # Frontend đã verify password với keystore
+ 
+class SessionResponse(BaseModel):
+    session_token: str
+    expires_at: str
+    public_key: str
+ 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+ 
+def generate_session_key() -> str:
+    """Generate a secure random session key"""
+    return secrets.token_urlsafe(32)
+ 
+def create_jwt_token(public_key: str, session_key: str) -> str:
+    """Create JWT token containing session information"""
+    payload = {
+        "public_key": public_key,
+        "session_key": session_key,
+        "exp": datetime.utcnow() + timedelta(hours=SESSION_EXPIRE_HOURS),
+        "iat": datetime.utcnow(),
+        "type": "session"
+    }
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+ 
+def verify_jwt_token(token: str) -> dict:
+    """Verify and decode JWT token"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Session expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid session token")
+ 
+@router.post("/login", response_model=SessionResponse)
+async def login(request: LoginRequest, response: Response):
+    """
+    Create a new session after successful password verification
+    Frontend should verify password with keystore before calling this endpoint
+    """
+    if not request.password_verified:
+        raise HTTPException(status_code=401, detail="Password verification required")
+    
+    # Generate session key and JWT token
+    session_key = generate_session_key()
+    jwt_token = create_jwt_token(request.public_key, session_key)
+    
+    # Store session in memory (use Redis in production)
+    session_id = secrets.token_urlsafe(16)
+    active_sessions[session_id] = {
+        "public_key": request.public_key,
+        "session_key": session_key,
+        "created_at": datetime.utcnow(),
+        "expires_at": datetime.utcnow() + timedelta(hours=SESSION_EXPIRE_HOURS)
+    }
+    
+    # Set HttpOnly cookie with JWT token
+    response.set_cookie(
+        key="session_token",
+        value=jwt_token,
+        httponly=True,
+        secure=True,  # Use HTTPS in production
+        samesite="strict",
+        max_age=SESSION_EXPIRE_HOURS * 3600,
+        path="/"
+    )
+    
+    # Also set session_id cookie for session management
+    response.set_cookie(
+        key="session_id",
+        value=session_id,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        max_age=SESSION_EXPIRE_HOURS * 3600,
+        path="/"
+    )
+    
+    return SessionResponse(
+        session_token=session_key,  # Return session key to frontend for encryption
+        expires_at=(datetime.utcnow() + timedelta(hours=SESSION_EXPIRE_HOURS)).isoformat(),
+        public_key=request.public_key
+    )
+ 
+@router.post("/refresh")
+async def refresh_session(request: Request, response: Response):
+    """
+    Refresh session token from HttpOnly cookie
+    """
+    # Get JWT token from HttpOnly cookie
+    jwt_token = request.cookies.get("session_token")
+    session_id = request.cookies.get("session_id")
+    
+    if not jwt_token or not session_id:
+        raise HTTPException(status_code=401, detail="No active session")
+    
+    # Verify JWT token
+    try:
+        payload = verify_jwt_token(jwt_token)
+        public_key = payload["public_key"]
+        old_session_key = payload["session_key"]
+    except HTTPException:
+        # Token expired or invalid, check if session still exists
+        if session_id in active_sessions:
+            session_data = active_sessions[session_id]
+            if session_data["expires_at"] > datetime.utcnow():
+                public_key = session_data["public_key"]
+                old_session_key = session_data["session_key"]
+            else:
+                # Session expired
+                del active_sessions[session_id]
+                raise HTTPException(status_code=401, detail="Session expired")
+        else:
+            raise HTTPException(status_code=401, detail="Invalid session")
+    
+    # Generate new session key and JWT token
+    new_session_key = generate_session_key()
+    new_jwt_token = create_jwt_token(public_key, new_session_key)
+    
+    # Update session in memory
+    if session_id in active_sessions:
+        active_sessions[session_id].update({
+            "session_key": new_session_key,
+            "expires_at": datetime.utcnow() + timedelta(hours=SESSION_EXPIRE_HOURS)
+        })
+    
+    # Update HttpOnly cookies
+    response.set_cookie(
+        key="session_token",
+        value=new_jwt_token,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        max_age=SESSION_EXPIRE_HOURS * 3600,
+        path="/"
+    )
+    
+    return {
+        "session_token": new_session_key,  # Return new session key for re-encryption
+        "expires_at": (datetime.utcnow() + timedelta(hours=SESSION_EXPIRE_HOURS)).isoformat(),
+        "public_key": public_key
+    }
+ 
+@router.post("/logout")
+async def logout(request: Request, response: Response):
+    """
+    Logout and clear session
+    """
+    session_id = request.cookies.get("session_id")
+    
+    # Remove session from memory
+    if session_id and session_id in active_sessions:
+        del active_sessions[session_id]
+    
+    # Clear HttpOnly cookies
+    response.delete_cookie(key="session_token", path="/")
+    response.delete_cookie(key="session_id", path="/")
+    
+    return {"message": "Logged out successfully"}
+ 
+@router.get("/verify")
+async def verify_session(request: Request):
+    """
+    Verify current session and return session info
+    """
+    jwt_token = request.cookies.get("session_token")
+    session_id = request.cookies.get("session_id")
+    
+    if not jwt_token or not session_id:
+        raise HTTPException(status_code=401, detail="No active session")
+    
+    try:
+        payload = verify_jwt_token(jwt_token)
+        public_key = payload["public_key"]
+        session_key = payload["session_key"]
+        
+        # Verify session still exists in memory
+        if session_id not in active_sessions:
+            raise HTTPException(status_code=401, detail="Session not found")
+        
+        session_data = active_sessions[session_id]
+        if session_data["expires_at"] <= datetime.utcnow():
+            del active_sessions[session_id]
+            raise HTTPException(status_code=401, detail="Session expired")
+        
+        return {
+            "session_token": session_key,
+            "expires_at": session_data["expires_at"].isoformat(),
+            "public_key": public_key,
+            "valid": True
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid session")
+ 
+# Dependency to get current session
+async def get_current_session(request: Request) -> dict:
+    """
+    Dependency to get current session information
+    """
+    jwt_token = request.cookies.get("session_token")
+    session_id = request.cookies.get("session_id")
+    
+    if not jwt_token or not session_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    try:
+        payload = verify_jwt_token(jwt_token)
+        public_key = payload["public_key"]
+        session_key = payload["session_key"]
+        
+        # Verify session exists
+        if session_id not in active_sessions:
+            raise HTTPException(status_code=401, detail="Session not found")
+        
+        session_data = active_sessions[session_id]
+        if session_data["expires_at"] <= datetime.utcnow():
+            del active_sessions[session_id]
+            raise HTTPException(status_code=401, detail="Session expired")
+        
+        return {
+            "public_key": public_key,
+            "session_key": session_key,
+            "session_id": session_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+Giải thích:
+
+•	JWT_SECRET_KEY: Cần được đặt trong biến môi trường trong môi trường production để đảm bảo bảo mật. Hiện tại đang dùng giá trị mặc định.
+•	active_sessions: Một dictionary đơn giản để lưu trữ session trong bộ nhớ. Trong môi trường production, bạn phải thay thế nó bằng một hệ thống lưu trữ session bền vững hơn như Redis hoặc cơ sở dữ liệu để đảm bảo session không bị mất khi server khởi động lại.
+•	/login endpoint: Khi frontend gọi endpoint này sau khi xác minh mật khẩu, backend sẽ tạo một session_key ngẫu nhiên, tạo JWT token chứa public_key và session_key, sau đó đặt JWT token này vào một HttpOnly cookie và trả về session_key cho frontend.
+•	/refresh endpoint: Cho phép frontend làm mới session mà không cần người dùng đăng nhập lại. Nó đọc JWT từ cookie, xác minh, tạo session_key và JWT mới, sau đó cập nhật cookie.
+•	/logout endpoint: Xóa session khỏi bộ nhớ và xóa các cookie liên quan.
+•	/verify endpoint: Cho phép frontend xác minh session hiện tại và lấy lại session_key.
+•	get_current_session dependency: Một dependency có thể được sử dụng trong các router khác để lấy thông tin session của người dùng đã xác thực.
+
+2.2 Cập nhật main.py
+Bạn cần cập nhật file main.py để import và include router auth mới. Đồng thời, tôi đã sửa lỗi import path from chain.routers thành from routers vì main.py nằm cùng cấp với thư mục routers.
+
+Đường dẫn: chain/main.py
+
+Thay đổi:
+
+--- a/chain/main.py
++++ b/chain/main.py
+@@ -1,5 +1,5 @@
+ from fastapi import FastAPI
+ from fastapi.middleware.cors import CORSMiddleware
+-from chain.routers import wallet, onboard, send, swap, tx
++from routers import wallet, onboard, send, swap, tx, auth
+ 
+ app = FastAPI(title="Wallet API", version="1.0.0")
+ 
+@@ -15,4 +15,5 @@
+ )
+ 
+ # Include routers
++app.include_router(auth.router)  # Add auth router first
+ app.include_router(wallet.router)
+ app.include_router(onboard.router)
+ app.include_router(send.router)
+
+Nội dung file main.py sau khi sửa:
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from routers import wallet, onboard, send, swap, tx, auth
+ 
+app = FastAPI(title="Wallet API", version="1.0.0")
+ 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "http://localhost:5173", 
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=True,       # Bật True để hỗ trợ credentials
+    allow_methods=["*"],          # quan trọng cho preflight
+    allow_headers=["*"],          # quan trọng cho preflight (Content-Type)
+    expose_headers=["*"],
+    max_age=600,
+)
+ 
+# Include routers
+app.include_router(auth.router)  # Add auth router first
+app.include_router(wallet.router)
+app.include_router(onboard.router)
+app.include_router(send.router)
+app.include_router(swap.router)
+app.include_router(tx.router)
+
+2.3 Cài đặt thư viện
+Bạn cần cài đặt thư viện PyJWT cho backend để xử lý JWT tokens. Chạy lệnh sau trong thư mục chain/:
+
+pip3 install PyJWT
+
+3. Thay đổi Frontend (frontend/)
+3.1 Tạo file sessionManager.ts mới
+Bạn cần tạo một file mới có tên sessionManager.ts trong thư mục frontend/src/lib/. File này sẽ chứa logic để mã hóa/giải mã secret key bằng session key và tương tác với các API xác thực của backend.
+
+Đường dẫn: frontend/src/lib/sessionManager.ts
+
+Nội dung file sessionManager.ts:
+
+// Session Manager for handling session keys and client-side encryption
+import { Web3Keystore } from './web3Keystore'
+ 
+interface SessionData {
+  sessionToken: string
+  expiresAt: string
+  publicKey: string
+}
+ 
+interface EncryptedSecretData {
+  encryptedSecret: string
+  iv: string
+  publicKey: string
+  timestamp: number
+}
+ 
+export class SessionManager {
+  private static readonly SESSION_STORAGE_KEY = 'unity-wallet-session'
+  private static readonly ENCRYPTED_SECRET_KEY = 'unity-wallet-encrypted-secret'
+  private static readonly API_BASE_URL = 'http://localhost:8000' // Adjust based on your backend URL
+ 
+  // Generate random IV for AES encryption
+  private static generateIV(): Uint8Array {
+    return crypto.getRandomValues(new Uint8Array(16))
+  }
+ 
+  // Convert string to Uint8Array
+  private static stringToUint8Array(str: string): Uint8Array {
+    return new TextEncoder().encode(str)
+  }
+ 
+  // Convert Uint8Array to string
+  private static uint8ArrayToString(arr: Uint8Array): string {
+    return new TextDecoder().decode(arr)
+  }
+ 
+  // Convert Uint8Array to hex string
+  private static toHex(bytes: Uint8Array): string {
+    return Array.from(bytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+  }
+ 
+  // Convert hex string to Uint8Array
+  private static fromHex(hex: string): Uint8Array {
+    const bytes = new Uint8Array(hex.length / 2)
+    for (let i = 0; i < hex.length; i += 2) {
+      bytes[i / 2] = parseInt(hex.substr(i, 2), 16)
+    }
+    return bytes
+  }
+ 
+  // Encrypt secret key using session token
+  private static async encryptSecret(secret: string, sessionToken: string): Promise<EncryptedSecretData> {
+    const iv = this.generateIV()
+    const secretBytes = this.stringToUint8Array(secret)
+    const sessionKeyBytes = this.stringToUint8Array(sessionToken)
+ 
+    // Import session token as encryption key
+    const key = await crypto.subtle.importKey(
+      'raw',
+      sessionKeyBytes.slice(0, 32), // Use first 32 bytes as key
+      'AES-GCM',
+      false,
+      ['encrypt']
+    )
+ 
+    // Encrypt the secret
+    const encrypted = await crypto.subtle.encrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv
+      },
+      key,
+      secretBytes
+    )
+ 
+    return {
+      encryptedSecret: this.toHex(new Uint8Array(encrypted)),
+      iv: this.toHex(iv),
+      publicKey: '', // Will be set by caller
+      timestamp: Date.now()
+    }
+  }
+ 
+  // Decrypt secret key using session token
+  private static async decryptSecret(encryptedData: EncryptedSecretData, sessionToken: string): Promise<string> {
+    const encryptedBytes = this.fromHex(encryptedData.encryptedSecret)
+    const iv = this.fromHex(encryptedData.iv)
+    const sessionKeyBytes = this.stringToUint8Array(sessionToken)
+ 
+    // Import session token as decryption key
+    const key = await crypto.subtle.importKey(
+      'raw',
+      sessionKeyBytes.slice(0, 32), // Use first 32 bytes as key
+      'AES-GCM',
+      false,
+      ['decrypt']
+    )
+ 
+    // Decrypt the secret
+    const decrypted = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv
+      },
+      key,
+      encryptedBytes
+    )
+ 
+    return this.uint8ArrayToString(new Uint8Array(decrypted))
+  }
+ 
+  // Login and create session
+  static async login(publicKey: string, password: string): Promise<{ success: boolean; sessionData?: SessionData; error?: string }> {
+    try {
+      // First verify password with keystore
+      const keystore = Web3Keystore.loadKeystore()
+      if (!keystore) {
+        return { success: false, error: 'No keystore found' }
+      }
+ 
+      // Decrypt keystore to verify password and get secret key
+      const secret = await Web3Keystore.decryptKeystore(keystore, password)
+ 
+      // Call backend to create session
+      const response = await fetch(`${this.API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Important for HttpOnly cookies
+        body: JSON.stringify({
+          public_key: publicKey,
+          password_verified: true
+        })
+      })
+ 
+      if (!response.ok) {
+        const error = await response.json()
+        return { success: false, error: error.detail || 'Login failed' }
+      }
+ 
+      const sessionData: SessionData = await response.json()
+ 
+      // Encrypt secret key with session token and store in sessionStorage
+      const encryptedData = await this.encryptSecret(secret, sessionData.sessionToken)
+      encryptedData.publicKey = publicKey
+ 
+      sessionStorage.setItem(this.ENCRYPTED_SECRET_KEY, JSON.stringify(encryptedData))
+ 
+      // Store session info (without session token for security)
+      const sessionInfo = {
+        expiresAt: sessionData.expiresAt,
+        publicKey: sessionData.publicKey,
+        hasSession: true
+      }
+      sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(sessionInfo))
+ 
+      return { success: true, sessionData }
+    } catch (error) {
+      console.error('Login error:', error)
+      return { success: false, error: 'Login failed: ' + (error as Error).message }
+    }
+  }
+ 
+  // Verify and restore session on page load
+  static async verifySession(): Promise<{ success: boolean; secret?: string; publicKey?: string; error?: string }> {
+    try {
+      // Check if we have encrypted secret in sessionStorage
+      const encryptedDataStr = sessionStorage.getItem(this.ENCRYPTED_SECRET_KEY)
+      const sessionInfoStr = sessionStorage.getItem(this.SESSION_STORAGE_KEY)
+ 
+      if (!encryptedDataStr || !sessionInfoStr) {
+        return { success: false, error: 'No session data found' }
+      }
+ 
+      const encryptedData: EncryptedSecretData = JSON.parse(encryptedDataStr)
+      const sessionInfo = JSON.parse(sessionInfoStr)
+ 
+      // Check if session is expired (client-side check)
+      if (new Date(sessionInfo.expiresAt) <= new Date()) {
+        this.clearSession()
+        return { success: false, error: 'Session expired' }
+      }
+ 
+      // Verify session with backend
+      const response = await fetch(`${this.API_BASE_URL}/auth/verify`, {
+        method: 'GET',
+        credentials: 'include'
+      })
+ 
+      if (!response.ok) {
+        this.clearSession()
+        return { success: false, error: 'Session verification failed' }
+      }
+ 
+      const verifyData = await response.json()
+ 
+      // Decrypt secret key using session token from backend
+      const secret = await this.decryptSecret(encryptedData, verifyData.session_token)
+ 
+      return {
+        success: true,
+        secret,
+        publicKey: encryptedData.publicKey
+      }
+    } catch (error) {
+      console.error('Session verification error:', error)
+      this.clearSession()
+      return { success: false, error: 'Session verification failed: ' + (error as Error).message }
+    }
+  }
+ 
+  // Refresh session token
+  static async refreshSession(): Promise<{ success: boolean; error?: string }> {
+    try {
+      const encryptedDataStr = sessionStorage.getItem(this.ENCRYPTED_SECRET_KEY)
+      if (!encryptedDataStr) {
+        return { success: false, error: 'No session to refresh' }
+      }
+ 
+      const encryptedData: EncryptedSecretData = JSON.parse(encryptedDataStr)
+ 
+      // Get current secret with old session token
+      const verifyResponse = await fetch(`${this.API_BASE_URL}/auth/verify`, {
+        method: 'GET',
+        credentials: 'include'
+      })
+ 
+      if (!verifyResponse.ok) {
+        return { success: false, error: 'Cannot verify current session' }
+      }
+ 
+      const currentSession = await verifyResponse.json()
+      const currentSecret = await this.decryptSecret(encryptedData, currentSession.session_token)
+ 
+      // Refresh session
+      const refreshResponse = await fetch(`${this.API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include'
+      })
+ 
+      if (!refreshResponse.ok) {
+        return { success: false, error: 'Session refresh failed' }
+      }
+ 
+      const newSessionData = await refreshResponse.json()
+ 
+      // Re-encrypt secret with new session token
+      const newEncryptedData = await this.encryptSecret(currentSecret, newSessionData.session_token)
+      newEncryptedData.publicKey = encryptedData.publicKey
+ 
+      // Update stored data
+      sessionStorage.setItem(this.ENCRYPTED_SECRET_KEY, JSON.stringify(newEncryptedData))
+ 
+      const sessionInfo = {
+        expiresAt: newSessionData.expiresAt,
+        publicKey: newSessionData.publicKey,
+        hasSession: true
+      }
+      sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(sessionInfo))
+ 
+      return { success: true }
+    } catch (error) {
+      console.error('Session refresh error:', error)
+      return { success: false, error: 'Session refresh failed: ' + (error as Error).message }
+    }
+  }
+ 
+  // Logout and clear session
+  static async logout(): Promise<void> {
+    try {
+      // Call backend logout
+      await fetch(`${this.API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      })
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      // Always clear local session data
+      this.clearSession()
+    }
+  }
+ 
+  // Clear local session data
+  static clearSession(): void {
+    sessionStorage.removeItem(this.SESSION_STORAGE_KEY)
+    sessionStorage.removeItem(this.ENCRYPTED_SECRET_KEY)
+  }
+ 
+  // Check if session exists locally
+  static hasSession(): boolean {
+    const sessionInfo = sessionStorage.getItem(this.SESSION_STORAGE_KEY)
+    if (!sessionInfo) return false
+ 
+    try {
+      const parsed = JSON.parse(sessionInfo)
+      return parsed.hasSession && new Date(parsed.expiresAt) > new Date()
+    } catch {
+      return false
+    }
+  }
+ 
+  // Get session info
+  static getSessionInfo(): { publicKey?: string; expiresAt?: string } | null {
+    const sessionInfo = sessionStorage.getItem(this.SESSION_STORAGE_KEY)
+    if (!sessionInfo) return null
+ 
+    try {
+      return JSON.parse(sessionInfo)
+    } catch {
+      return null
+    }
+  }
+}
+
+Giải thích:
+
+•	API_BASE_URL: Đảm bảo rằng URL này trỏ đến backend của bạn. Hiện tại đang là http://localhost:8000.
+•	encryptSecret / decryptSecret: Các hàm này sử dụng Web Cryptography API (AES-GCM) để mã hóa và giải mã secret key bằng sessionToken.
+•	login: Khi người dùng đăng nhập, nó sẽ giải mã Keystore để lấy secret key, sau đó gọi API /auth/login của backend để tạo session. sessionToken nhận được từ backend sẽ được dùng để mã hóa secret key và lưu vào sessionStorage.
+•	verifySession: Được gọi khi ứng dụng khởi tạo (ví dụ: sau khi reload trang). Nó kiểm tra sessionStorage và gọi API /auth/verify của backend để xác minh session. Nếu hợp lệ, nó sẽ giải mã secret key và trả về.
+•	refreshSession: Gọi API /auth/refresh của backend để làm mới session và sau đó mã hóa lại secret key với sessionToken mới.
+•	logout: Gọi API /auth/logout của backend và xóa dữ liệu session cục bộ.
+•	sessionStorage: Được sử dụng để lưu trữ encrypted secret key và thông tin session. Dữ liệu trong sessionStorage sẽ bị xóa khi tab/trình duyệt đóng, tăng cường bảo mật.
+
+3.2 Cập nhật session.ts
+File session.ts (nằm trong frontend/src/store/) cần được sửa đổi để sử dụng SessionManager mới. Các thay đổi bao gồm import SessionManager, thêm các hàm initializeFromSession và refreshSession vào AuthState, và điều chỉnh logic của unlockWallet và logout.
+
+Đường dẫn: frontend/src/store/session.ts
+
+Thay đổi:
+
+6	Import SessionManager:
+
+--- a/frontend/src/store/session.ts
++++ b/frontend/src/store/session.ts
+@@ -3,6 +3,7 @@
+ import { persist } from 'zustand/middleware'
+ import { QueryClient } from '@tanstack/react-query'
+ import { Web3Keystore } from '@/lib/web3Keystore'
++import { SessionManager } from '@/lib/sessionManager'
+ 
+ interface Wallet {
+   public_key: string
+7	Cập nhật AuthState interface: Thêm initializeFromSession và refreshSession.
+
+--- a/frontend/src/store/session.ts
++++ b/frontend/src/store/session.ts
+@@ -26,6 +27,8 @@
+   lockWallet: () => void
+   unlockWallet: (password: string) => Promise<boolean>
+   saveSecureWalletData: (secret: string, password: string, publicKey: string, mnemonic?: string) => Promise<void>
++  initializeFromSession: () => Promise<boolean>
++  refreshSession: () => Promise<boolean>
+ }
+ 
+ export const useAuthStore = create<AuthState>()(
+8	Cập nhật logout function: Gọi SessionManager.logout().
+
+--- a/frontend/src/store/session.ts
++++ b/frontend/src/store/session.ts
+@@ -40,6 +40,9 @@
+   isLocked: false,
+   queryClient: null,
+   
++  logout: () => {
++    SessionManager.logout()
++    
+   setWallet: (wallet: Wallet) => {
+     set({ wallet, isAuthenticated: true, isLocked: false })
+   },
+@@ -51,27 +54,6 @@
+   
+   
+   
+   
+-  logout: () => {
+-    // Clear only auth-related data, preserve theme and other preferences
+-    localStorage.removeItem('unity-wallet-auth')
+-    
+-    // Clear all other localStorage keys except theme
+-    const keysToRemove = []
+-    for (let i = 0; i < localStorage.length; i++) {
+-      const key = localStorage.key(i)
+-      if (key && key !== 'theme-storage') {
+-        keysToRemove.push(key)
+-      }
+-    }
+-    keysToRemove.forEach(key => localStorage.removeItem(key))
+-    
+-    // Explicitly remove password if it exists
+-    localStorage.removeItem('wallet-password')
+-    
+-    // Clear Web3 keystore from localStorage
+-    Web3Keystore.clearKeystore()
+-    
+-    // Clear query cache
+-    const { queryClient } = get()
+-    if (queryClient) {
+-      queryClient.clear()
+-    }
+-    
+-    // Reset state
+-    set({ wallet: null, isAuthenticated: false, isLocked: false })
+-  },
+-  
+   updateWallet: (updates: Partial<Wallet>) => {
+     const currentWallet = get().wallet
+     if (currentWallet) {
+9	Cập nhật unlockWallet function: Thay đổi logic để ưu tiên sử dụng SessionManager.login và SessionManager.verifySession.
+
+--- a/frontend/src/store/session.ts
++++ b/frontend/src/store/session.ts
+@@ -79,30 +61,48 @@
+     set({ isLocked: true })
+   },
+   
+-  unlockWallet: async (password: string) => {
+-    // Web3 standard: decrypt keystore to get private key
++  unlockWallet: async (password: string) => {
+     try {
+-      const keystore = Web3Keystore.loadKeystore()
+-      if (!keystore) {
+-        return false
+-      }
+-
+-      // Decrypt keystore to get private key
+-      const secret = await Web3Keystore.decryptKeystore(keystore, password)
+-      
+-      // Load secret key into memory
+-      const currentWallet = get().wallet
+-      if (currentWallet) {
+-        set({ 
+-          isLocked: false,
+-          wallet: {
+-            ...currentWallet,
+-            secret: secret,
+-            // Keep existing mnemonic if it exists (for mnemonic-based wallets)
+-            // For secret key imports, mnemonic will be undefined
+-          }
+-        })
+-      } else {
+-        set({ isLocked: false })
+-      }
++      // Try to login with SessionManager (creates session)
++      const loginResult = await SessionManager.login(
++        get().wallet?.public_key || '', 
++        password
++      )
++
++      if (loginResult.success && loginResult.sessionData) {
++        // Verify session to get decrypted secret
++        const verifyResult = await SessionManager.verifySession()
++        
++        if (verifyResult.success && verifyResult.secret) {
++          const currentWallet = get().wallet
++          if (currentWallet) {
++            set({ 
++              isLocked: false,
++              wallet: {
++                ...currentWallet,
++                secret: verifyResult.secret,
++              }
++            })
++          }
++          return true
++        }
++      }
++      
++      // Fallback to old method if session login fails
++      const keystore = Web3Keystore.loadKeystore()
++      if (!keystore) {
++        return false
++      }
++
++      const secret = await Web3Keystore.decryptKeystore(keystore, password)
++      
++      const currentWallet = get().wallet
++      if (currentWallet) {
++        set({ 
++          isLocked: false,
++          wallet: {
++            ...currentWallet,
++            secret: secret,
++          }
++        }) 
++      } else {
++        set({ isLocked: false })
++      }
+       return true
+     } catch (error) {
+-      console.error('Failed to verify password:', error)
++      console.error('Failed to unlock wallet:', error)
+       return false
+     }
+   },
+10	Thêm initializeFromSession và refreshSession:
+
+--- a/frontend/src/store/session.ts
++++ b/frontend/src/store/session.ts
+@@ -110,6 +110,48 @@
+       return false
+     }
+   },
++
++  initializeFromSession: async () => {
++    try {
++      // Check if we have a valid session
++      if (!SessionManager.hasSession()) {
++        return false
++      }
++
++      // Verify and restore session
++      const result = await SessionManager.verifySession()
++      
++      if (result.success && result.secret && result.publicKey) {
++        // Get wallet data from localStorage
++        const currentWallet = get().wallet
++        
++        if (currentWallet && currentWallet.public_key === result.publicKey) {
++          // Restore wallet with secret from session
++          set({
++            wallet: {
++              ...currentWallet,
++              secret: result.secret
++            },
++            isAuthenticated: true,
++            isLocked: false
++          })
++          return true
++        }
++      }
++      
++      // Session invalid or doesn't match current wallet
++      SessionManager.clearSession()
++      return false
++    } catch (error) {
++      console.error('Failed to initialize from session:', error)
++      SessionManager.clearSession()
++      return false
++    }
++  },
++
++  refreshSession: async () => {
++    try {
++      const result = await SessionManager.refreshSession()
++      return result.success
++    } catch (error) {
++      console.error('Failed to refresh session:', error)
++      return false
++    }
++  },
+ 
+   saveSecureWalletData: async (secret: string, password: string, publicKey: string, mnemonic?: string) => {
+     try {
+
+Nội dung file session.ts sau khi sửa:
+
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { QueryClient } from '@tanstack/react-query'
+import { Web3Keystore } from '@/lib/web3Keystore'
+import { SessionManager } from '@/lib/sessionManager'
+ 
+interface Wallet {
+  public_key: string
+  secret: string
+  mnemonic?: string
+  account_exists: boolean
+  funded_or_existing: boolean
+  balances: Record<string, string>
+  created_at: string
+}
+ 
+interface AuthState {
+  wallet: Wallet | null
+  isAuthenticated: boolean
+  isLocked: boolean
+  queryClient: QueryClient | null
+  setWallet: (wallet: Wallet) => void
+  setQueryClient: (client: QueryClient) => void
+  logout: () => void
+  updateWallet: (updates: Partial<Wallet>) => void
+  lockWallet: () => void
+  unlockWallet: (password: string) => Promise<boolean>
+  saveSecureWalletData: (secret: string, password: string, publicKey: string, mnemonic?: string) => Promise<void>
+  initializeFromSession: () => Promise<boolean>
+  refreshSession: () => Promise<boolean>
+}
+ 
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      wallet: null,
+      isAuthenticated: false,
+      isLocked: false,
+      queryClient: null,
+      
+      setWallet: (wallet: Wallet) => {
+        set({ wallet, isAuthenticated: true, isLocked: false })
+      },
+      
+      setQueryClient: (client: QueryClient) => {
+        set({ queryClient: client })
+      },
+      
+      
+      
+      
+      
+      
+      
+      logout: () => {
+        // Clear session with SessionManager
+        SessionManager.logout()
+        
+        // Clear only auth-related data, preserve theme and other preferences
+        localStorage.removeItem('unity-wallet-auth')
+        
+        // Clear all other localStorage keys except theme
+        const keysToRemove = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key !== 'theme-storage') {
+            keysToRemove.push(key)
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key))
+        
+        // Explicitly remove password if it exists
+        localStorage.removeItem('wallet-password')
+        
+        // Clear Web3 keystore from localStorage
+        Web3Keystore.clearKeystore()
+        
+        // Clear query cache
+        const { queryClient } = get()
+        if (queryClient) {
+          queryClient.clear()
+        }
+        
+        // Reset state
+        set({ wallet: null, isAuthenticated: false, isLocked: false })
+      },
+      
+      updateWallet: (updates: Partial<Wallet>) => {
+        const currentWallet = get().wallet
+        if (currentWallet) {
+          set({ wallet: { ...currentWallet, ...updates } })
+        }
+      },
+      
+      lockWallet: () => {
+        // Only set locked state, don't clear secret key from memory
+        // Secret key will be cleared only on logout
+        set({ isLocked: true })
+      },
+      
+      unlockWallet: async (password: string) => {
+        try {
+          // Try to login with SessionManager (creates session)
+          const loginResult = await SessionManager.login(
+            get().wallet?.public_key || '', 
+            password
+          )
+ 
+          if (loginResult.success && loginResult.sessionData) {
+            // Verify session to get decrypted secret
+            const verifyResult = await SessionManager.verifySession()
+            
+            if (verifyResult.success && verifyResult.secret) {
+              const currentWallet = get().wallet
+              if (currentWallet) {
+                set({ 
+                  isLocked: false,
+                  wallet: {
+                    ...currentWallet,
+                    secret: verifyResult.secret,
+                  }
+                })
+              }
+              return true
+            }
+          }
+          
+          // Fallback to old method if session login fails
+          const keystore = Web3Keystore.loadKeystore()
+          if (!keystore) {
+            return false
+          }
+ 
+          const secret = await Web3Keystore.decryptKeystore(keystore, password)
+          
+          const currentWallet = get().wallet
+          if (currentWallet) {
+            set({ 
+              isLocked: false,
+              wallet: {
+                ...currentWallet,
+                secret: secret,
+              }
+            })
+          } else {
+            set({ isLocked: false })
+          }
+          return true
+        } catch (error) {
+          console.error('Failed to unlock wallet:', error)
+          return false
+        }
+      },
+ 
+      initializeFromSession: async () => {
+        try {
+          // Check if we have a valid session
+          if (!SessionManager.hasSession()) {
+            return false
+          }
+ 
+          // Verify and restore session
+          const result = await SessionManager.verifySession()
+          
+          if (result.success && result.secret && result.publicKey) {
+            // Get wallet data from localStorage
+            const currentWallet = get().wallet
+            
+            if (currentWallet && currentWallet.public_key === result.publicKey) {
+              // Restore wallet with secret from session
+              set({
+                wallet: {
+                  ...currentWallet,
+                  secret: result.secret
+                },
+                isAuthenticated: true,
+                isLocked: false
+              })
+              return true
+            }
+          }
+          
+          // Session invalid or doesn't match current wallet
+          SessionManager.clearSession()
+          return false
+        } catch (error) {
+          console.error('Failed to initialize from session:', error)
+          SessionManager.clearSession()
+          return false
+        }
+      },
+ 
+      refreshSession: async () => {
+        try {
+          const result = await SessionManager.refreshSession()
+          return result.success
+        } catch (error) {
+          console.error('Failed to refresh session:', error)
+          return false
+        }
+      },
+ 
+      saveSecureWalletData: async (secret: string, password: string, publicKey: string, mnemonic?: string) => {
+        try {
+          // Create Web3 keystore for secret key
+          const keystore = await Web3Keystore.createKeystore(secret, password, publicKey)
+          Web3Keystore.storeKeystore(keystore)
+ 
+          // Note: Mnemonic is not stored in keystore for security
+          // Only secret key is stored in Web3 keystore format
+        } catch (error) {
+          console.error('Failed to save secure wallet data:', error)
+          throw new Error('Failed to save wallet data securely')
+        }
+      },
+ 
+    }),
+    {
+      name: 'unity-wallet-auth',
+      partialize: (state: AuthState) => {
+        // Store only non-sensitive data in localStorage
+        // Sensitive data (secret key, mnemonic) will be stored in Web3 keystore
+        const wallet = state.wallet ? {
+          public_key: state.wallet.public_key,
+          account_exists: state.wallet.account_exists,
+          funded_or_existing: state.wallet.funded_or_existing,
+          balances: state.wallet.balances,
+          created_at: state.wallet.created_at,
+          // DO NOT store secret or mnemonic in localStorage
+        } : null
+        
+        return {
+          wallet,
+          isAuthenticated: state.isAuthenticated,
+          isLocked: state.isLocked,
+        }
+      },
+    }
+  )
+)
+
+3.3 Tạo file useSessionInit.ts mới
+Bạn cần tạo một file mới có tên useSessionInit.ts trong thư mục frontend/src/hooks/. Hook này sẽ được sử dụng trong App.tsx để khởi tạo session khi ứng dụng tải.
+
+Đường dẫn: frontend/src/hooks/useSessionInit.ts
+
+Nội dung file useSessionInit.ts:
+
+import { useEffect, useState } from 'react'
+import { useAuthStore } from '@/store/session'
+ 
+export const useSessionInit = () => {
+  const [isInitializing, setIsInitializing] = useState(true)
+  const [initError, setInitError] = useState<string | null>(null)
+  const { initializeFromSession, isAuthenticated, wallet } = useAuthStore()
+ 
+  useEffect(() => {
+    const initializeSession = async () => {
+      try {
+        setIsInitializing(true)
+        setInitError(null)
+ 
+        // Only try to initialize session if we have a wallet in localStorage
+        // but are not currently authenticated (meaning page was reloaded)
+        if (wallet && !isAuthenticated) {
+          console.log('Attempting to restore session for wallet:', wallet.public_key)
+          
+          const sessionRestored = await initializeFromSession()
+          
+          if (sessionRestored) {
+            console.log('Session restored successfully')
+          } else {
+            console.log('No valid session found, wallet will remain locked')
+          }
+        }
+      } catch (error) {
+        console.error('Session initialization error:', error)
+        setInitError(error instanceof Error ? error.message : 'Unknown error')
+      } finally {
+        setIsInitializing(false)
+      }
+    }
+ 
+    initializeSession()
+  }, []) // Only run once on mount
+ 
+  return {
+    isInitializing,
+    initError
+  }
+}
+
+Giải thích:
+
+•	Hook này sẽ chạy một lần khi component được mount. Nó kiểm tra xem có wallet đã lưu trong localStorage nhưng chưa được xác thực (tức là sau khi reload trang) hay không.
+•	Nếu có, nó sẽ gọi initializeFromSession() từ useAuthStore để cố gắng khôi phục session. Trong quá trình này, một màn hình tải sẽ được hiển thị.
+
+3.4 Cập nhật App.tsx
+File App.tsx (nằm trong frontend/src/app/) cần được sửa đổi để sử dụng useSessionInit hook và hiển thị màn hình tải trong quá trình khởi tạo session.
+
+Đường dẫn: frontend/src/app/App.tsx
+
+Thay đổi:
+
+11	Import useSessionInit:
+
+--- a/frontend/src/app/App.tsx
++++ b/frontend/src/app/App.tsx
+@@ -1,6 +1,7 @@
+ import { Routes, Route, Navigate } from 'react-router-dom'
+ import { useAuthStore } from '@/store/session'
++import { useSessionInit } from '@/hooks/useSessionInit'
+ // Use alias path to avoid any moduleResolution quirks with relative specifier
+ import Layout from '@/app/Layout'
+ import Login from '@/pages/Login'
+12	Sử dụng useSessionInit và hiển thị màn hình tải:
+
+--- a/frontend/src/app/App.tsx
++++ b/frontend/src/app/App.tsx
+@@ -16,7 +17,25 @@
+ 
+ function App() {
+   const { isAuthenticated, isLocked } = useAuthStore()
++  const { isInitializing, initError } = useSessionInit()
++
++  // Show loading screen while initializing session
++  if (isInitializing) {
++    return (
++      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
++        <div className="text-center">
++          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
++          <p className="text-gray-600">Initializing wallet...</p>
++          {initError && (
++            <p className="text-red-500 text-sm mt-2">Error: {initError}</p>
++          )}
++        </div>
++      </div>
++    )
++  }
+ 
+   if (!isAuthenticated) {
+     return (
+
+Nội dung file App.tsx sau khi sửa:
+
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/session'
+import { useSessionInit } from '@/hooks/useSessionInit'
+// Use alias path to avoid any moduleResolution quirks with relative specifier
+import Layout from '@/app/Layout'
+import Login from '@/pages/Login'
+import Home from '@/pages/Home'
+import Wallet from '@/pages/Wallet'
+import Pay from '@/pages/Pay'
+import Swap from '@/pages/Swap'
+import Activity from '@/pages/Activity'
+import Insights from '@/pages/Insights'
+import Assistant from '@/pages/Assistant'
+import Settings from '@/pages/Settings'
+import Sovico from '@/pages/Sovico'
+ 
+function App() {
+  const { isAuthenticated, isLocked } = useAuthStore()
+  const { isInitializing, initError } = useSessionInit()
+ 
+  // Show loading screen while initializing session
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Initializing wallet...</p>
+          {initError && (
+            <p className="text-red-500 text-sm mt-2">Error: {initError}</p>
+          )}
+        </div>
+      </div>
+    )
+  }
+ 
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="/" element={<Layout><Home /></Layout>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    )
+  }
+ 
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/pay" element={<Pay />} />
+        <Route path="/swap" element={<Swap />} />
+        <Route path="/activity" element={<Activity />} />
+        <Route path="/insights" element={<Insights />} />
+        <Route path="/assistant" element={<Assistant />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/sovico" element={<Sovico />} />
+        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
+  )
+}
+ 
+export default App
+
+4. Hướng dẫn Thực hiện
+Để áp dụng các thay đổi này vào dự án của bạn, hãy làm theo các bước sau:
+
+13	Cập nhật Backend:
+◦	Tạo file chain/routers/auth.py với nội dung đã cung cấp.
+◦	Mở file chain/main.py và cập nhật nội dung theo phần 2.2 Cập nhật main.py.
+◦	Trong thư mục chain/, chạy lệnh pip3 install PyJWT để cài đặt thư viện cần thiết.
+◦	Quan trọng: Trong môi trường production, hãy đảm bảo bạn đặt biến môi trường JWT_SECRET_KEY với một giá trị mạnh và sử dụng một hệ thống lưu trữ session bền vững (như Redis) thay vì active_sessions trong bộ nhớ.
+14	Cập nhật Frontend:
+◦	Tạo file frontend/src/lib/sessionManager.ts với nội dung đã cung cấp.
+◦	Mở file frontend/src/store/session.ts và cập nhật nội dung theo phần 3.2 Cập nhật session.ts.
+◦	Tạo file frontend/src/hooks/useSessionInit.ts với nội dung đã cung cấp.
+◦	Mở file frontend/src/app/App.tsx và cập nhật nội dung theo phần 3.4 Cập nhật App.tsx.
+◦	Đảm bảo rằng API_BASE_URL trong sessionManager.ts trỏ đúng đến địa chỉ backend của bạn.
+
+5. Kiểm thử
+Sau khi thực hiện các thay đổi, bạn có thể kiểm thử giải pháp bằng cách:
+
+15	Khởi động backend server (trong thư mục chain/):
+python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+16	Khởi động frontend development server (trong thư mục frontend/):
+npm install
+npm run dev
+17	Mở ứng dụng trong trình duyệt.
+18	Đăng nhập vào ví của bạn.
+19	Reload trang trình duyệt.
+20	Kiểm tra xem ví có tự động mở khóa mà không yêu cầu nhập mật khẩu lại hay không. Bạn sẽ thấy màn hình "Initializing wallet..." trong giây lát.
+21	Thử đóng tab trình duyệt và mở lại. Ví sẽ yêu cầu nhập mật khẩu vì sessionStorage đã bị xóa.
+22	Thử đăng xuất và kiểm tra xem session có được xóa hoàn toàn không.
+
+Nếu mọi thứ hoạt động như mong đợi, bạn đã triển khai thành công giải pháp "Session Key với Mã hóa Client-side"!
+
