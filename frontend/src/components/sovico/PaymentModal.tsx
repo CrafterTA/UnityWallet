@@ -17,10 +17,13 @@ import {
   Copy,
   Download,
   Eye,
-  EyeOff
+  EyeOff,
+  Printer,
+  Hash,
+  Calendar,
+  User
 } from 'lucide-react'
 import { SovicoService, SovicoSolution, SovicoCheckoutState, SovicoPaymentResult } from '@/types/sovico'
-import InvoiceModal from './InvoiceModal'
 import { usePaymentNotifications } from '@/components/NotificationSystem'
 
 interface PaymentModalProps {
@@ -60,7 +63,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [showUnlockModal, setShowUnlockModal] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  const [showInvoice, setShowInvoice] = useState(false)
   const { notifyPaymentSuccess, notifyPaymentError, notifyWalletUnlocked } = usePaymentNotifications()
   
   const totalSteps = 4
@@ -154,7 +156,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           result.asset || 'SYP', 
           result.transactionHash || ''
         )
-        setShowInvoice(true)
+        setCurrentStep(4) // Move to step 4 to show invoice
       }
     } catch (error) {
       console.error('Payment failed:', error)
@@ -186,7 +188,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           result.asset || 'SYP', 
           result.transactionHash || ''
         )
-        setShowInvoice(true)
+        setCurrentStep(4) // Move to step 4 to show invoice
       }
     } catch (error) {
       setPasswordError(t('wallet.incorrectPassword', 'Mật khẩu không đúng'))
@@ -211,6 +213,45 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       currency: currency === 'VND' ? 'VND' : 'USD',
       minimumFractionDigits: currency === 'VND' ? 0 : 2
     }).format(amount)
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const formatAmount = (amount: number, asset: string) => {
+    return new Intl.NumberFormat('vi-VN').format(amount) + ' ' + asset
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleDownload = () => {
+    // In a real app, this would generate and download a PDF
+    const invoiceData = {
+      invoiceNumber: paymentResult?.transactionHash?.slice(-8).toUpperCase() || 'N/A',
+      date: paymentResult?.timestamp,
+      amount: paymentResult?.amount,
+      asset: paymentResult?.asset,
+      service: item?.name,
+      company: item?.company || 'Sovico Ecosystem'
+    }
+    
+    const dataStr = JSON.stringify(invoiceData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `invoice-${paymentResult?.transactionHash?.slice(-8) || 'unknown'}.json`
+    link.click()
+    URL.revokeObjectURL(url)
   }
 
   if (!isOpen) return null
@@ -460,6 +501,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       </span>
                       <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {getAmountForAsset(checkoutState.selectedAsset).toLocaleString()} {checkoutState.selectedAsset}
+                        {checkoutState.selectedAsset === 'SYP' && checkoutState.totalAmount && (
+                          <span className={`text-sm font-normal ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                            {' '}({formatPrice(checkoutState.totalAmount, 'VND')})
+                          </span>
+                        )}
                       </span>
                     </div>
                     
@@ -533,77 +579,180 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             )}
 
-            {/* Step 4: Result */}
-            {currentStep === 4 && (
+            {/* Step 4: Invoice */}
+            {currentStep === 4 && paymentResult?.success && (
               <div className="space-y-6">
-                {paymentResult?.success ? (
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="w-8 h-8 text-white" />
+                {/* Invoice Header */}
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Hóa đơn thanh toán
+                  </h3>
+                  <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                    Giao dịch thành công
+                  </p>
+                </div>
+
+                {/* Company Info */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-yellow-500 rounded-2xl flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">S</span>
                     </div>
-                    <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {t('payment.success.title', 'Thanh toán thành công!')}
-                    </h3>
-                    <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-                      {t('payment.success.subtitle', 'Giao dịch đã được xử lý thành công')}
-                    </p>
-                    
-                    {paymentResult.transactionHash && (
-                      <div className={`mt-6 p-4 rounded-2xl ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <span className={isDark ? 'text-white/70' : 'text-gray-600'}>
-                              {t('payment.txHash', 'Transaction Hash')}:
+                    <div>
+                      <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {item?.company || 'Sovico Ecosystem'}
+                      </h1>
+                      <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                        Hệ sinh thái dịch vụ số
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Invoice Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <h4 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Thông tin hóa đơn
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <Hash className="w-4 h-4 text-gray-500" />
+                        <span className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          Mã giao dịch: <span className="font-mono">{paymentResult.transactionHash?.slice(0, 16) || 'N/A'}...</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-4 h-4 text-gray-500" />
+                        <span className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          Ngày: {formatDate(paymentResult.timestamp)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        <span className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          Ledger: {paymentResult.ledger}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Thông tin thanh toán
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <User className="w-4 h-4 text-gray-500" />
+                        <span className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          Người nhận: {paymentResult.recipient.slice(0, 16)}...
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CreditCard className="w-4 h-4 text-gray-500" />
+                        <span className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          Tài sản: {paymentResult.asset}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <ExternalLink className="w-4 h-4 text-gray-500" />
+                        <a 
+                          href={paymentResult.horizonUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-500 hover:text-blue-600 underline"
+                        >
+                          Xem trên Stellar Explorer
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Service Details */}
+                <div className="mb-6">
+                  <h4 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Chi tiết dịch vụ
+                  </h4>
+                  <div className={`p-6 rounded-xl border ${
+                    isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h5 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {item?.name}
+                        </h5>
+                        <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          Dịch vụ trong hệ sinh thái Sovico
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {formatAmount(paymentResult.amount, paymentResult.asset)}
+                          {paymentResult.asset === 'SYP' && checkoutState.totalAmount && (
+                            <span className={`text-lg font-normal ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                              {' '}({formatPrice(checkoutState.totalAmount, 'VND')})
                             </span>
-                            <button
-                              onClick={() => copyToClipboard(paymentResult.transactionHash!)}
-                              className="p-1 hover:bg-white/10 rounded transition-colors"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <div className={`font-mono text-sm break-all ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {paymentResult.transactionHash}
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <a
-                              href={paymentResult.horizonUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                              {t('payment.viewOnHorizon', 'Xem trên Horizon')}
-                            </a>
-                            {paymentResult.invoiceUrl && (
-                              <a
-                                href={paymentResult.invoiceUrl}
-                                download
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors"
-                              >
-                                <Download className="w-4 h-4" />
-                                {t('payment.downloadInvoice', 'Tải hóa đơn')}
-                              </a>
-                            )}
-                          </div>
+                          )}
+                        </div>
+                        <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          Đã thanh toán
                         </div>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <AlertCircle className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {t('payment.error.title', 'Thanh toán thất bại')}
-                    </h3>
+                  </div>
+                </div>
+
+                {/* Payment Status */}
+                <div className="flex items-center justify-center gap-3 p-6 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl border border-green-500/20">
+                  <CheckCircle className="w-8 h-8 text-green-500" />
+                  <div className="text-center">
+                    <h4 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Thanh toán thành công
+                    </h4>
                     <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-                      {error || t('payment.error.subtitle', 'Có lỗi xảy ra trong quá trình thanh toán')}
+                      Giao dịch đã được xác nhận trên Stellar network
                     </p>
                   </div>
-                )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handlePrint}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors"
+                  >
+                    <Printer className="w-4 h-4" />
+                    In hóa đơn
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Tải xuống
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Error */}
+            {currentStep === 4 && !paymentResult?.success && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {t('payment.error.title', 'Thanh toán thất bại')}
+                  </h3>
+                  <p className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                    {error || t('payment.error.subtitle', 'Có lỗi xảy ra trong quá trình thanh toán')}
+                  </p>
+                </div>
               </div>
             )}
 
@@ -676,12 +825,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </button>
             )}
 
-            {currentStep === totalSteps && (
+            {currentStep === totalSteps && !paymentResult?.success && (
               <button
                 onClick={onClose}
                 className="px-6 py-3 rounded-xl font-medium transition-colors bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600"
               >
                 {t('common.done', 'Hoàn thành')}
+              </button>
+            )}
+
+            {currentStep === totalSteps && paymentResult?.success && (
+              <button
+                onClick={onClose}
+                className="px-6 py-3 rounded-xl font-medium transition-colors bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600"
+              >
+                {t('common.close', 'Đóng')}
               </button>
             )}
           </div>
@@ -750,14 +908,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
       )}
 
-      {/* Invoice Modal */}
-      <InvoiceModal
-        isOpen={showInvoice}
-        onClose={() => setShowInvoice(false)}
-        paymentResult={paymentResult || null}
-        serviceName={item?.name}
-        companyName={item?.company || 'Sovico Ecosystem'}
-      />
     </div>
   )
 }

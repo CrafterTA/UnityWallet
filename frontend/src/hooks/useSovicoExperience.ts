@@ -1030,7 +1030,11 @@ export const useSovicoExperience = () => {
           success: true,
           transactionHash: result.hash,
           ledger: Math.floor(Math.random() * 1000000) + 50000000,
-          amount: paymentData.totalAmount,
+          amount: paymentData.selectedAsset === 'SYP' 
+            ? paymentData.totalInSYP 
+            : paymentData.selectedAsset === 'XLM' 
+              ? paymentData.totalInXLM 
+              : paymentData.totalInUSDC,
           asset: paymentData.selectedAsset,
           recipient: paymentData.paymentAddress,
           memo: paymentData.memo,
