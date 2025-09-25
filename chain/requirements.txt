@@ -1,6 +1,9 @@
 fastapi~=0.116
 uvicorn[standard]~=0.35
-stellar-sdk~=13.0
+solana~=0.35
+solders~=0.21
+anchorpy~=0.20
 python-dotenv>=1.0,<2
 requests>=2.32,<3
 bip-utils>=2.9,<3
+base58>=2.1,<3
