@@ -20,6 +20,8 @@ import {
   EyeOff
 } from 'lucide-react'
 import { SovicoService, SovicoSolution, SovicoCheckoutState, SovicoPaymentResult } from '@/types/sovico'
+import InvoiceModal from './InvoiceModal'
+import { usePaymentNotifications } from '@/components/NotificationSystem'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -58,6 +60,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [showUnlockModal, setShowUnlockModal] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
+  const [showInvoice, setShowInvoice] = useState(false)
+  const { notifyPaymentSuccess, notifyPaymentError, notifyWalletUnlocked } = usePaymentNotifications()
   
   const totalSteps = 4
   const isService = !!checkoutState.service
@@ -143,11 +147,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const handleConfirmPayment = async () => {
     try {
-      await onProcessPayment()
+      const result = await onProcessPayment()
+      if (result?.success) {
+        notifyPaymentSuccess(
+          result.amount, 
+          result.asset || 'SYP', 
+          result.transactionHash || ''
+        )
+        setShowInvoice(true)
+      }
     } catch (error) {
       console.error('Payment failed:', error)
       if (error instanceof Error && error.message === 'WALLET_LOCKED') {
         setShowUnlockModal(true)
+      } else {
+        notifyPaymentError(error instanceof Error ? error.message : 'Payment failed')
       }
     }
   }
@@ -163,8 +177,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setShowUnlockModal(false)
       setPassword('')
       setPasswordError('')
+      notifyWalletUnlocked()
       // Retry payment after unlocking
-      await onProcessPayment()
+      const result = await onProcessPayment()
+      if (result?.success) {
+        notifyPaymentSuccess(
+          result.amount, 
+          result.asset || 'SYP', 
+          result.transactionHash || ''
+        )
+        setShowInvoice(true)
+      }
     } catch (error) {
       setPasswordError(t('wallet.incorrectPassword', 'Mật khẩu không đúng'))
     }
@@ -726,6 +749,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
         </div>
       )}
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        isOpen={showInvoice}
+        onClose={() => setShowInvoice(false)}
+        paymentResult={paymentResult || null}
+        serviceName={item?.name}
+        companyName={item?.company || 'Sovico Ecosystem'}
+      />
     </div>
   )
 }

@@ -11,6 +11,7 @@ export interface Transaction {
   destination?: string
   source?: string
   memo?: string
+  description?: string
   sell_asset?: string
   buy_asset?: string
   rate?: string

@@ -8,6 +8,7 @@ import './index.css'
 import './i18n'
 import { initializeTheme } from './store/theme'
 import { useAuthStore } from './store/session'
+import { NotificationProvider } from './components/NotificationSystem'
 
 // Initialize theme
 initializeTheme()
@@ -32,31 +33,33 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <App />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#0F172A',
-              color: '#FFFFFF',
-              borderRadius: '8px',
-              border: '1px solid #E31E24',
-            },
-            success: {
-              iconTheme: {
-                primary: '#16A34A',
-                secondary: '#FFFFFF',
+        <NotificationProvider>
+          <App />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#0F172A',
+                color: '#FFFFFF',
+                borderRadius: '8px',
+                border: '1px solid #E31E24',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#DC2626',
-                secondary: '#FFFFFF',
+              success: {
+                iconTheme: {
+                  primary: '#16A34A',
+                  secondary: '#FFFFFF',
+                },
               },
-            },
-          }}
-        />
+              error: {
+                iconTheme: {
+                  primary: '#DC2626',
+                  secondary: '#FFFFFF',
+                },
+              },
+            }}
+          />
+        </NotificationProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,

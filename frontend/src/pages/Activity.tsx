@@ -1,7 +1,28 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Filter, Search, ArrowUpRight, ArrowDownLeft, RefreshCw, Download, Calendar, ArrowLeft } from 'lucide-react'
+import { 
+  Activity, 
+  Filter, 
+  Search, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  RefreshCw, 
+  Download, 
+  Calendar, 
+  ArrowLeft,
+  CreditCard,
+  ShoppingCart,
+  Building2,
+  Zap,
+  Star,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle
+} from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
 import { useNavigate } from 'react-router-dom'
 import { analyticsApi } from '@/api/analytics'
@@ -14,18 +35,88 @@ function ActivityPage() {
   const { isDark } = useThemeStore()
   const { isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
-  const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received' | 'swapped'>('all')
+  const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received' | 'swapped' | 'sovico' | 'payments' | 'rewards'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate()
 
   const filters = [
-    { id: 'all', label: t('activity.all', 'All'), icon: Activity },
-    { id: 'sent', label: t('activity.sent', 'Sent'), icon: ArrowUpRight },
-    { id: 'received', label: t('activity.received', 'Received'), icon: ArrowDownLeft },
-    { id: 'swapped', label: t('activity.swapped', 'Swapped'), icon: RefreshCw },
+    { id: 'all', label: t('activity.all', 'Tất cả'), icon: Activity, color: 'gray' },
+    { id: 'sent', label: t('activity.sent', 'Gửi'), icon: ArrowUpRight, color: 'red' },
+    { id: 'received', label: t('activity.received', 'Nhận'), icon: ArrowDownLeft, color: 'green' },
+    { id: 'swapped', label: t('activity.swapped', 'Hoán đổi'), icon: RefreshCw, color: 'blue' },
+    { id: 'sovico', label: t('activity.sovico', 'Sovico'), icon: Building2, color: 'purple' },
+    { id: 'payments', label: t('activity.payments', 'Thanh toán'), icon: CreditCard, color: 'yellow' },
+    { id: 'rewards', label: t('activity.rewards', 'Thưởng'), icon: Star, color: 'pink' },
   ]
+
+  // Enhanced transaction categorization
+  const categorizeTransaction = (tx: Transaction) => {
+    const memo = tx.memo?.toLowerCase() || ''
+    const description = tx.description?.toLowerCase() || ''
+    
+    // Check transaction type FIRST (highest priority)
+    if (tx.tx_type === 'SWAP') return 'swapped'
+    
+    // Sovico ecosystem transactions
+    if (memo.includes('sovico') || memo.includes('hdbank') || memo.includes('vietjet') || 
+        memo.includes('dragon') || memo.includes('energy') || description.includes('sovico')) {
+      return 'sovico'
+    }
+    
+    // Payment transactions
+    if (memo.includes('payment') || memo.includes('thanh toan') || 
+        memo.includes('service') || memo.includes('dich vu')) {
+      return 'payments'
+    }
+    
+    // Reward transactions
+    if (memo.includes('reward') || memo.includes('bonus') || memo.includes('thuong') ||
+        memo.includes('cashback') || memo.includes('loyalty')) {
+      return 'rewards'
+    }
+    
+    // Default categorization based on direction (lowest priority)
+    if (tx.direction === 'sent') return 'sent'
+    if (tx.direction === 'received') return 'received'
+    
+    return 'all'
+  }
+
+  const getTransactionIcon = (tx: Transaction) => {
+    const category = categorizeTransaction(tx)
+    
+    switch (category) {
+      case 'sovico':
+        return <Building2 className="w-5 h-5 text-purple-500" />
+      case 'payments':
+        return <CreditCard className="w-5 h-5 text-yellow-500" />
+      case 'rewards':
+        return <Star className="w-5 h-5 text-pink-500" />
+      case 'sent':
+        return <ArrowUpRight className="w-5 h-5 text-red-500" />
+      case 'received':
+        return <ArrowDownLeft className="w-5 h-5 text-green-500" />
+      case 'swapped':
+        return <RefreshCw className="w-5 h-5 text-blue-500" />
+      default:
+        return <Activity className="w-5 h-5 text-gray-500" />
+    }
+  }
+
+  const getTransactionStatusIcon = (status: string) => {
+    switch (status) {
+      case 'success':
+        return <CheckCircle className="w-4 h-4 text-green-500" />
+      case 'failed':
+        return <XCircle className="w-4 h-4 text-red-500" />
+      case 'pending':
+        return <Clock className="w-4 h-4 text-yellow-500" />
+      default:
+        return <AlertCircle className="w-4 h-4 text-gray-500" />
+    }
+  }
 
   // Fetch real transaction summary data
   const { data: transactionSummary, isLoading: summaryLoading, error: summaryError, refetch: refetchSummary } = useQuery({
@@ -88,7 +179,9 @@ function ActivityPage() {
       status: tx.status.toLowerCase(),
       fee: '0.01', // Default fee
       toAmount: tx.tx_type === 'SWAP' ? tx.amount : (tx.buy_asset ? tx.amount : undefined),
-      toCurrency: tx.tx_type === 'SWAP' ? tx.asset_code : tx.buy_asset
+      toCurrency: tx.tx_type === 'SWAP' ? tx.asset_code : tx.buy_asset,
+      memo: tx.memo,
+      description: tx.description
     }
   }) || []
 
@@ -105,18 +198,6 @@ function ActivityPage() {
   // Check for errors
   const hasError = summaryError || transactionsError;
 
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'sent':
-        return <ArrowUpRight className="w-5 h-5 text-red-400" />
-      case 'received':
-        return <ArrowDownLeft className="w-5 h-5 text-green-400" />
-      case 'swapped':
-        return <RefreshCw className="w-5 h-5 text-blue-400" />
-      default:
-        return <Activity className="w-5 h-5 text-gray-400" />
-    }
-  }
 
   const getTransactionBgColor = (type: string) => {
     switch (type) {
@@ -142,9 +223,18 @@ function ActivityPage() {
   }
 
   const filteredTransactions = transactions.filter(tx => {
-    if (activeFilter !== 'all' && tx.type !== activeFilter) return false
+    // Enhanced filtering with categorization
+    if (activeFilter !== 'all') {
+      // Find original transaction for categorization
+      const originalTx = transactionsData?.transactions?.find(origTx => origTx.id === tx.id)
+      if (originalTx) {
+        const category = categorizeTransaction(originalTx)
+        if (category !== activeFilter) return false
+      }
+    }
+    
     if (searchQuery) {
-      const searchText = (tx.address || tx.id).toLowerCase()
+      const searchText = (tx.address || tx.id || tx.memo || '').toLowerCase()
       if (!searchText.includes(searchQuery.toLowerCase())) return false
     }
     return true
@@ -185,14 +275,43 @@ function ActivityPage() {
         <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'} p-1.5 rounded-2xl flex overflow-x-auto border backdrop-blur-sm`}>
           {filters.map((filter) => {
             const Icon = filter.icon
+            const isActive = activeFilter === filter.id
+            
+            const getColorClasses = (color: string) => {
+              const colorMap = {
+                gray: isActive 
+                  ? 'bg-gray-500 text-white border-gray-500' 
+                  : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100',
+                red: isActive 
+                  ? 'bg-red-500 text-white border-red-500' 
+                  : 'text-red-500 hover:text-red-600 hover:bg-red-100',
+                green: isActive 
+                  ? 'bg-green-500 text-white border-green-500' 
+                  : 'text-green-500 hover:text-green-600 hover:bg-green-100',
+                blue: isActive 
+                  ? 'bg-blue-500 text-white border-blue-500' 
+                  : 'text-blue-500 hover:text-blue-600 hover:bg-blue-100',
+                purple: isActive 
+                  ? 'bg-purple-500 text-white border-purple-500' 
+                  : 'text-purple-500 hover:text-purple-600 hover:bg-purple-100',
+                yellow: isActive 
+                  ? 'bg-yellow-500 text-white border-yellow-500' 
+                  : 'text-yellow-500 hover:text-yellow-600 hover:bg-yellow-100',
+                pink: isActive 
+                  ? 'bg-pink-500 text-white border-pink-500' 
+                  : 'text-pink-500 hover:text-pink-600 hover:bg-pink-100',
+              }
+              return colorMap[color as keyof typeof colorMap] || colorMap.gray
+            }
+            
             return (
               <button
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id as any)}
-                className={`flex items-center space-x-2 py-3 px-4 rounded-xl transition-all duration-300 whitespace-nowrap ${
-                  activeFilter === filter.id
-                    ? `${isDark ? 'bg-white/20 text-white border-white/30' : 'bg-slate-200 text-slate-900 border-slate-300'} shadow-md backdrop-blur-sm border`
-                    : `${isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'}`
+                className={`flex items-center space-x-2 py-3 px-4 rounded-xl transition-all duration-300 whitespace-nowrap border ${
+                  isActive
+                    ? `${getColorClasses(filter.color)} shadow-md backdrop-blur-sm`
+                    : `${isDark ? 'text-white/70 hover:text-white hover:bg-white/10 border-transparent' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border-transparent'}`
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -266,7 +385,10 @@ function ActivityPage() {
                       {/* Left: Icon and Details */}
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm border ${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'}`}>
-                          {getTransactionIcon(transaction.type)}
+                          {(() => {
+                            const originalTx = transactionsData?.transactions?.find(origTx => origTx.id === transaction.id)
+                            return originalTx ? getTransactionIcon(originalTx) : <Activity className="w-5 h-5 text-gray-500" />
+                          })()}
                         </div>
                         
                         <div>
@@ -274,9 +396,12 @@ function ActivityPage() {
                             <h3 className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>
                               {transaction.type}
                             </h3>
-                            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
-                              {transaction.status}
-                            </span>
+                            <div className="flex items-center space-x-1">
+                              {getTransactionStatusIcon(transaction.status)}
+                              <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
+                                {transaction.status}
+                              </span>
+                            </div>
                           </div>
                           
                           <div className="flex items-center space-x-2 mt-1">

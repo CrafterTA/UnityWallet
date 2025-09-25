@@ -46,6 +46,7 @@ export interface SovicoSolution {
   description: string
   shortDescription: string
   category: string
+  company?: string
   services: string[] // Service IDs
   price: number
   currency: 'VND' | 'SYP' | 'XLM' | 'USDC'
