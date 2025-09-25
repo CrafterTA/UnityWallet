@@ -31,8 +31,9 @@ class RefreshRequest(BaseModel):
     refresh_token: str
  
 def generate_session_key() -> str:
-    """Generate a secure random session key"""
-    return secrets.token_urlsafe(32)
+    """Generate a secure random session key (32 bytes = 256 bits for AES-256)"""
+    session_key_bytes = secrets.token_bytes(32)
+    return session_key_bytes.hex()
  
 def create_jwt_token(public_key: str, session_key: str) -> str:
     """Create JWT token containing session information"""
