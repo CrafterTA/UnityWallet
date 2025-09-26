@@ -6,9 +6,9 @@ export interface ExchangeRate {
 
 // Default exchange rates (fallback values)
 export const DEFAULT_RATES: ExchangeRate = {
-  'USDC': 1.0,          // 1 USDC = $1 USD
+  // USDC removed - only SOL and USDT supported
   'USDT': 1.0,          // 1 USDT = $1 USD
-  'SOL': 100.0,         // 1 SOL ≈ $100 USD (approximate)
+  'SOL': 195.3673,      // 1 SOL ≈ $195.3673 USD (approximate)
   'BTC': 43000,         // 1 BTC ≈ $43,000 USD
   'ETH': 2600,          // 1 ETH ≈ $2,600 USD
 };
@@ -19,7 +19,7 @@ export const DEFAULT_RATES: ExchangeRate = {
 export const getUSDValue = (assetCode: string, amount: string, rates: ExchangeRate = DEFAULT_RATES): number => {
   const numAmount = parseFloat(amount) || 0;
   
-  // Get asset code without issuer (e.g., "SYP:ISSUER" -> "SYP")
+  // Get asset code without issuer (e.g., "SOL:ISSUER" -> "SOL")
   const shortCode = assetCode.includes(':') ? assetCode.split(':')[0] : assetCode;
   
   // Get exchange rate, default to 1.0 if not found

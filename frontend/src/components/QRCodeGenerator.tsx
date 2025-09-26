@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 function QRCodeGenerator() {
   const { t } = useTranslation()
   const [amount, setAmount] = useState('100')
-  const [selectedAsset, setSelectedAsset] = useState('SYP')
+  const [selectedAsset, setSelectedAsset] = useState('SOL')
   const [memo, setMemo] = useState('')
   const [generatedQR, setGeneratedQR] = useState('')
 

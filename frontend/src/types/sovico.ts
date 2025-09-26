@@ -8,10 +8,9 @@ export interface SovicoService {
   subcategory?: string
   company: string
   price: number
-  currency: 'VND' | 'SYP' | 'XLM' | 'USDC'
-  priceInSYP?: number
-  priceInXLM?: number
-  priceInUSDC?: number
+  currency: 'VND' | 'SOL' | 'USDT'
+  priceInSOL?: number
+  priceInUSDT?: number
   paymentAddress: string
   memo?: string
   acceptedAssets: string[]
@@ -35,7 +34,7 @@ export interface SovicoAddon {
   name: string
   description: string
   price: number
-  currency: 'VND' | 'SYP' | 'XLM' | 'USDC'
+  currency: 'VND' | 'SOL' | 'USDT'
   isRequired: boolean
   isSelected: boolean
 }
@@ -49,10 +48,9 @@ export interface SovicoSolution {
   company?: string
   services: string[] // Service IDs
   price: number
-  currency: 'VND' | 'SYP' | 'XLM' | 'USDC'
-  priceInSYP?: number
-  priceInXLM?: number
-  priceInUSDC?: number
+  currency: 'VND' | 'SOL' | 'USDT'
+  priceInSOL?: number
+  priceInUSDT?: number
   originalPrice?: number
   discount?: number
   benefits: string[]
@@ -251,9 +249,8 @@ export interface SovicoCheckoutState {
   addons: SovicoAddon[]
   selectedAsset: string
   totalAmount: number
-  totalInSYP: number
-  totalInXLM: number
-  totalInUSDC: number
+  totalInSOL: number
+  totalInUSDT: number
   paymentAddress: string
   memo?: string
   isProcessing: boolean
@@ -263,6 +260,7 @@ export interface SovicoCheckoutState {
 export interface SovicoPaymentResult {
   success: boolean
   transactionHash?: string
+  signature?: string
   ledger?: number
   amount: number
   asset: string
@@ -313,20 +311,13 @@ export interface SovicoApiResponse<T> {
 }
 
 export interface SovicoExchangeRates {
-  SYP: {
+  SOL: {
     VND: number
-    XLM: number
-    USDC: number
+    USDT: number
   }
-  XLM: {
+  USDT: {
     VND: number
-    SYP: number
-    USDC: number
-  }
-  USDC: {
-    VND: number
-    SYP: number
-    XLM: number
+    SOL: number
   }
   lastUpdated: string
 }

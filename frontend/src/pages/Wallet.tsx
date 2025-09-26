@@ -129,7 +129,7 @@ const WalletPage: React.FC = () => {
     return sum + getUSDValue(balance.asset_code, balance.amount, exchangeRates);
   }, 0) || 0;
 
-  // Process balances for display (show only asset code like SOL, USDC, USDT)
+  // Process balances for display (show only asset code like SOL, USDT)
   const processedBalances = balancesArray?.map((balance: any) => {
     const usdValue = getUSDValue(balance.asset_code, balance.amount, exchangeRates);
     return {

@@ -141,8 +141,11 @@ function ActivityPage() {
     staleTime: 0, // Data is always considered stale, will refetch
   })
 
+  // Get mock transactions from localStorage
+  const mockTransactions = JSON.parse(localStorage.getItem('mockTransactions') || '[]')
+  
   // Process real transaction data - sử dụng tx_type từ API
-  const transactions = transactionsData?.transactions?.map((tx) => {
+  const realTransactions = transactionsData?.transactions?.map((tx) => {
     // Map tx_type từ backend thành type cho UI
     let type = 'sent' // default fallback
     
@@ -161,13 +164,50 @@ function ActivityPage() {
       address: tx.destination || 'Unknown',
       date: tx.created_at,
       status: tx.status.toLowerCase(),
-      fee: '0.01', // Default fee
+      fee: tx.fee ? `${tx.fee} SOL` : '0.000005 SOL', // Use actual fee or default Solana fee
       toAmount: tx.tx_type === 'SWAP' ? tx.amount : (tx.buy_asset ? tx.amount : undefined),
       toCurrency: tx.tx_type === 'SWAP' ? tx.asset_code : tx.buy_asset,
       memo: tx.memo,
-      description: tx.description
+      description: tx.description,
+      // Add Solana specific fields for modal
+      signature: tx.signature,
+      slot: tx.slot,
+      block_time: tx.block_time,
+      logs: tx.logs
     }
   }) || []
+
+  // Process mock transactions
+  const processedMockTransactions = mockTransactions.map((mockTx: any) => ({
+    id: mockTx.id,
+    type: 'swapped',
+    amount: mockTx.fromAmount,
+    currency: mockTx.fromAsset,
+    toAmount: mockTx.toAmount,
+    toCurrency: mockTx.toAsset,
+    fee: `${mockTx.fee} SOL`,
+    date: mockTx.timestamp,
+    status: 'success',
+    address: mockTx.destination || 'Swap Pool',
+    memo: mockTx.memo || `Swap transaction - ${mockTx.fromAsset} to ${mockTx.toAsset}`,
+    description: mockTx.description || `Swap ${mockTx.fromAmount} ${mockTx.fromAsset} to ${mockTx.toAmount} ${mockTx.toAsset}`,
+    signature: mockTx.signature || `${mockTx.id}`,
+    slot: mockTx.slot || Math.floor(Math.random() * 200000000) + 100000000,
+    block_time: mockTx.block_time || new Date(mockTx.timestamp).getTime() / 1000,
+    logs: mockTx.logs || [],
+    // Use existing detailed transaction information
+    source_amount: mockTx.source_amount || mockTx.fromAmount,
+    source_asset_code: mockTx.source_asset_code || mockTx.fromAsset,
+    asset_code: mockTx.asset_code || mockTx.toAsset,
+    destination: mockTx.destination || 'Swap Pool',
+    created_at: mockTx.created_at || mockTx.timestamp,
+    tx_type: mockTx.tx_type || 'SWAP',
+    direction: mockTx.direction || 'swapped'
+  }))
+
+  // Combine real and mock transactions
+  const transactions = [...realTransactions, ...processedMockTransactions]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   // Recalculate stats from actual transactions
   const actualStats = {
@@ -204,6 +244,15 @@ function ActivityPage() {
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const formatAmount = (amount: string | number) => {
+    const num = typeof amount === 'string' ? parseFloat(amount) : amount
+    if (isNaN(num)) return '0.0000000'
+    
+    // Format with up to 7 decimal places, but remove trailing zeros
+    const formatted = num.toFixed(7)
+    return formatted.replace(/\.?0+$/, '') || '0'
   }
 
   const filteredTransactions = transactions.filter(tx => {
@@ -356,10 +405,14 @@ function ActivityPage() {
                   <div
                     key={transaction.id}
                     onClick={() => {
-                      // Tìm transaction gốc từ API data
+                      // Tìm transaction gốc từ API data hoặc mock transactions
                       const originalTx = transactionsData?.transactions?.find(tx => tx.id === transaction.id)
                       if (originalTx) {
                         setSelectedTransaction(originalTx)
+                        setIsModalOpen(true)
+                      } else {
+                        // Handle mock transactions
+                        setSelectedTransaction(transaction)
                         setIsModalOpen(true)
                       }
                     }}
@@ -369,10 +422,7 @@ function ActivityPage() {
                       {/* Left: Icon and Details */}
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm border ${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'}`}>
-                          {(() => {
-                            const originalTx = transactionsData?.transactions?.find(origTx => origTx.id === transaction.id)
-                            return originalTx ? getTransactionIcon(originalTx) : <Activity className="w-5 h-5 text-gray-500" />
-                          })()}
+                          {getTransactionIcon(transaction)}
                         </div>
                         
                         <div>
@@ -390,7 +440,7 @@ function ActivityPage() {
                           <div className="flex items-center space-x-2 mt-1">
                             <Calendar className={`w-3 h-3 ${isDark ? 'text-white/50' : 'text-slate-500'}`} />
                             <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                              {formatDate(transaction.date)}
+                              {formatDate(transaction.date.toString())}
                             </p>
                           </div>
                           
@@ -400,6 +450,16 @@ function ActivityPage() {
                                transaction.type === 'received' ? transaction.address : ''}
                             </p>
                           )}
+                          
+                          {/* Transaction Fee */}
+                          <div className="flex items-center justify-between mt-1">
+                            <span className={`text-xs ${isDark ? 'text-white/40' : 'text-slate-400'}`}>
+                              Fee:
+                            </span>
+                            <span className={`text-xs font-mono ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                              {transaction.fee}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
@@ -407,12 +467,12 @@ function ActivityPage() {
                       <div className="text-right">
                         {transaction.type === 'swapped' ? (
                           <div>
-                            <p className={`font-bold text-lg text-blue-400`}>
-                              {parseFloat(transaction.amount || '0').toFixed(3)} {transaction.currency || 'XLM'}
-                            </p>
-                            <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                              → {transaction.toAmount ? parseFloat(transaction.toAmount).toFixed(3) : '0.000'} {transaction.toCurrency || 'XLM'}
-                            </p>
+                             <p className={`font-bold text-lg text-blue-400`}>
+                               {formatAmount(transaction.amount || '0')} {transaction.currency || 'USDT'}
+                             </p>
+                             <p className={`text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                               → {transaction.toAmount ? formatAmount(transaction.toAmount) : '0'} {transaction.toCurrency || 'SOL'}
+                             </p>
                           </div>
                         ) : (
                           <p className={`font-bold text-lg ${
@@ -421,12 +481,12 @@ function ActivityPage() {
                             'text-blue-400'
                           }`}>
                             {transaction.type === 'sent' ? '-' : transaction.type === 'received' ? '+' : ''}
-                            {parseFloat(transaction.amount || '0').toFixed(3)} {transaction.currency || 'XLM'}
+                             {formatAmount(transaction.amount || '0')} {transaction.currency || 'USDT'}
                           </p>
                         )}
                         
                         <p className={`text-xs mt-1 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
-                          Fee: {parseFloat(transaction.fee).toFixed(3)} USD
+                          Fee: {transaction.fee}
                         </p>
                       </div>
                     </div>

@@ -25,7 +25,7 @@ function RecentActivity({ transactions = [], limit = 5, showViewAll = true }: Re
     {
       id: '1',
       type: 'send',
-      asset: 'XLM',
+      asset: 'SOL',
       amount: '-2500',
       counterparty: 'GBRP...HNKZ',
       timestamp: '2h ago',
@@ -35,7 +35,7 @@ function RecentActivity({ transactions = [], limit = 5, showViewAll = true }: Re
     {
       id: '2',
       type: 'receive',
-      asset: 'USDC',
+      asset: 'USDT',
       amount: '+100',
       counterparty: 'you@anchor.com',
       timestamp: 'Yesterday',
@@ -44,7 +44,7 @@ function RecentActivity({ transactions = [], limit = 5, showViewAll = true }: Re
     {
       id: '3',
       type: 'swap',
-      asset: 'XLM→USDC',
+      asset: 'SOL→USDT',
       amount: '-50',
       counterparty: 'DEX',
       timestamp: '2 days ago',
@@ -150,7 +150,7 @@ function RecentActivity({ transactions = [], limit = 5, showViewAll = true }: Re
             
             {transaction.fee && (
               <div className="mt-2 ml-13">
-                <p className="text-xs text-navy-500">Fee: {transaction.fee} XLM</p>
+                <p className="text-xs text-navy-500">Fee: {transaction.fee} SOL</p>
               </div>
             )}
           </div>

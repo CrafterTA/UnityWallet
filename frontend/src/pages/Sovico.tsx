@@ -48,51 +48,40 @@ const Sovico: React.FC = () => {
   const { isDark } = useThemeStore()
   
   const { wallet } = useAuthStore()
-  const [sypBalance, setSypBalance] = useState(0)
+  const [solBalance, setSolBalance] = useState(0)
   const [isLoadingBalance, setIsLoadingBalance] = useState(false)
 
-  // Fetch real SYP balance
+  // Fetch real SOL balance
   useEffect(() => {
-    const fetchSypBalance = async () => {
+    const fetchSolBalance = async () => {
       if (!wallet?.public_key) return
       
       setIsLoadingBalance(true)
       try {
         const balances = await walletApi.getBalances()
-        const sypBalanceData = balances.find(b => b.asset_code === 'SYP')
-        if (sypBalanceData) {
-          setSypBalance(parseFloat(sypBalanceData.amount))
+        const solBalanceData = balances.find(b => b.symbol === 'SOL')
+        if (solBalanceData) {
+          setSolBalance(parseFloat(solBalanceData.balance_ui || '0'))
         }
       } catch (error) {
-        console.error('Failed to fetch SYP balance:', error)
+        console.error('Failed to fetch SOL balance:', error)
         // Fallback to wallet balances if API fails
-        // Look for SYP balance with issuer key
-        const sypKey = Object.keys(wallet.balances || {}).find(key => key.startsWith('SYP:'))
-        if (sypKey && wallet.balances[sypKey]) {
-          setSypBalance(parseFloat(wallet.balances[sypKey]))
-        } else if (wallet?.balances?.SYP) {
-          setSypBalance(parseFloat(wallet.balances.SYP))
+        if (wallet?.balances?.SOL) {
+          setSolBalance(parseFloat(wallet.balances.SOL))
         }
       } finally {
         setIsLoadingBalance(false)
       }
     }
 
-    fetchSypBalance()
+    fetchSolBalance()
   }, [wallet?.public_key, wallet?.balances])
 
   // Also check wallet balances directly when wallet changes
   useEffect(() => {
-    if (wallet?.balances) {
-      // Look for SYP balance with issuer key first
-      const sypKey = Object.keys(wallet.balances).find(key => key.startsWith('SYP:'))
-      if (sypKey && wallet.balances[sypKey]) {
-        const balance = parseFloat(wallet.balances[sypKey])
-        setSypBalance(balance)
-      } else if (wallet.balances.SYP) {
-        const balance = parseFloat(wallet.balances.SYP)
-        setSypBalance(balance)
-      }
+    if (wallet?.balances?.SOL) {
+      const balance = parseFloat(wallet.balances.SOL)
+      setSolBalance(balance)
     }
   }, [wallet?.balances])
 
@@ -201,19 +190,19 @@ const Sovico: React.FC = () => {
               {t('sovico.about.title', 'Về Hệ sinh thái Sovico')}
             </h2>
             <p className={`text-base mb-4 leading-relaxed ${isDark ? 'text-white/80' : 'text-gray-600'}`}>
-              {t('sovico.about.description', 'Hệ sinh thái Sovico là marketplace trải nghiệm tích hợp thanh toán SYP, kết nối người dùng với các dịch vụ đa dạng từ tập đoàn kinh tế hàng đầu Việt Nam. Trải nghiệm mua sắm và sử dụng dịch vụ hoàn toàn mới với công nghệ blockchain.')}
+              {t('sovico.about.description', 'Hệ sinh thái Sovico là marketplace trải nghiệm tích hợp thanh toán SOL/USDT, kết nối người dùng với các dịch vụ đa dạng từ tập đoàn kinh tế hàng đầu Việt Nam. Trải nghiệm mua sắm và sử dụng dịch vụ hoàn toàn mới với công nghệ blockchain.')}
             </p>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <CheckCircle className="w-5 h-5 text-green-500" />
                 <span className={isDark ? 'text-white/80' : 'text-gray-600'}>
-                  {t('sovico.about.feature1', 'Thanh toán tức thì bằng SYP')}
+                  {t('sovico.about.feature1', 'Thanh toán tức thì bằng SOL/USDT')}
                 </span>
               </div>
               <div className="flex items-center space-x-3">
                 <CheckCircle className="w-5 h-5 text-green-500" />
                 <span className={isDark ? 'text-white/80' : 'text-gray-600'}>
-                  {t('sovico.about.feature2', 'Ưu đãi độc quyền cho người dùng SYP')}
+                  {t('sovico.about.feature2', 'Ưu đãi độc quyền cho người dùng SOL/USDT')}
                 </span>
               </div>
               <div className="flex items-center space-x-3">
@@ -282,7 +271,7 @@ const Sovico: React.FC = () => {
                 {analytics?.sypMarketCap?.value?.toLocaleString() || '0'}
               </div>
               <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-                {t('sovico.analytics.marketCap', 'Vốn hóa SYP (VND)')}
+                {t('sovico.analytics.marketCap', 'Vốn hóa SOL (VND)')}
               </div>
             </div>
             <div className="text-center">
@@ -290,7 +279,7 @@ const Sovico: React.FC = () => {
                 {analytics?.sypMarketCap?.value?.toLocaleString() || '0'}
               </div>
               <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-                {t('sovico.analytics.sypPrice', 'Giá SYP (VND)')}
+                {t('sovico.analytics.sypPrice', 'Giá SOL (VND)')}
               </div>
             </div>
             <div className="text-center">
@@ -362,11 +351,11 @@ const Sovico: React.FC = () => {
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {solution.priceInSYP?.toLocaleString()} SYP
+                      {solution.priceInSOL?.toLocaleString('vi-VN')} SOL
                     </span>
                     {solution.originalPrice && (
                       <span className={`text-lg line-through ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-                        {solution.originalPrice.toLocaleString()} VND
+                        {solution.originalPrice.toLocaleString('vi-VN')} VND
                       </span>
                     )}
                   </div>
@@ -520,7 +509,7 @@ const Sovico: React.FC = () => {
           {t('sovico.services.title', 'Dịch vụ')}
         </h2>
         <p className={`text-base ${isDark ? 'text-white/80' : 'text-gray-600'}`}>
-          {t('sovico.services.subtitle', 'Marketplace dịch vụ với thanh toán SYP')}
+          {t('sovico.services.subtitle', 'Marketplace dịch vụ với thanh toán SOL/USDT')}
         </p>
       </div>
 
@@ -681,8 +670,8 @@ const Sovico: React.FC = () => {
       <SovicoHero
         onExploreServices={handleExploreServices}
         onViewSolutions={handleViewSolutions}
-        sypBalance={sypBalance}
-        exchangeRate={exchangeRates?.SYP?.VND || 5000}
+        solBalance={solBalance}
+        exchangeRate={exchangeRates?.SOL?.VND || 5346308}
         isLoadingBalance={isLoadingBalance}
       />
 
@@ -718,7 +707,7 @@ const Sovico: React.FC = () => {
         exchangeRates={exchangeRates}
         balances={{
           ...wallet?.balances,
-          SYP: sypBalance.toString()
+          SOL: solBalance.toString()
         }}
         isLoading={isPaymentProcessing}
         error={paymentError?.message}

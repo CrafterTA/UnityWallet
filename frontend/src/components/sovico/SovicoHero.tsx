@@ -16,7 +16,7 @@ import {
 interface SovicoHeroProps {
   onExploreServices: () => void
   onViewSolutions: () => void
-  sypBalance?: number
+  solBalance?: number
   exchangeRate?: number
   isLoadingBalance?: boolean
 }
@@ -24,8 +24,8 @@ interface SovicoHeroProps {
 const SovicoHero: React.FC<SovicoHeroProps> = ({
   onExploreServices,
   onViewSolutions,
-  sypBalance = 0,
-  exchangeRate = 5000,
+  solBalance = 0,
+  exchangeRate = 5346308,
   isLoadingBalance = false
 }) => {
   const { t } = useTranslation()
@@ -63,12 +63,12 @@ const SovicoHero: React.FC<SovicoHeroProps> = ({
     {
       icon: Zap,
       title: t('sovico.hero.features.instant', 'Thanh toán tức thì'),
-      description: t('sovico.hero.features.instantDesc', 'Thanh toán bằng SYP trong vài giây')
+      description: t('sovico.hero.features.instantDesc', 'Thanh toán bằng SOL trong vài giây')
     },
     {
       icon: Gift,
       title: t('sovico.hero.features.rewards', 'Ưu đãi độc quyền'),
-      description: t('sovico.hero.features.rewardsDesc', 'Nhận ưu đãi đặc biệt khi sử dụng SYP')
+      description: t('sovico.hero.features.rewardsDesc', 'Nhận ưu đãi đặc biệt khi sử dụng SOL/USDT')
     },
     {
       icon: Shield,
@@ -104,18 +104,22 @@ const SovicoHero: React.FC<SovicoHeroProps> = ({
           </h1>
           
           <p className={`text-xl md:text-2xl mb-8 max-w-4xl mx-auto leading-relaxed ${isDark ? 'text-white/90' : 'text-gray-700'}`}>
-            {t('sovico.hero.subtitle', 'Marketplace trải nghiệm tích hợp thanh toán SYP - Khám phá và sử dụng các dịch vụ đa dạng từ tập đoàn kinh tế hàng đầu Việt Nam')}
+            {t('sovico.hero.subtitle', 'Marketplace trải nghiệm tích hợp thanh toán SOL/USDT - Khám phá và sử dụng các dịch vụ đa dạng từ tập đoàn kinh tế hàng đầu Việt Nam')}
           </p>
 
-          {/* SYP Balance Display */}
+          {/* SOL Balance Display */}
           {wallet && (
             <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-2xl mb-8 ${isDark ? 'bg-white/10 border border-white/20' : 'bg-white border border-gray-200'} backdrop-blur-sm`}>
-              <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-yellow-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                <img 
+                  src="/images/coin.png" 
+                  alt="SOL" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="text-left">
                 <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-                  {t('sovico.hero.balance.syp', 'SYP Balance')}
+                  {t('sovico.hero.balance.sol', 'SOL Balance')}
                 </div>
                 <div className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {isLoadingBalance ? (
@@ -124,14 +128,14 @@ const SovicoHero: React.FC<SovicoHeroProps> = ({
                       <span>Loading...</span>
                     </div>
                   ) : (
-                    `${sypBalance.toLocaleString()} SYP`
+                    `${solBalance.toLocaleString('vi-VN')} SOL`
                   )}
                 </div>
                 <div className={`text-xs ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
                   {isLoadingBalance ? (
                     'Loading...'
                   ) : (
-                    `≈ ${(sypBalance * exchangeRate).toLocaleString()} VND`
+                    `≈ ${Math.round(solBalance * exchangeRate).toLocaleString('vi-VN')} VND`
                   )}
                 </div>
               </div>
@@ -179,7 +183,7 @@ const SovicoHero: React.FC<SovicoHeroProps> = ({
               className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center justify-center gap-2"
             >
               <Zap className="w-5 h-5" />
-              {t('sovico.hero.cta.explore', 'Khám phá bằng SYP')}
+              {t('sovico.hero.cta.explore', 'Khám phá bằng SOL/USDT')}
               <ArrowRight className="w-5 h-5" />
             </button>
             

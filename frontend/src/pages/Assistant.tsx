@@ -20,7 +20,7 @@ function Assistant() {
     {
       id: '1',
       type: 'assistant',
-      content: 'Xin chào! Tôi là trợ lý AI của SoviPay.\n\nTôi có thể giúp bạn:\n• Kiểm tra số dư và giao dịch\n• Giải thích về blockchain và crypto\n• Trả lời câu hỏi thường\n• Hỗ trợ sử dụng ví\n\nBạn cần giúp gì?',
+      content: 'Xin chào! Tôi là trợ lý AI của SoviPay.\n\nTôi có thể giúp bạn:\n• Kiểm tra số dư SOL và USDT\n• Xem giao dịch gần đây\n• Giải thích về blockchain và crypto\n• Trả lời câu hỏi thường\n• Hỗ trợ sử dụng ví\n\nBạn cần giúp gì?',
       timestamp: new Date(),
     },
   ])
@@ -31,8 +31,8 @@ function Assistant() {
   const quickQuestions = [
     {
       icon: TrendingUp,
-      text: 'Tôi có bao nhiêu XLM?',
-      query: 'Tôi có bao nhiêu XLM?',
+      text: 'Tôi có bao nhiêu SOL và USDT?',
+      query: 'Tôi có bao nhiêu SOL và USDT?',
     },
     {
       icon: DollarSign,

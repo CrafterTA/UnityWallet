@@ -21,10 +21,13 @@ import {
   Printer,
   Hash,
   Calendar,
-  User
+  User,
+  Star
 } from 'lucide-react'
 import { SovicoService, SovicoSolution, SovicoCheckoutState, SovicoPaymentResult } from '@/types/sovico'
 import { usePaymentNotifications } from '@/components/NotificationSystem'
+import BookingForm from './BookingForm'
+import InvoiceQR from './InvoiceQR'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -63,6 +66,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [showUnlockModal, setShowUnlockModal] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
+  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [bookingData, setBookingData] = useState<any>(null)
   const { notifyPaymentSuccess, notifyPaymentError, notifyWalletUnlocked } = usePaymentNotifications()
   
   const totalSteps = 4
@@ -71,38 +76,33 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const item = isService ? checkoutState.service : checkoutState.solution
 
   // Calculate balances in different assets
-  const sypBalance = parseFloat(balances.SYP || '0')
-  const xlmBalance = parseFloat(balances.XLM || '0')
-  const usdcBalance = parseFloat(balances.USDC || '0')
+  const solBalance = parseFloat(balances.SOL || '0')
+  const usdtBalance = parseFloat(balances.USDT || '0')
 
   // Check if user has enough balance
-  const hasEnoughSYP = sypBalance >= (checkoutState.totalInSYP || 0)
-  const hasEnoughXLM = xlmBalance >= (checkoutState.totalInXLM || 0)
-  const hasEnoughUSDC = usdcBalance >= (checkoutState.totalInUSDC || 0)
+  const hasEnoughSOL = solBalance >= (checkoutState.totalInSOL || 0)
+  const hasEnoughUSDT = usdtBalance >= (checkoutState.totalInUSDT || 0)
 
   const canPayWithSelectedAsset = () => {
     switch (checkoutState.selectedAsset) {
-      case 'SYP': return hasEnoughSYP
-      case 'XLM': return hasEnoughXLM
-      case 'USDC': return hasEnoughUSDC
+      case 'SOL': return hasEnoughSOL
+      case 'USDT': return hasEnoughUSDT
       default: return false
     }
   }
 
   const getBalanceForAsset = (asset: string) => {
     switch (asset) {
-      case 'SYP': return sypBalance
-      case 'XLM': return xlmBalance
-      case 'USDC': return usdcBalance
+      case 'SOL': return solBalance
+      case 'USDT': return usdtBalance
       default: return 0
     }
   }
 
   const getAmountForAsset = (asset: string) => {
     switch (asset) {
-      case 'SYP': return checkoutState.totalInSYP || 0
-      case 'XLM': return checkoutState.totalInXLM || 0
-      case 'USDC': return checkoutState.totalInUSDC || 0
+      case 'SOL': return checkoutState.totalInSOL || 0
+      case 'USDT': return checkoutState.totalInUSDT || 0
       default: return 0
     }
   }
@@ -153,7 +153,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       if (result?.success) {
         notifyPaymentSuccess(
           result.amount, 
-          result.asset || 'SYP', 
+          result.asset || 'SOL', 
           result.transactionHash || ''
         )
         setCurrentStep(4) // Move to step 4 to show invoice
@@ -163,7 +163,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       if (error instanceof Error && error.message === 'WALLET_LOCKED') {
         setShowUnlockModal(true)
       } else {
-        notifyPaymentError(error instanceof Error ? error.message : 'Payment failed')
+        // Extract meaningful error message
+        let errorMessage = 'Payment failed'
+        if (error instanceof Error) {
+          errorMessage = error.message
+        } else if (typeof error === 'object' && error !== null) {
+          // Handle API error responses
+          if ('message' in error) {
+            errorMessage = String(error.message)
+          } else if ('error' in error) {
+            errorMessage = String(error.error)
+          } else if ('detail' in error) {
+            errorMessage = String(error.detail)
+          } else {
+            errorMessage = 'Payment failed. Please try again.'
+          }
+        } else if (typeof error === 'string') {
+          errorMessage = error
+        }
+        notifyPaymentError(errorMessage)
       }
     }
   }
@@ -185,7 +203,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       if (result?.success) {
         notifyPaymentSuccess(
           result.amount, 
-          result.asset || 'SYP', 
+          result.asset || 'SOL', 
           result.transactionHash || ''
         )
         setCurrentStep(4) // Move to step 4 to show invoice
@@ -199,6 +217,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     setShowUnlockModal(false)
     setPassword('')
     setPasswordError('')
+  }
+
+  const handleBookingSubmit = (data: any) => {
+    setBookingData(data)
+    setShowBookingForm(false)
+    setCurrentStep(2) // Move to payment step
+  }
+
+  const handleBookingCancel = () => {
+    setShowBookingForm(false)
   }
 
   const copyToClipboard = (text: string) => {
@@ -257,7 +285,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
         
@@ -375,6 +403,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     </div>
                   </div>
                 )}
+
               </div>
             )}
 
@@ -391,7 +420,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
 
                 <div className="space-y-3">
-                  {['SYP', 'XLM', 'USDC'].map((asset) => {
+                  {['SOL', 'USDT'].map((asset) => {
                     const balance = getBalanceForAsset(asset)
                     const amount = getAmountForAsset(asset)
                     const hasEnough = balance >= amount
@@ -411,8 +440,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                              asset === 'SYP' ? 'bg-gradient-to-r from-red-500 to-yellow-500' :
-                              asset === 'XLM' ? 'bg-blue-500' : 'bg-green-500'
+                              asset === 'SOL' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
+                              'bg-green-500'
                             }`}>
                               <Coins className="w-5 h-5 text-white" />
                             </div>
@@ -501,7 +530,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       </span>
                       <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {getAmountForAsset(checkoutState.selectedAsset).toLocaleString()} {checkoutState.selectedAsset}
-                        {checkoutState.selectedAsset === 'SYP' && checkoutState.totalAmount && (
+                        {checkoutState.selectedAsset === 'SOL' && checkoutState.totalAmount && (
                           <span className={`text-sm font-normal ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
                             {' '}({formatPrice(checkoutState.totalAmount, 'VND')})
                           </span>
@@ -516,6 +545,27 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       <span className={`font-mono text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {checkoutState.paymentAddress}
                       </span>
+                    </div>
+
+                    {/* Loyalty Points Preview */}
+                    <div className={`p-3 rounded-xl ${isDark ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-yellow-50 border border-yellow-200'}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {t('payment.loyaltyPoints', 'Điểm thưởng sẽ nhận')}
+                          </span>
+                        </div>
+                        <span className={`text-sm font-semibold text-yellow-600`}>
+                          +{Math.floor((checkoutState.selectedAsset === 'SOL' 
+                            ? checkoutState.totalInSOL * (exchangeRates?.SOL?.VND || 5346308)
+                            : checkoutState.totalInUSDT * (exchangeRates?.USDT?.VND || 25000)
+                          ) / 100000)} {t('payment.points', 'điểm')}
+                        </span>
+                      </div>
+                      <div className={`text-xs mt-1 ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                        {t('payment.loyaltyPointsDesc', '1 điểm = 100,000 VND giao dịch')}
+                      </div>
                     </div>
                     
                     {checkoutState.memo && (
@@ -638,6 +688,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                         </span>
                       </div>
                     </div>
+                    
+                    {/* QR Code */}
+                    {bookingData && (
+                      <div className="mt-4">
+                        <InvoiceQR 
+                          bookingData={bookingData}
+                          transactionData={paymentResult}
+                          className=""
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -692,7 +753,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       <div className="text-right">
                         <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           {formatAmount(paymentResult.amount, paymentResult.asset)}
-                          {paymentResult.asset === 'SYP' && checkoutState.totalAmount && (
+                          {paymentResult.asset === 'SOL' && checkoutState.totalAmount && (
                             <span className={`text-lg font-normal ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
                               {' '}({formatPrice(checkoutState.totalAmount, 'VND')})
                             </span>
@@ -762,7 +823,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <div className="flex items-center gap-3">
                   <AlertCircle className="w-5 h-5 text-red-500" />
                   <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {error}
+                    {typeof error === 'string' ? error : 'Payment failed. Please try again.'}
                   </span>
                 </div>
               </div>
@@ -782,20 +843,30 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               {currentStep === 1 ? t('common.cancel', 'Hủy') : t('common.back', 'Quay lại')}
             </button>
 
-            {currentStep < totalSteps && (
+            {currentStep === 1 && (
+              <button
+                onClick={() => setShowBookingForm(true)}
+                className="px-6 py-3 rounded-xl font-medium transition-colors bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600 flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                Đặt ngay
+              </button>
+            )}
+
+            {currentStep === 2 && (
               <button
                 onClick={handleNext}
-                disabled={currentStep === 2 && !canPayWithSelectedAsset()}
+                disabled={!canPayWithSelectedAsset()}
                 className={`px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${
-                  currentStep === 2 && !canPayWithSelectedAsset()
+                  !canPayWithSelectedAsset()
                     ? isDark
                       ? 'bg-white/10 text-white/50 cursor-not-allowed'
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-red-500 to-yellow-500 text-white hover:from-red-600 hover:to-yellow-600'
                 }`}
               >
-                {currentStep === totalSteps - 1 ? t('payment.confirm', 'Xác nhận') : t('common.next', 'Tiếp theo')}
-                <ArrowRight className="w-4 h-4" />
+                <CreditCard className="w-4 h-4" />
+                Thanh toán
               </button>
             )}
 
@@ -906,6 +977,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Booking Form Modal */}
+      {showBookingForm && (
+        <BookingForm
+          service={item}
+          onBookingSubmit={handleBookingSubmit}
+          onCancel={handleBookingCancel}
+        />
       )}
 
     </div>

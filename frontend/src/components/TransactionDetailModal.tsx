@@ -24,17 +24,37 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   useEffect(() => {
     if (isOpen && transaction?.signature) {
       setLoading(true)
-      // For now, we'll use the transaction data we already have
-      // In the future, we could fetch more details from Solana RPC
-      setTxDetails({
-        signature: transaction.signature,
-        slot: transaction.slot,
-        blockTime: transaction.block_time,
-        fee: transaction.fee,
-        success: transaction.status === 'SUCCESS',
-        logs: transaction.logs
-      })
-      setLoading(false)
+      
+      // Try to fetch more details from Solana RPC
+      const fetchTransactionDetails = async () => {
+        try {
+          // Use chainApi to get detailed transaction info
+          const details = await chainApi.lookupTransaction(transaction.signature!)
+          setTxDetails({
+            signature: transaction.signature,
+            slot: details.slot || transaction.slot,
+            blockTime: details.block_time || transaction.block_time,
+            fee: details.fee || transaction.fee || 0.000005, // Default Solana fee
+            success: details.success || transaction.status === 'SUCCESS',
+            logs: details.logs || transaction.logs || []
+          })
+        } catch (error) {
+          console.warn('Failed to fetch detailed transaction info:', error)
+          // Fallback to basic transaction data
+          setTxDetails({
+            signature: transaction.signature,
+            slot: transaction.slot,
+            blockTime: transaction.block_time,
+            fee: transaction.fee || 0.000005, // Default Solana fee
+            success: transaction.status === 'SUCCESS',
+            logs: transaction.logs || []
+          })
+        } finally {
+          setLoading(false)
+        }
+      }
+      
+      fetchTransactionDetails()
     }
   }, [isOpen, transaction?.signature])
 
@@ -94,6 +114,13 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   const formatAmount = (amount: string, symbol: string) => {
     const num = parseFloat(amount)
     return `${num.toFixed(7)} ${symbol}`
+  }
+
+  const formatFee = (fee: number | string | undefined) => {
+    if (fee === undefined || fee === null) return '0.000005 SOL' // Default Solana fee
+    const num = typeof fee === 'string' ? parseFloat(fee) : fee
+    if (num === 0) return '0.000005 SOL' // Minimum Solana fee
+    return `${num.toFixed(9)} SOL`
   }
 
   const formatSolanaSignature = (signature: string) => {
@@ -165,7 +192,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 <div className={`
                   text-2xl font-bold text-red-400
                 `}>
-                  -{formatAmount(transaction.source_amount || '0', transaction.source_asset_code || 'XLM')}
+                   -{formatAmount(transaction.source_amount || '0', transaction.source_asset_code || 'USDT')}
                 </div>
                 <div className="text-gray-400">→</div>
                 <div className={`
@@ -189,7 +216,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               ${isDark ? 'text-gray-400' : 'text-gray-600'}
             `}>
               {transaction.tx_type === 'SWAP' ? 
-                `${transaction.source_asset_code || 'XLM'} → ${transaction.asset_code}` : 
+                 `${transaction.source_asset_code || 'USDT'} → ${transaction.asset_code}` :
                 transaction.asset_code}
             </div>
           </div>
@@ -268,6 +295,32 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               </div>
             )}
 
+            {/* Transaction Fee - Always show */}
+            <div className="flex justify-between items-center">
+              <span className={` 
+                text-sm font-medium
+                ${isDark ? 'text-gray-300' : 'text-gray-600'}
+              `}>
+                Transaction Fee
+              </span>
+              <div className="flex items-center gap-2">
+                <span className={` 
+                  text-sm font-mono
+                  ${isDark ? 'text-gray-400' : 'text-gray-700'}
+                `}>
+                  {formatFee(txDetails?.fee || transaction.fee)}
+                </span>
+                {(txDetails?.fee === 0 || transaction.fee === 0) && (
+                  <span className={` 
+                    text-xs px-2 py-1 rounded-full
+                    ${isDark ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}
+                  `}>
+                    Min Fee
+                  </span>
+                )}
+              </div>
+            </div>
+
             {/* Solana Details */}
             {txDetails && (
               <>
@@ -283,21 +336,6 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     ${isDark ? 'text-gray-400' : 'text-gray-700'}
                   `}>
                     #{txDetails.slot}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className={` 
-                    text-sm font-medium
-                    ${isDark ? 'text-gray-300' : 'text-gray-600'}
-                  `}>
-                    Transaction Fee
-                  </span>
-                  <span className={` 
-                    text-sm font-mono
-                    ${isDark ? 'text-gray-400' : 'text-gray-700'}
-                  `}>
-                    {txDetails.fee} SOL
                   </span>
                 </div>
 

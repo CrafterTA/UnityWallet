@@ -478,7 +478,7 @@
     "volume24h": "24h Volume",
     "liquidity": "Liquidity",
     "proTip": "Pro Tip",
-    "tip": "Convert SkyPoints to USDC for easier spending, or to XLM for lower transaction fees."
+    "tip": "Convert USDT to SOL for lower transaction fees, or keep USDT for easier spending."
   },
   "sovico": {
     "title": "Sovico Ecosystem",
@@ -653,7 +653,7 @@
     "services": {
       "title": "Services",
       "subtitle": "Service marketplace with SYP payments",
-      "payment": "Payment with SYP, XLM, USDC",
+      "payment": "Payment with SOL or USDT",
       "buy": "Buy Now"
     },
     "promotions": {

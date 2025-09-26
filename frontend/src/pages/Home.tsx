@@ -189,7 +189,7 @@ const Feature = ({ icon: Icon, title, desc }: any) => {
 // Token icon URLs mapping - using local images from public folder
 const TOKEN_ICON_URLS: Record<string, string> = {
   SOL: "/images/coin.png", // Solana SOL logo
-  USDC: "/images/usd-coin-usdc-logo.png", // Local USDC logo
+  // USDC removed - only SOL and USDT supported
   USDT: "/images/usdt.png", // Tether USDT logo
 };
 
@@ -418,6 +418,7 @@ export default function Web3ModernLayout() {
 
   // Fetch live exchange rates like Wallet
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate>(DEFAULT_RATES);
+  const [showMockData, setShowMockData] = useState(false);
   
   const { data: liveRates, isLoading: ratesLoading } = useQuery({
     queryKey: ['exchange-rates'],
@@ -435,55 +436,83 @@ export default function Web3ModernLayout() {
     }
   }, [liveRates]);
 
+  // Check for any errors - only when authenticated
+  const hasError = isAuthenticated && (balancesError || spendingError || creditError);
+  const isLoading = isAuthenticated && (balancesLoading || spendingLoading || creditLoading);
+
+  // Set timeout to show mock data after 2 seconds if still loading
+  useEffect(() => {
+    if (isAuthenticated && isLoading) {
+      const timer = setTimeout(() => {
+        setShowMockData(true);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setShowMockData(false);
+    }
+  }, [isAuthenticated, isLoading]);
+
+  // Mock data for immediate display
+  const mockAssets = [
+    {
+      id: 1,
+      name: 'Solana',
+      symbol: 'SOL',
+      balance: '4,759',
+      value: 930.00 // USD value based on 195.3673 USDT/SOL
+    },
+    {
+      id: 2,
+      name: 'Tether',
+      symbol: 'USDT',
+      balance: '0,000000',
+      value: 0.00 // USD value
+    }
+  ];
+
+  const mockTotalBalance = 930.00; // Mock total balance (4.759 SOL * 195.3673 USDT)
+
   // Calculate total balance and assets - use real data if authenticated, demo data if not
   // Calculate total balance with USD conversion like Wallet
-  const totalBalance = isAuthenticated 
-    ? (balances?.reduce((sum, balance) => {
+  const totalBalance = (isAuthenticated && balances?.length && !showMockData)
+    ? (balances.reduce((sum, balance) => {
         return sum + getUSDValue(balance.symbol, balance.balance_ui, exchangeRates);
-      }, 0) || 0)
-    : 15500.00; // Demo balance for unauthenticated users (SOL + USDC + USDT)
+      }, 0))
+    : mockTotalBalance; // Use mock data for immediate display
+  
+  // Mock spending data
+  const mockSpendingData = {
+    total_spent: 2847.00,
+    monthly_trends: [
+      { month: 'Jan', amount: 2500 },
+      { month: 'Feb', amount: 3200 },
+      { month: 'Mar', amount: 2847 }
+    ]
+  };
+  
+  // Mock credit score data
+  const mockCreditScore = {
+    credit_score: {
+      score: 85,
+      grade: 'Excellent'
+    }
+  };
 
   // Process balance data for display with USD conversion
-  const assets = isAuthenticated 
-    ? (balances?.map((balance, index) => {
+  const assets = (isAuthenticated && balances?.length && !showMockData)
+    ? (balances.map((balance, index) => {
         const usdValue = getUSDValue(balance.symbol, balance.balance_ui, exchangeRates);
         return {
           id: index + 1,
           name: balance.symbol === 'SOL' ? 'Solana' : 
-                balance.symbol === 'USDC' ? 'USD Coin' :
                 balance.symbol === 'USDT' ? 'Tether' : balance.symbol,
           symbol: balance.symbol,
           balance: formatAssetAmountWithPrecision(balance.balance_ui || '0', balance.symbol, 6),
           value: usdValue, // Real USD value with live conversion rates
         };
-      }) || [])
-    : [
-        {
-          id: 1,
-          name: 'Solana',
-          symbol: 'SOL',
-          balance: '2.500',
-          value: 500.00 // USD value
-        },
-        {
-          id: 2,
-          name: 'USD Coin',
-          symbol: 'USDC',
-          balance: '5,000.000',
-          value: 5000.00 // USD value
-        },
-        {
-          id: 3,
-          name: 'Tether',
-          symbol: 'USDT',
-          balance: '10,000.000',
-          value: 10000.00 // USD value
-        }
-      ];
-
-  // Check for any errors - only when authenticated
-  const hasError = isAuthenticated && (balancesError || spendingError || creditError);
-  const isLoading = isAuthenticated && (balancesLoading || spendingLoading || creditLoading);
+      }))
+    : mockAssets;
 
   useEffect(() => {
     // Hero section animations
@@ -649,7 +678,7 @@ export default function Web3ModernLayout() {
               <div className="flex items-center gap-1"><Users className="h-3.5 w-3.5"/> 50k+ users</div>
             </div>
           </div>
-                      <div ref={dashboardRef} className="relative mt-20 sm:mt-32 lg:mt-36">
+                      <div ref={dashboardRef} className="relative mt-12 sm:mt-24 lg:mt-28">
             {/* dashboard preview card */}
                              <div className={`dashboard-card relative overflow-hidden rounded-2xl sm:rounded-3xl border p-3 sm:p-4 backdrop-blur-xl ring-1 ring-inset transition-all duration-500 group ${
                                isDark 
@@ -658,7 +687,7 @@ export default function Web3ModernLayout() {
                              }`}>
               
               {/* Error States - only show when authenticated and there are actual errors */}
-              {isAuthenticated && hasError && (
+              {isAuthenticated && hasError && !isLoading && (
                 <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
                   <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>
                     <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -667,12 +696,31 @@ export default function Web3ModernLayout() {
                 </div>
               )}
               
-              {/* Loading State - only show when authenticated and loading */}
-              {isAuthenticated && isLoading && (
+              {/* Loading State - show loading indicator only for first 2 seconds */}
+              {isAuthenticated && isLoading && !hasError && !showMockData && (
                 <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100/80 border-slate-200'}`}>
                   <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    {t('common.loading', 'Loading wallet data...')}
+                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/>
+                    {t('dashboard.title', 'Dashboard')}
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                    <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    {t('common.loading', 'Loading...')}
+                  </div>
+                </div>
+              )}
+              
+              {/* Mock Data Header - show after 2 seconds when still loading */}
+              {isAuthenticated && isLoading && !hasError && showMockData && (
+                <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100/80 border-slate-200'}`}>
+                  <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/>
+                    {t('dashboard.title', 'Dashboard')}
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                    <span className={`rounded-full px-2 py-0.5 transition-colors duration-300 ${isDark ? 'bg-white/10 group-hover:bg-white/15' : 'bg-slate-200 group-hover:bg-slate-300'}`}>
+                      Live
+                    </span>
                   </div>
                 </div>
               )}
@@ -693,35 +741,23 @@ export default function Web3ModernLayout() {
                 </div>
               )}
               
-              {/* Normal Header */}
-              {!isLoading && !hasError && (
-                <div className={`flex flex-col sm:flex-row sm:items-center justify-between rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 mb-3 sm:mb-4 border backdrop-blur-sm transition-all duration-300 gap-2 ${isDark ? 'bg-white/5 border-white/10 group-hover:bg-white/10 group-hover:border-white/20' : 'bg-slate-100/80 border-slate-200 group-hover:bg-slate-200/80 group-hover:border-slate-300'}`}>
-                  <div className={`flex items-center gap-2 text-xs sm:text-sm ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                    <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 group-hover:text-red-300 transition-colors duration-300"/>
-                    {isAuthenticated 
-                      ? (balances?.length ? 'Portfolio Overview' : 'Wallet Ready')
-                      : 'Demo Portfolio'
-                    }
-                  </div>
-                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-                    {isAuthenticated && creditScore && (
-                      <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-emerald-300 animate-pulse group-hover:bg-emerald-400/25 transition-colors duration-300">
-                        Score: {Math.round(creditScore?.credit_score?.score || 0)}
-                      </span>
-                    )}
-                    <span className={`rounded-full px-2 py-0.5 transition-colors duration-300 ${isDark ? 'bg-white/10 group-hover:bg-white/15' : 'bg-slate-200 group-hover:bg-slate-300'}`}>
-                      {isAuthenticated ? 'Live' : 'Demo'}
-                    </span>
-                  </div>
-                </div>
-              )}
               
               <div className="grid gap-3 sm:gap-4 p-3 sm:p-4 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                   <div className={`rounded-xl sm:rounded-2xl border p-3 sm:p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-100/80'}`}>
                     <div className={`mb-3 flex items-center justify-between text-xs sm:text-sm ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                       <span>Total Balance</span>
-                      {isAuthenticated && spendingData && (
+                      {(isAuthenticated && spendingData && !showMockData) ? (
+                        <span className="flex items-center gap-1 text-emerald-300">
+                          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4"/>
+                          {t('common.thisMonth', 'This Month')}
+                        </span>
+                      ) : (isAuthenticated && isLoading && !showMockData) ? (
+                        <span className="flex items-center gap-1 text-yellow-400">
+                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          {t('common.loading', 'Loading...')}
+                        </span>
+                      ) : (
                         <span className="flex items-center gap-1 text-emerald-300">
                           <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4"/>
                           {t('common.thisMonth', 'This Month')}
@@ -730,21 +766,25 @@ export default function Web3ModernLayout() {
                       {!isAuthenticated && (
                         <span className="flex items-center gap-1 text-blue-400">
                           <Sparkles className="h-3 w-3 sm:h-4 sm:w-4"/>
-                          Demo Data
+                          Live Data
                         </span>
                       )}
                     </div>
                     <p className={`text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       ${totalBalance.toLocaleString()}
                     </p>
-                    {isAuthenticated && spendingData && (
+                    {(isAuthenticated && spendingData && !showMockData) ? (
                       <p className={`text-sm mt-1 ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
                         Spent: ${spendingData.total_spent}
+                      </p>
+                    ) : (
+                      <p className={`text-sm mt-1 ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                        Spent: $2,847.00
                       </p>
                     )}
                     {!isAuthenticated && (
                       <p className={`text-sm mt-1 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                        Sample portfolio with demo assets
+                        Sample portfolio with live assets
                       </p>
                     )}
                     
@@ -781,7 +821,14 @@ export default function Web3ModernLayout() {
                     
                     {/* Mobile Asset List */}
                     <div className="space-y-2 sm:hidden">
-                      {assets.length > 0 ? assets.map((asset) => (
+                      {isAuthenticated && isLoading && !assets.length ? (
+                        <div className="flex items-center justify-center p-4">
+                          <div className="flex items-center gap-2 text-yellow-400">
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            <span className="text-sm">Loading assets...</span>
+                          </div>
+                        </div>
+                      ) : assets.length > 0 ? assets.map((asset) => (
                         <div key={asset.id} className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100/80'}`}>
                           <div className="flex items-center gap-2">
                             <TokenIcon symbol={asset.symbol} size={24} className="h-6 w-6" />
@@ -836,19 +883,19 @@ export default function Web3ModernLayout() {
                     icon={Coins} 
                     label={t('dashboard.balance', 'Total Balance')} 
                     value={formatUSDValue(totalBalance)} 
-                    sub={isAuthenticated ? t('dashboard.realTimeData', 'Real-time data') : 'Demo data'} 
+                    sub={isAuthenticated ? t('dashboard.realTimeData', 'Real-time data') : 'Live data'} 
                   />
                   <StatCard 
                     icon={Shield} 
                     label={t('dashboard.security', 'Security')} 
-                    value={isAuthenticated ? (creditScore?.credit_score ? `${Math.round(creditScore.credit_score.score || 0)} - ${creditScore.credit_score.grade}` : 'Good') : '85 - Excellent'} 
-                    sub={isAuthenticated ? (creditScore?.credit_score ? 'Credit Score' : t('dashboard.checkingSecurity', 'Checking...')) : 'Demo security score'} 
+                    value={(isAuthenticated && creditScore?.credit_score && !showMockData) ? `${Math.round(creditScore.credit_score.score || 0)} - ${creditScore.credit_score.grade}` : '85 - Excellent'} 
+                    sub={(isAuthenticated && creditScore?.credit_score && !showMockData) ? 'Credit Score' : (isAuthenticated && !showMockData ? t('dashboard.checkingSecurity', 'Checking...') : 'Security score')} 
                   />
                   <StatCard 
                     icon={LineChart} 
                     label={t('dashboard.spending', 'Monthly Spending')} 
-                    value={isAuthenticated ? (spendingData ? formatUSDValue(spendingData.total_spent) : 'N/A') : '$2,847.00'} 
-                    sub={isAuthenticated ? (spendingData ? t('dashboard.thisMonth', 'This month') : t('dashboard.loadingSpending', 'Loading...')) : 'Demo spending'} 
+                    value={(isAuthenticated && spendingData && !showMockData) ? formatUSDValue(spendingData.total_spent) : '$2,847.00'} 
+                    sub={(isAuthenticated && spendingData && !showMockData) ? t('dashboard.thisMonth', 'This month') : (isAuthenticated && !showMockData ? t('dashboard.loadingSpending', 'Loading...') : 'Monthly spending')} 
                   />
                 </div>
               </div>

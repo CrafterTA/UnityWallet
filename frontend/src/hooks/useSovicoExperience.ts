@@ -27,12 +27,11 @@ const mockServices: SovicoService[] = [
     company: 'HDBank',
     price: 5000000,
     currency: 'VND',
-    priceInSYP: 1000,
-    priceInXLM: 50,
-    priceInUSDC: 200,
-    paymentAddress: 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL',
+    priceInSOL: 0.93,
+    priceInUSDT: 200,
+    paymentAddress: '2G4rAznTKBFbTK7ofGBEkdLAKs7idYKAH5iMwqSbLJxr',
     memo: 'HDBANK-PREMIUM-001',
-    acceptedAssets: ['SYP', 'XLM', 'USDC'],
+    acceptedAssets: ['SOL', 'USDT'],
     addonOptions: [
       {
         id: 'addon-1',
@@ -65,12 +64,11 @@ const mockServices: SovicoService[] = [
     company: 'Vietjet Air',
     price: 3000000,
     currency: 'VND',
-    priceInSYP: 600,
-    priceInXLM: 30,
-    priceInUSDC: 120,
-    paymentAddress: 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL',
+    priceInSOL: 0.56,
+    priceInUSDT: 120,
+    paymentAddress: '2G4rAznTKBFbTK7ofGBEkdLAKs7idYKAH5iMwqSbLJxr',
     memo: 'VJ-BUSINESS-001',
-    acceptedAssets: ['SYP', 'XLM', 'USDC'],
+    acceptedAssets: ['SOL', 'USDT'],
     addonOptions: [
       {
         id: 'addon-2',
@@ -103,12 +101,11 @@ const mockServices: SovicoService[] = [
     company: 'Dragon Village',
     price: 2500000,
     currency: 'VND',
-    priceInSYP: 500,
-    priceInXLM: 25,
-    priceInUSDC: 100,
-    paymentAddress: 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL',
+    priceInSOL: 0.47,
+    priceInUSDT: 100,
+    paymentAddress: '2G4rAznTKBFbTK7ofGBEkdLAKs7idYKAH5iMwqSbLJxr',
     memo: 'DV-RESORT-001',
-    acceptedAssets: ['SYP', 'XLM', 'USDC'],
+    acceptedAssets: ['SOL', 'USDT'],
     addonOptions: [
       {
         id: 'addon-3',
@@ -141,12 +138,11 @@ const mockServices: SovicoService[] = [
     company: 'Sovico Energy',
     price: 15000000,
     currency: 'VND',
-    priceInSYP: 3000,
-    priceInXLM: 150,
-    priceInUSDC: 600,
-    paymentAddress: 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3FO6WVOUP35KEUMWPPL',
+    priceInSOL: 2.81,
+    priceInUSDT: 600,
+    paymentAddress: '2G4rAznTKBFbTK7ofGBEkdLAKs7idYKAH5iMwqSbLJxr',
     memo: 'SE-SOLAR-001',
-    acceptedAssets: ['SYP', 'XLM', 'USDC'],
+    acceptedAssets: ['SOL', 'USDT'],
     addonOptions: [
       {
         id: 'addon-4',
@@ -182,21 +178,21 @@ const mockSolutions: SovicoSolution[] = [
     services: ['1', '2', '3'],
     price: 15000000,
     currency: 'VND',
-    priceInSYP: 3000,
+    priceInSOL: 1.96,
     originalPrice: 20000000,
     discount: 25,
     benefits: [
       'Tiết kiệm 25% so với mua riêng lẻ',
       'Ưu đãi đặc biệt cho doanh nhân',
       'Hỗ trợ 24/7',
-      'Tích hợp thanh toán SYP'
+      'Tích hợp thanh toán SOL/USDT'
     ],
     timeline: 'Triển khai trong 7 ngày',
     implementationSteps: [
       'Đăng ký tài khoản HDBank Premium',
       'Kích hoạt thẻ Vietjet Business',
       'Đặt phòng Dragon Village Suite',
-      'Tích hợp thanh toán SYP'
+      'Tích hợp thanh toán SOL/USDT'
     ],
     targetAudience: ['Doanh nhân', 'Giám đốc', 'CEO'],
     imageUrl: '/images/business-package.jpg',
@@ -215,21 +211,21 @@ const mockSolutions: SovicoSolution[] = [
     services: ['1', '2', '3'],
     price: 8000000,
     currency: 'VND',
-    priceInSYP: 1600,
+    priceInSOL: 1.04,
     originalPrice: 12000000,
     discount: 33,
     benefits: [
       'Tiết kiệm 33% so với mua riêng lẻ',
       'Ưu đãi đặc biệt cho gia đình',
       'Hỗ trợ 24/7',
-      'Tích hợp thanh toán SYP'
+      'Tích hợp thanh toán SOL/USDT'
     ],
     timeline: 'Triển khai trong 5 ngày',
     implementationSteps: [
       'Mở tài khoản tiết kiệm gia đình',
       'Đăng ký chương trình khách hàng thân thiết Vietjet',
       'Đặt phòng Dragon Village cho gia đình',
-      'Tích hợp thanh toán SYP'
+      'Tích hợp thanh toán SOL/USDT'
     ],
     targetAudience: ['Gia đình', 'Cặp đôi', 'Phụ huynh'],
     imageUrl: '/images/family-package.jpg',
@@ -248,21 +244,21 @@ const mockSolutions: SovicoSolution[] = [
     services: ['1', '2', '3'],
     price: 5000000,
     currency: 'VND',
-    priceInSYP: 1000,
+    priceInSOL: 0.65,
     originalPrice: 8000000,
     discount: 37,
     benefits: [
       'Tiết kiệm 37% so với mua riêng lẻ',
       'Hỗ trợ đặc biệt cho startup',
       'Tư vấn miễn phí',
-      'Tích hợp thanh toán SYP'
+      'Tích hợp thanh toán SOL/USDT'
     ],
     timeline: 'Triển khai trong 3 ngày',
     implementationSteps: [
       'Mở tài khoản doanh nghiệp HDBank',
       'Đăng ký dịch vụ vận chuyển Vietjet',
       'Thuê văn phòng ảo Dragon Village',
-      'Tích hợp thanh toán SYP'
+      'Tích hợp thanh toán SOL/USDT'
     ],
     targetAudience: ['Startup', 'Doanh nghiệp nhỏ', 'Freelancer'],
     imageUrl: '/images/startup-package.jpg',
@@ -281,21 +277,21 @@ const mockSolutions: SovicoSolution[] = [
     services: ['1', '2', '3'],
     price: 25000000,
     currency: 'VND',
-    priceInSYP: 5000,
+    priceInSOL: 3.26,
     originalPrice: 35000000,
     discount: 28,
     benefits: [
       'Tiết kiệm 28% so với mua riêng lẻ',
       'Dịch vụ cao cấp nhất',
       'Hỗ trợ 24/7',
-      'Tích hợp thanh toán SYP'
+      'Tích hợp thanh toán SOL/USDT'
     ],
     timeline: 'Triển khai trong 10 ngày',
     implementationSteps: [
       'Mở tài khoản du lịch cao cấp HDBank',
       'Đặt vé máy bay hạng nhất Vietjet',
       'Đặt phòng resort 5 sao Dragon Village',
-      'Tích hợp thanh toán SYP'
+      'Tích hợp thanh toán SOL/USDT'
     ],
     targetAudience: ['Du lịch cao cấp', 'VIP', 'Celebrity'],
     imageUrl: '/images/luxury-package.jpg',
@@ -673,11 +669,10 @@ export const useSovicoExperience = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [checkoutState, setCheckoutState] = useState<SovicoCheckoutState>({
     addons: [],
-    selectedAsset: 'SYP',
+    selectedAsset: 'SOL',
     totalAmount: 0,
-    totalInSYP: 0,
-    totalInXLM: 0,
-    totalInUSDC: 0,
+    totalInSOL: 0,
+    totalInUSDT: 0,
     paymentAddress: '',
     isProcessing: false
   })
@@ -727,8 +722,8 @@ export const useSovicoExperience = () => {
       return [
         {
           id: '2',
-          title: 'Vietjet Air: Thanh toán không tiền mặt với SYP',
-          content: 'Vietjet Air đã tích hợp thành công thanh toán SYP, mang lại trải nghiệm mới cho khách hàng.',
+          title: 'Vietjet Air: Thanh toán không tiền mặt với SOL/USDT',
+          content: 'Vietjet Air đã tích hợp thành công thanh toán SOL/USDT, mang lại trải nghiệm mới cho khách hàng.',
           excerpt: 'Vietjet Air là hãng hàng không đầu tiên tại Việt Nam áp dụng thanh toán crypto...',
           author: 'Trần Thị B',
           authorRole: 'Trưởng phòng Marketing',
@@ -901,23 +896,23 @@ export const useSovicoExperience = () => {
         },
         exchangeRates: [
           {
-            from: 'SYP',
+            from: 'SOL',
             to: 'VND',
-            rate: 25000,
+            rate: 10000,
             change: 2.1,
             lastUpdated: '2024-01-15 10:30:00'
           },
           {
-            from: 'SYP',
-            to: 'XLM',
-            rate: 0.5,
+            from: 'SOL',
+            to: 'USDT',
+            rate: 0.4,
             change: -1.2,
             lastUpdated: '2024-01-15 10:30:00'
           },
           {
-            from: 'SYP',
-            to: 'USDC',
-            rate: 1.0,
+            from: 'USDT',
+            to: 'VND',
+            rate: 25000,
             change: 0.5,
             lastUpdated: '2024-01-15 10:30:00'
           }
@@ -925,7 +920,7 @@ export const useSovicoExperience = () => {
         marketInsights: [
           {
             type: 'positive' as const,
-            title: 'SYP Adoption Growing',
+            title: 'SOL/USDT Adoption Growing',
             description: 'Increased adoption in Vietnamese market'
           },
           {
@@ -968,9 +963,8 @@ export const useSovicoExperience = () => {
     queryFn: async () => {
       await new Promise(resolve => setTimeout(resolve, 500))
       return {
-        SYP: { VND: 5000, XLM: 0.5, USDC: 0.2 },
-        XLM: { VND: 10000, SYP: 2, USDC: 0.4 },
-        USDC: { VND: 25000, SYP: 5, XLM: 2.5 },
+        SOL: { VND: 5346308, USDT: 0.4 },
+        USDT: { VND: 25000, SOL: 2.5 },
         lastUpdated: new Date().toISOString()
       } as SovicoExchangeRates
     },
@@ -993,33 +987,46 @@ export const useSovicoExperience = () => {
         const apiUrl = '/api'
 
         // Use proxy to avoid CORS issues
+        const requestBody = {
+          secret: wallet.secret,
+          destination: paymentData.paymentAddress,
+          source: {
+            mint: paymentData.selectedAsset === 'SOL' ? 'So11111111111111111111111111111111111111112' : 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+            symbol: paymentData.selectedAsset,
+            decimals: paymentData.selectedAsset === 'SOL' ? 9 : 6
+          },
+          amount: paymentData.selectedAsset === 'SOL' 
+            ? paymentData.totalInSOL.toString()
+            : paymentData.totalInUSDT.toString()
+        }
+        
+        console.log('Payment request body:', requestBody)
+        
         const response = await fetch('/api/send/execute', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            secret: wallet.secret,
-            destination: paymentData.paymentAddress,
-            source: {
-              code: paymentData.selectedAsset === 'SYP' ? 'SYP' : paymentData.selectedAsset,
-              issuer: paymentData.selectedAsset === 'SYP' ? 'GDV72SE3EKAEQBEHMS6JAKOWBAMDSV2N3N75Z3F06WVOUP35KEUMWPPL' : undefined
-            },
-            amount: paymentData.selectedAsset === 'SYP' 
-              ? paymentData.totalInSYP.toString() 
-              : paymentData.selectedAsset === 'XLM' 
-                ? paymentData.totalInXLM.toString()
-                : paymentData.totalInUSDC.toString()
-          })
+          body: JSON.stringify(requestBody)
         })
 
         if (!response.ok) {
           let errorMessage = 'Payment failed'
-          try {
-            const errorData = await response.json()
-            errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          } catch (e) {
-            errorMessage = `HTTP ${response.status}: ${response.statusText}`
+          
+          // Handle specific HTTP status codes
+          if (response.status === 422) {
+            errorMessage = 'Dữ liệu thanh toán không hợp lệ. Vui lòng kiểm tra lại thông tin.'
+          } else if (response.status === 400) {
+            errorMessage = 'Yêu cầu không hợp lệ. Vui lòng thử lại.'
+          } else if (response.status === 500) {
+            errorMessage = 'Lỗi server. Vui lòng thử lại sau.'
+          } else {
+            try {
+              const errorData = await response.json()
+              errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`
+            } catch (e) {
+              errorMessage = `HTTP ${response.status}: ${response.statusText}`
+            }
           }
           throw new Error(errorMessage)
         }
@@ -1028,19 +1035,18 @@ export const useSovicoExperience = () => {
         
         return {
           success: true,
-          transactionHash: result.hash,
+          transactionHash: result.signature || result.hash || `mock_${Date.now()}`,
+          signature: result.signature || result.hash || `mock_${Date.now()}`,
           ledger: Math.floor(Math.random() * 1000000) + 50000000,
-          amount: paymentData.selectedAsset === 'SYP' 
-            ? paymentData.totalInSYP 
-            : paymentData.selectedAsset === 'XLM' 
-              ? paymentData.totalInXLM 
-              : paymentData.totalInUSDC,
+          amount: paymentData.selectedAsset === 'SOL' 
+            ? paymentData.totalInSOL 
+            : paymentData.totalInUSDT,
           asset: paymentData.selectedAsset,
           recipient: paymentData.paymentAddress,
           memo: paymentData.memo,
           timestamp: new Date().toISOString(),
           invoiceUrl: '/invoices/' + Date.now() + '.pdf',
-          horizonUrl: 'https://explorer.solana.com/tx/' + result.hash + '?cluster=devnet'
+          horizonUrl: 'https://explorer.solana.com/tx/' + (result.signature || result.hash || 'unknown') + '?cluster=devnet'
         }
       } catch (error) {
         console.error('Payment API error:', error)
@@ -1049,10 +1055,47 @@ export const useSovicoExperience = () => {
           throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và thử lại.')
         }
         
-        throw new Error(error instanceof Error ? error.message : 'Payment failed. Please try again.')
+        // Extract meaningful error message
+        let errorMessage = 'Payment failed. Please try again.'
+        if (error instanceof Error) {
+          errorMessage = error.message
+        } else if (typeof error === 'object' && error !== null) {
+          if ('message' in error) {
+            errorMessage = String(error.message)
+          } else if ('error' in error) {
+            errorMessage = String(error.error)
+          } else if ('detail' in error) {
+            errorMessage = String(error.detail)
+          }
+        } else if (typeof error === 'string') {
+          errorMessage = error
+        }
+        throw new Error(errorMessage)
       }
     },
-    onSuccess: () => {
+    onSuccess: (result, paymentData) => {
+      // Calculate loyalty points (1 point per 100,000 VND)
+      const totalVND = paymentData.selectedAsset === 'SOL' 
+        ? paymentData.totalInSOL * (exchangeRates?.SOL?.VND || 5346308)
+        : paymentData.totalInUSDT * (exchangeRates?.USDT?.VND || 25000)
+      const earnedPoints = Math.floor(totalVND / 100000) // 1 point per 100k VND
+      
+      // Update loyalty points in localStorage
+      const currentPoints = JSON.parse(localStorage.getItem('loyaltyPoints') || '{"total": 12500, "available": 8500, "used": 4000}')
+      const newPoints = {
+        ...currentPoints,
+        total: currentPoints.total + earnedPoints,
+        available: currentPoints.available + earnedPoints
+      }
+      localStorage.setItem('loyaltyPoints', JSON.stringify(newPoints))
+
+      // Show points earned notification
+      if (earnedPoints > 0) {
+        setTimeout(() => {
+          alert(`🎉 Chúc mừng! Bạn đã nhận được ${earnedPoints} điểm thưởng!`)
+        }, 1000)
+      }
+
       queryClient.invalidateQueries({ queryKey: ['wallet', 'balances'] })
       queryClient.invalidateQueries({ queryKey: ['sovico', 'analytics'] })
     }
@@ -1094,11 +1137,10 @@ export const useSovicoExperience = () => {
       service,
       solution,
       addons: [],
-      selectedAsset: 'SYP',
+      selectedAsset: 'SOL',
       totalAmount: service?.price || solution?.price || 0,
-      totalInSYP: service?.priceInSYP || solution?.priceInSYP || 0,
-      totalInXLM: service?.priceInXLM || solution?.priceInXLM || 0,
-      totalInUSDC: service?.priceInUSDC || solution?.priceInUSDC || 0,
+      totalInSOL: service?.priceInSOL || solution?.priceInSOL || 0,
+      totalInUSDT: service?.priceInUSDT || solution?.priceInUSDT || 0,
       paymentAddress: service?.paymentAddress || solution?.services?.[0] || '',
       memo: service?.memo || solution?.id,
       isProcessing: false
@@ -1124,7 +1166,7 @@ export const useSovicoExperience = () => {
       setCheckoutState(prev => ({ 
         ...prev, 
         isProcessing: false, 
-        error: error instanceof Error ? error.message : 'Payment failed' 
+        error: typeof error === 'string' ? error : (error instanceof Error ? error.message : 'Payment failed') 
       }))
       throw error
     }

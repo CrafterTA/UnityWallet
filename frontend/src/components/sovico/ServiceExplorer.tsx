@@ -289,9 +289,9 @@ const ServiceExplorer: React.FC<ServiceExplorerProps> = ({
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {formatPrice(service.price, service.currency)}
               </div>
-              {service.priceInSYP && (
+              {service.priceInSOL && (
                 <div className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
-                  {service.priceInSYP.toLocaleString()} SYP
+                  {service.priceInSOL.toLocaleString('vi-VN')} SOL
                 </div>
               )}
             </div>
@@ -376,9 +376,9 @@ const ServiceExplorer: React.FC<ServiceExplorerProps> = ({
           <div className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {formatPrice(service.price, service.currency)}
           </div>
-          {service.priceInSYP && (
+          {service.priceInSOL && (
             <div className={`text-sm mb-4 ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
-              {service.priceInSYP.toLocaleString()} SYP
+              {service.priceInSOL.toLocaleString('vi-VN')} SOL
             </div>
           )}
           <button 

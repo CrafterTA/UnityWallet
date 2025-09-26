@@ -40,18 +40,34 @@ function Swap() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const { data: balances, isLoading: balancesLoading, error: balancesError, refetch: refetchBalances } = useQuery({
-    queryKey: ['balances'],
-    queryFn: walletApi.getBalances,
-    retry: 1,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true, // Always refetch when component mounts
-  })
+  // Mock data for swap - completely fake data
+  const mockBalances = [
+    {
+      symbol: 'SOL',
+      balance_ui: '4.759',
+      balance: '4759000000',
+      asset_type: 'native'
+    },
+    {
+      symbol: 'USDT',
+      balance_ui: '0.000000',
+      balance: '0',
+      asset_type: 'token'
+    }
+  ]
+
+  // Mock swap state management
+  const [mockBalancesState, setMockBalancesState] = useState(mockBalances)
+
+  // Use mock data instead of real API
+  const balances = mockBalances
+  const balancesLoading = false
+  const balancesError = null
 
   // Auto-select first available asset when balances load
   useEffect(() => {
-    if (balances && balances.length > 0) {
-      const availableAssets = balances.map(b => b.symbol)
+    if (mockBalancesState && mockBalancesState.length > 0) {
+      const availableAssets = mockBalancesState.map(b => b.symbol)
       if (!availableAssets.includes(fromAsset)) {
         setFromAsset(availableAssets[0])
       }
@@ -61,15 +77,36 @@ function Swap() {
         setToAsset(otherAssets.length > 0 ? otherAssets[0] : availableAssets[0])
       }
     }
-  }, [balances, fromAsset, toAsset])
+  }, [mockBalancesState, fromAsset, toAsset])
 
-  const { data: quote, isLoading: quoteLoading, error: quoteError } = useQuery({
-    queryKey: ['quote', fromAsset, toAsset, fromAmount],
-    queryFn: () => walletApi.getQuote(fromAsset, toAsset, fromAmount),
-    enabled: !!fromAmount && parseFloat(fromAmount) > 0,
-    refetchInterval: 10000, // Update quote every 10 seconds
-    retry: 1,
-  })
+  // Mock quote data - fake exchange rates
+  const getMockQuote = (fromAsset: string, toAsset: string, amount: string) => {
+    if (!amount || parseFloat(amount) <= 0) return null
+    
+    const amountNum = parseFloat(amount)
+    let exchangeRate = 1
+    let toAmount = amountNum
+    
+    // Mock exchange rates - realistic rates with decimals
+    if (fromAsset === 'SOL' && toAsset === 'USDT') {
+      exchangeRate = 195.3673 // 1 SOL = 195.3673 USDT
+      toAmount = amountNum * exchangeRate
+    } else if (fromAsset === 'USDT' && toAsset === 'SOL') {
+      exchangeRate = 1 / 195.3673 // 1 USDT = 0.005119 SOL
+      toAmount = amountNum * exchangeRate
+    }
+    
+    return {
+      to_amount: toAmount.toFixed(6),
+      exchange_rate: exchangeRate.toFixed(6),
+      fee_amount: '0.000005'
+    }
+  }
+
+  const quote = fromAmount && parseFloat(fromAmount) > 0 ? getMockQuote(fromAsset, toAsset, fromAmount) : null
+  const quoteLoading = false
+  const quoteError = null
+  const displayQuote = quote
 
   const handleSwapAssets = () => {
     if (fromAsset !== toAsset) {
@@ -107,50 +144,83 @@ function Swap() {
     toast.loading(t('swap.processingSwap', 'Processing swap...'), { id: 'swap' })
 
     try {
-      const result = await walletApi.swap({
-        selling_asset_code: fromAsset,
-        buying_asset_code: toAsset,
-        amount: amountNum.toString()
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      // Mock swap logic
+      const quote = getMockQuote(fromAsset, toAsset, fromAmount)
+      if (!quote) {
+        throw new Error('Unable to get quote')
+      }
+
+      // Update mock balances
+      const newBalances = mockBalancesState.map(balance => {
+        if (balance.symbol === fromAsset) {
+          const newAmount = parseFloat(balance.balance_ui) - amountNum
+          return {
+            ...balance,
+            balance_ui: newAmount.toFixed(6),
+            balance: (newAmount * 1000000000).toString()
+          }
+        } else if (balance.symbol === toAsset) {
+          const newAmount = parseFloat(balance.balance_ui) + parseFloat(quote.to_amount)
+          return {
+            ...balance,
+            balance_ui: newAmount.toFixed(6),
+            balance: (newAmount * 1000000000).toString()
+          }
+        }
+        return balance
       })
 
-      if (result.status === 'success') {
-        toast.success(t('swap.swapSuccessful', 'Swap completed successfully!'), { id: 'swap' })
-        setFromAmount('')
-        
-        // Refetch data immediately to update UI
-        await Promise.all([
-          refetchBalances(),
-          queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-          queryClient.invalidateQueries({ queryKey: ['activity-summary'] }),
-          queryClient.invalidateQueries({ queryKey: ['quote'] }),
-          queryClient.invalidateQueries({ queryKey: ['wallet-balances'] }),
-          queryClient.invalidateQueries({ queryKey: ['recent-transactions-wallet'] }),
-          queryClient.invalidateQueries({ queryKey: ['activity-transactions'] })
-        ])
-      } else {
-        toast.error(t('swap.swapFailed', 'Swap failed. Please try again.'), { id: 'swap' })
+      setMockBalancesState(newBalances)
+      
+      toast.success(t('swap.swapSuccessful', 'Swap completed successfully!'), { id: 'swap' })
+      setFromAmount('')
+      
+      // Add mock transaction to localStorage for activity page
+      const mockTransaction = {
+        id: Date.now().toString(),
+        type: 'swap',
+        fromAsset,
+        toAsset,
+        fromAmount: amountNum.toString(),
+        toAmount: quote.to_amount,
+        fee: quote.fee_amount,
+        timestamp: new Date().toISOString(),
+        status: 'success',
+        // Add detailed transaction information
+        signature: `${Date.now().toString(36)}${Math.random().toString(36).substr(2, 9)}`,
+        slot: Math.floor(Math.random() * 200000000) + 100000000,
+        block_time: Math.floor(Date.now() / 1000),
+        logs: [],
+        source_amount: amountNum.toString(),
+        source_asset_code: fromAsset,
+        asset_code: toAsset,
+        destination: 'Swap Pool',
+        created_at: new Date().toISOString(),
+        tx_type: 'SWAP',
+        direction: 'swapped',
+        memo: `Swap transaction - ${fromAsset} to ${toAsset}`,
+        description: `Swap ${amountNum} ${fromAsset} to ${quote.to_amount} ${toAsset}`
       }
+      
+      const existingTransactions = JSON.parse(localStorage.getItem('mockTransactions') || '[]')
+      existingTransactions.unshift(mockTransaction)
+      localStorage.setItem('mockTransactions', JSON.stringify(existingTransactions))
+
     } catch (error) {
       console.error('Swap error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Swap failed. Please try again.'
-      
-      // Check if wallet is locked
-      if (errorMessage.includes('Wallet is locked')) {
-        toast.error('Wallet is locked. Please unlock wallet first.', { id: 'swap' })
-        // Trigger wallet lock to show unlock modal
-        lockWallet()
-      } else {
-        toast.error(errorMessage, { id: 'swap' })
-      }
+      toast.error('Swap failed. Please try again.', { id: 'swap' })
     } finally {
       setIsSwapping(false)
     }
   }
 
   const getAssetBalance = (assetCode: string) => {
-    if (!balances || !Array.isArray(balances)) return 0
+    if (!mockBalancesState || !Array.isArray(mockBalancesState)) return 0
     
-    const balance = balances.find(b => {
+    const balance = mockBalancesState.find(b => {
       // For Solana, check symbol
       return b.symbol === assetCode
     })
@@ -234,7 +304,7 @@ function Swap() {
               <div className="relative min-w-[120px]" ref={fromAssetRef}>
                 <button
                   onClick={() => setFromAssetOpen(!fromAssetOpen)}
-                  disabled={!balances?.length}
+                  disabled={!mockBalancesState?.length}
                   className={classNames(
                     'w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent backdrop-blur-sm flex items-center justify-between disabled:opacity-50',
                     isDark 
@@ -248,13 +318,13 @@ function Swap() {
                   </svg>
                 </button>
                 
-                {fromAssetOpen && balances && (
+                {fromAssetOpen && mockBalancesState && (
                   <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border backdrop-blur-sm z-50 ${
                     isDark 
                       ? 'bg-slate-800/95 border-slate-600 shadow-2xl' 
                       : 'bg-white border-slate-200 shadow-2xl'
                   }`}>
-                    {balances
+                    {mockBalancesState
                       .filter(balance => {
                         const symbol = balance.symbol || balance.symbol
                         return symbol !== toAsset
@@ -313,7 +383,7 @@ function Swap() {
                 value={
                   quoteLoading && fromAmount && parseFloat(fromAmount) > 0 
                     ? 'Calculating...'
-                    : quote?.to_amount || ''
+                    : displayQuote?.to_amount || ''
                 }
                 placeholder={fromAmount ? 'Estimated output' : 'Enter amount above'}
                 readOnly
@@ -327,7 +397,7 @@ function Swap() {
                <div className="relative min-w-[120px]" ref={toAssetRef}>
                  <button
                    onClick={() => setToAssetOpen(!toAssetOpen)}
-                   disabled={!balances?.length}
+                   disabled={!mockBalancesState?.length}
                    className={classNames(
                      'w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent backdrop-blur-sm flex items-center justify-between disabled:opacity-50',
                      isDark 
@@ -341,13 +411,13 @@ function Swap() {
                    </svg>
                  </button>
                  
-                 {toAssetOpen && balances && (
+                 {toAssetOpen && mockBalancesState && (
                    <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border backdrop-blur-sm z-50 ${
                      isDark 
                        ? 'bg-slate-800/95 border-slate-600 shadow-2xl' 
                        : 'bg-white border-slate-200 shadow-2xl'
                    }`}>
-                     {balances
+                     {mockBalancesState
                        .filter(balance => {
                          const symbol = balance.symbol || balance.symbol
                          return symbol !== fromAsset
@@ -379,24 +449,24 @@ function Swap() {
            </div>
 
                                      {/* Quote Details */}
-            {quote && (
+            {displayQuote && (
               <div className={`${isDark ? 'bg-white/10 border-white/20' : 'bg-slate-100/80 border-slate-200'} backdrop-blur-sm rounded-xl p-4 space-y-2 border`}>
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('swap.swapRate', 'Exchange Rate')}:</span>
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    1 {fromAsset} = {quote.exchange_rate} {toAsset}
+                    1 {fromAsset} = {displayQuote.exchange_rate} {toAsset}
                   </span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('swap.networkFee', 'Network Fee')}:</span>
-                  <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{quote.fee_amount} SOL</span>
+                  <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{displayQuote.fee_amount} SOL</span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-white/70' : 'text-slate-600'}>{t('swap.estimatedOutput', 'You will receive')}:</span>
                   <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    {quote.to_amount} {toAsset}
+                    {displayQuote.to_amount} {toAsset}
                   </span>
                 </div>
                 

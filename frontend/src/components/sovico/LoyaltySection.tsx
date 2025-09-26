@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useThemeStore } from '@/store/theme'
+import { useNotifications } from '@/components/NotificationSystem'
 import { 
   Gift, 
   Star, 
@@ -22,7 +23,9 @@ import {
   ExternalLink,
   ChevronRight,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Copy,
+  XCircle
 } from 'lucide-react'
 import { SovicoPromotion, SovicoLoyaltyPoints } from '@/types/sovico'
 
@@ -45,26 +48,137 @@ const LoyaltySection: React.FC<LoyaltySectionProps> = ({
 }) => {
   const { t } = useTranslation()
   const { isDark } = useThemeStore()
+  const { addNotification } = useNotifications()
   
   const [activeTab, setActiveTab] = useState('promotions')
   const [expandedPromotion, setExpandedPromotion] = useState<string | null>(null)
   const [showAllTasks, setShowAllTasks] = useState(false)
+  const [redeemedCoupons, setRedeemedCoupons] = useState<string[]>([])
 
-  // Mock loyalty points if not provided
-  const mockLoyaltyPoints: SovicoLoyaltyPoints = loyaltyPoints || {
-    total: 12500,
-    available: 8500,
-    used: 4000,
-    expired: 0,
-    level: 'gold',
-    nextLevelPoints: 15000,
-    benefits: [
-      'Ưu đãi 5% cho tất cả giao dịch',
-      'Miễn phí giao dịch SYP',
-      'Hỗ trợ ưu tiên 24/7',
-      'Quà tặng sinh nhật đặc biệt'
-    ]
+  // Load redeemed coupons from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('redeemedCoupons')
+    if (stored) {
+      try {
+        setRedeemedCoupons(JSON.parse(stored))
+      } catch (error) {
+        console.error('Error parsing redeemed coupons:', error)
+      }
+    }
+  }, [])
+
+
+  // Get loyalty points from localStorage or use default
+  const getLoyaltyPoints = (): SovicoLoyaltyPoints => {
+    try {
+      const stored = localStorage.getItem('loyaltyPoints')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        // Calculate level based on total points
+        let level = 'bronze'
+        if (parsed.total >= 50000) level = 'diamond'
+        else if (parsed.total >= 25000) level = 'platinum'
+        else if (parsed.total >= 10000) level = 'gold'
+        else if (parsed.total >= 5000) level = 'silver'
+        
+        return {
+          ...parsed,
+          level,
+          nextLevelPoints: level === 'diamond' ? 50000 : level === 'platinum' ? 50000 : level === 'gold' ? 25000 : level === 'silver' ? 10000 : 5000,
+          benefits: [
+            'Ưu đãi 5% cho tất cả giao dịch',
+            'Miễn phí giao dịch SOL',
+            'Hỗ trợ ưu tiên 24/7',
+            'Quà tặng sinh nhật đặc biệt'
+          ]
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing loyalty points:', error)
+    }
+    
+    // Default points
+    return {
+      total: 12500,
+      available: 8500,
+      used: 4000,
+      expired: 0,
+      level: 'gold',
+      nextLevelPoints: 15000,
+      benefits: [
+        'Ưu đãi 5% cho tất cả giao dịch',
+        'Miễn phí giao dịch SOL',
+        'Hỗ trợ ưu tiên 24/7',
+        'Quà tặng sinh nhật đặc biệt'
+      ]
+    }
   }
+
+  const mockLoyaltyPoints: SovicoLoyaltyPoints = loyaltyPoints || getLoyaltyPoints()
+
+  // Mock coupon codes that can be redeemed with points
+  const mockCoupons = [
+    {
+      id: '1',
+      code: 'WELCOME10',
+      title: 'Giảm 10% cho giao dịch đầu tiên',
+      description: 'Áp dụng cho tất cả dịch vụ Sovico',
+      pointsRequired: 1000,
+      discountType: 'percentage',
+      discountValue: 10,
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      isRedeemed: false,
+      category: 'discount'
+    },
+    {
+      id: '2',
+      code: 'FLIGHT50K',
+      title: 'Giảm 50,000 VND vé máy bay',
+      description: 'Áp dụng cho dịch vụ Vietjet Air',
+      pointsRequired: 2000,
+      discountType: 'fixed',
+      discountValue: 50000,
+      validUntil: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      isRedeemed: false,
+      category: 'aviation'
+    },
+    {
+      id: '3',
+      code: 'HOTEL100K',
+      title: 'Giảm 100,000 VND khách sạn',
+      description: 'Áp dụng cho Dragon Village Resort',
+      pointsRequired: 3000,
+      discountType: 'fixed',
+      discountValue: 100000,
+      validUntil: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+      isRedeemed: false,
+      category: 'hospitality'
+    },
+    {
+      id: '4',
+      code: 'BANKING5PERCENT',
+      title: 'Giảm 5% phí ngân hàng',
+      description: 'Áp dụng cho dịch vụ HDBank Premium',
+      pointsRequired: 1500,
+      discountType: 'percentage',
+      discountValue: 5,
+      validUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      isRedeemed: false,
+      category: 'banking'
+    },
+    {
+      id: '5',
+      code: 'ENERGY20PERCENT',
+      title: 'Giảm 20% năng lượng mặt trời',
+      description: 'Áp dụng cho Sovico Energy Solar',
+      pointsRequired: 5000,
+      discountType: 'percentage',
+      discountValue: 20,
+      validUntil: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
+      isRedeemed: false,
+      category: 'energy'
+    }
+  ]
 
   // Mock tasks
   const tasks = [
@@ -201,124 +315,230 @@ const LoyaltySection: React.FC<LoyaltySectionProps> = ({
   const progressToNextLevel = ((mockLoyaltyPoints.total - levelInfo.minPoints) / (mockLoyaltyPoints.nextLevelPoints - levelInfo.minPoints)) * 100
 
   const tabs = [
-    { id: 'promotions', label: t('loyalty.tabs.promotions', 'Ưu đãi'), icon: Gift },
+    { id: 'promotions', label: t('loyalty.tabs.promotions', 'Ưu đãi của tôi'), icon: Gift },
+    { id: 'coupons', label: t('loyalty.tabs.coupons', 'Mã ưu đãi'), icon: Award },
     { id: 'tasks', label: t('loyalty.tabs.tasks', 'Nhiệm vụ'), icon: Target },
     { id: 'levels', label: t('loyalty.tabs.levels', 'Cấp độ'), icon: Crown }
   ]
 
-  const renderPromotions = () => (
+  const renderCoupons = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          {t('loyalty.promotions.title', 'Ưu đãi hiện tại')}
+          {t('loyalty.coupons.title', 'Mã ưu đãi có thể đổi')}
         </h3>
-        <button
-          onClick={onViewAllPromotions}
-          className={`text-sm font-medium ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'} transition-colors`}
-        >
-          {t('loyalty.promotions.viewAll', 'Xem tất cả')}
-        </button>
+        <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+          {t('loyalty.coupons.availablePoints', 'Điểm khả dụng')}: <span className="font-semibold text-yellow-500">{mockLoyaltyPoints.available.toLocaleString()}</span>
+        </div>
       </div>
 
-      {promotions.length === 0 ? (
-        <div className="text-center py-12">
-          <Gift className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <h4 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {t('loyalty.promotions.noPromotions', 'Chưa có ưu đãi')}
-          </h4>
-          <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-            {t('loyalty.promotions.noPromotionsDesc', 'Ưu đãi sẽ được cập nhật sớm')}
-          </p>
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2 gap-6">
-          {promotions.map((promotion) => (
-            <div
-              key={promotion.id}
-              className={`rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-105 ${
-                isDark ? 'bg-white/5 border border-white/10' : 'bg-white/80 border border-gray-200'
-              }`}
-            >
-              <div className={`p-6 ${promotion.bannerColor ? `bg-${promotion.bannerColor}-500/10` : 'bg-gradient-to-r from-red-500/10 to-yellow-500/10'}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      promotion.type === 'discount' ? 'bg-red-100 text-red-600' :
-                      promotion.type === 'cashback' ? 'bg-green-100 text-green-600' :
-                      promotion.type === 'points' ? 'bg-yellow-100 text-yellow-600' :
-                      'bg-pink-100 text-pink-600'
-                    }`}>
-                      {getPromotionTypeIcon(promotion.type)}
-                    </div>
-                    <div>
-                      <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {promotion.title}
-                      </h4>
-                      <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-                        {promotion.type === 'discount' ? `${promotion.value}% ${t('loyalty.promotions.off', 'giảm giá')}` :
-                         promotion.type === 'cashback' ? `${promotion.value}% ${t('loyalty.promotions.cashback', 'hoàn tiền')}` :
-                         promotion.type === 'points' ? `${promotion.value} ${t('loyalty.promotions.pointsLabel', 'points')}` :
-                         t('loyalty.promotions.gift', 'Quà tặng')}
-                      </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        {mockCoupons.map((coupon) => (
+          <div
+            key={coupon.id}
+            className={`rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-105 ${
+              isDark ? 'bg-white/5 border border-white/10' : 'bg-white/80 border border-gray-200'
+            } ${coupon.isRedeemed ? 'opacity-50' : ''}`}
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    coupon.category === 'aviation' ? 'bg-blue-100 text-blue-600' :
+                    coupon.category === 'hospitality' ? 'bg-green-100 text-green-600' :
+                    coupon.category === 'banking' ? 'bg-purple-100 text-purple-600' :
+                    coupon.category === 'energy' ? 'bg-yellow-100 text-yellow-600' :
+                    'bg-red-100 text-red-600'
+                  }`}>
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {coupon.title}
+                    </h4>
+                    <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                      {coupon.discountType === 'percentage' 
+                        ? `${coupon.discountValue}% ${t('loyalty.coupons.discount', 'giảm giá')}`
+                        : `${coupon.discountValue.toLocaleString('vi-VN')} VND ${t('loyalty.coupons.discount', 'giảm giá')}`
+                      }
                     </div>
                   </div>
-                  <button
-                    onClick={() => setExpandedPromotion(expandedPromotion === promotion.id ? null : promotion.id)}
-                    className={`p-2 rounded-xl transition-colors ${
-                      isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    {expandedPromotion === promotion.id ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
                 </div>
-
-                <p className={`text-sm mb-4 ${isDark ? 'text-white/80' : 'text-gray-600'}`}>
-                  {promotion.description}
-                </p>
-
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-500'}`}>
-                    {t('loyalty.promotions.validUntil', 'Có hiệu lực đến')}: {new Date(promotion.endDate).toLocaleDateString()}
-                  </div>
-                  <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-500'}`}>
-                    {promotion.usedCount}/{promotion.usageLimit || '∞'} {t('loyalty.promotions.used', 'đã sử dụng')}
-                  </div>
+                <div className={`text-right ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                  <div className="text-sm">{t('loyalty.coupons.pointsRequired', 'Cần')}</div>
+                  <div className="text-lg font-semibold text-yellow-500">{coupon.pointsRequired.toLocaleString()}</div>
                 </div>
-
-                {expandedPromotion === promotion.id && (
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <h5 className={`text-sm font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {t('loyalty.promotions.terms', 'Điều kiện')}:
-                    </h5>
-                    <ul className="space-y-1">
-                      {promotion.terms.map((term, index) => (
-                        <li key={index} className={`text-sm flex items-start gap-2 ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
-                          <span className="w-1 h-1 bg-current rounded-full mt-2 flex-shrink-0" />
-                          {term}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <button
-                  onClick={() => onRedeemPromotion?.(promotion)}
-                  className="w-full bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  <Gift className="w-4 h-4" />
-                  {t('loyalty.promotions.redeem', 'Sử dụng ngay')}
-                </button>
               </div>
+
+              <p className={`text-sm mb-4 ${isDark ? 'text-white/80' : 'text-gray-600'}`}>
+                {coupon.description}
+              </p>
+
+              <div className="flex items-center justify-between mb-4">
+                <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-500'}`}>
+                  {t('loyalty.coupons.validUntil', 'Có hiệu lực đến')}: {coupon.validUntil.toLocaleDateString('vi-VN')}
+                </div>
+                <div className={`text-sm font-mono px-2 py-1 rounded ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}>
+                  {coupon.code}
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (mockLoyaltyPoints.available >= coupon.pointsRequired && !coupon.isRedeemed) {
+                    // Update loyalty points in localStorage
+                    const currentPoints = JSON.parse(localStorage.getItem('loyaltyPoints') || '{"total": 12500, "available": 8500, "used": 4000}')
+                    const newPoints = {
+                      ...currentPoints,
+                      available: currentPoints.available - coupon.pointsRequired,
+                      used: currentPoints.used + coupon.pointsRequired
+                    }
+                    localStorage.setItem('loyaltyPoints', JSON.stringify(newPoints))
+                    
+                    // Add to redeemed coupons
+                    const newRedeemedCoupons = [...redeemedCoupons, coupon.id]
+                    setRedeemedCoupons(newRedeemedCoupons)
+                    localStorage.setItem('redeemedCoupons', JSON.stringify(newRedeemedCoupons))
+                    
+                    addNotification({
+                      type: 'success',
+                      title: 'Đổi mã thành công',
+                      message: `Đã đổi mã ${coupon.code} thành công! Đã trừ ${coupon.pointsRequired} điểm.`,
+                      icon: <CheckCircle className="w-5 h-5 text-green-500" />
+                    })
+                  } else if (coupon.isRedeemed) {
+                    addNotification({
+                      type: 'error',
+                      title: 'Lỗi',
+                      message: 'Mã đã được sử dụng!',
+                      icon: <XCircle className="w-5 h-5 text-red-500" />
+                    })
+                  } else {
+                    addNotification({
+                      type: 'error',
+                      title: 'Không đủ điểm',
+                      message: 'Không đủ điểm để đổi mã này!',
+                      icon: <XCircle className="w-5 h-5 text-red-500" />
+                    })
+                  }
+                }}
+                disabled={mockLoyaltyPoints.available < coupon.pointsRequired || coupon.isRedeemed}
+                className={`w-full py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+                  mockLoyaltyPoints.available >= coupon.pointsRequired && !coupon.isRedeemed
+                    ? 'bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <Award className="w-4 h-4" />
+                {coupon.isRedeemed ? t('loyalty.coupons.redeemed', 'Đã đổi') : t('loyalty.coupons.redeem', 'Đổi ngay')}
+              </button>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   )
+
+  const renderPromotions = () => {
+    const myCoupons = mockCoupons.filter(coupon => redeemedCoupons.includes(coupon.id))
+    
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {t('loyalty.promotions.title', 'Ưu đãi của tôi')}
+          </h3>
+          <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+            {myCoupons.length} {t('loyalty.promotions.couponsCount', 'mã ưu đãi')}
+          </div>
+        </div>
+
+        {myCoupons.length === 0 ? (
+          <div className="text-center py-12">
+            <Gift className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h4 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('loyalty.promotions.noMyCoupons', 'Chưa có ưu đãi nào')}
+            </h4>
+            <p className={`${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+              {t('loyalty.promotions.noMyCouponsDesc', 'Hãy đổi mã ưu đãi để sử dụng')}
+            </p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {myCoupons.map((coupon) => (
+              <div
+                key={coupon.id}
+                className={`rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-105 ${
+                  isDark ? 'bg-white/5 border border-white/10' : 'bg-white/80 border border-gray-200'
+                }`}
+              >
+                <div className="p-6 bg-gradient-to-r from-green-500/10 to-blue-500/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        coupon.category === 'aviation' ? 'bg-blue-100 text-blue-600' :
+                        coupon.category === 'hospitality' ? 'bg-green-100 text-green-600' :
+                        coupon.category === 'banking' ? 'bg-purple-100 text-purple-600' :
+                        coupon.category === 'energy' ? 'bg-yellow-100 text-yellow-600' :
+                        'bg-red-100 text-red-600'
+                      }`}>
+                        <Award className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {coupon.title}
+                        </h4>
+                        <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                          {coupon.discountType === 'percentage' 
+                            ? `${coupon.discountValue}% ${t('loyalty.coupons.discount', 'giảm giá')}`
+                            : `${coupon.discountValue.toLocaleString('vi-VN')} VND ${t('loyalty.coupons.discount', 'giảm giá')}`
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`text-right ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+                      <div className="text-sm">{t('loyalty.coupons.validUntil', 'Có hiệu lực đến')}</div>
+                      <div className="text-sm font-semibold">{coupon.validUntil.toLocaleDateString('vi-VN')}</div>
+                    </div>
+                  </div>
+
+                  <p className={`text-sm mb-4 ${isDark ? 'text-white/80' : 'text-gray-600'}`}>
+                    {coupon.description}
+                  </p>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`text-sm font-mono px-3 py-1 rounded-lg ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}>
+                      {coupon.code}
+                    </div>
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-sm font-medium">{t('loyalty.coupons.ready', 'Sẵn sàng sử dụng')}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(coupon.code)
+                      addNotification({
+                        type: 'success',
+                        title: 'Copy thành công',
+                        message: `Đã copy mã ${coupon.code}`,
+                        icon: <CheckCircle className="w-5 h-5 text-green-500" />
+                      })
+                    }}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    {t('loyalty.coupons.copyCode', 'Copy mã')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const renderTasks = () => (
     <div className="space-y-6">
@@ -533,6 +753,8 @@ const LoyaltySection: React.FC<LoyaltySectionProps> = ({
     switch (activeTab) {
       case 'promotions':
         return renderPromotions()
+      case 'coupons':
+        return renderCoupons()
       case 'tasks':
         return renderTasks()
       case 'levels':

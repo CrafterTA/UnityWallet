@@ -219,7 +219,7 @@ export const analyticsApi = {
 
       // Generate insights based on spending data
       if (analytics.total_spent > 0) {
-        insights.push(`You've spent ${analytics.total_spent.toFixed(3)} XLM in recent transactions`)
+        insights.push(`You've spent ${analytics.total_spent.toFixed(3)} SOL in recent transactions`)
         
         const topCategory = analytics.top_categories[0]
         if (topCategory) {
@@ -231,10 +231,10 @@ export const analyticsApi = {
           const prevMonth = analytics.monthly_trends[analytics.monthly_trends.length - 2]
           const change = lastMonth.amount - prevMonth.amount
           if (change > 0) {
-            insights.push(`Your spending increased by ${change.toFixed(3)} XLM last month`)
+            insights.push(`Your spending increased by ${change.toFixed(3)} SOL last month`)
             recommendations.push('Consider setting a monthly spending limit')
           } else {
-            insights.push(`Your spending decreased by ${Math.abs(change).toFixed(3)} XLM last month`)
+            insights.push(`Your spending decreased by ${Math.abs(change).toFixed(3)} SOL last month`)
             recommendations.push('Great job managing your expenses!')
           }
         }
@@ -328,7 +328,7 @@ INSTRUCTIONS:
 
 FORMATTING EXAMPLES:
 - "Chào bạn" → "Xin chào! Tôi là trợ lý AI của SoviPay.\n\nTôi có thể giúp bạn:\n• Kiểm tra số dư\n• Xem giao dịch\n• Giải thích về crypto\n\nBạn cần giúp gì?"
-- "How much XLM do I have?" → "**Số dư XLM của bạn:**\n\n• XLM: [amount] XLM\n• Giá trị: $[usd_value]\n\nBạn có thể gửi, nhận hoặc swap XLM này."
+- "How much SOL do I have?" → "**Số dư SOL của bạn:**\n\n• SOL: [amount] SOL\n• Giá trị: $[usd_value]\n\nBạn có thể gửi, nhận hoặc swap SOL này."
 - "What is blockchain?" → "**Blockchain là gì?**\n\nBlockchain là một công nghệ lưu trữ dữ liệu:\n• **Phi tập trung:** Không có cơ quan trung ương\n• **Bảo mật:** Dữ liệu được mã hóa\n• **Minh bạch:** Mọi giao dịch đều công khai\n• **Bất biến:** Không thể thay đổi dữ liệu cũ"`
             }]
           }]

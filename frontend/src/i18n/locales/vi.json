@@ -480,7 +480,7 @@
     "volume24h": "Khối lượng 24h",
     "liquidity": "Thanh khoản",
     "proTip": "Mẹo chuyên nghiệp",
-    "tip": "Chuyển đổi SkyPoints sang USDC để chi tiêu dễ dàng hơn, hoặc sang XLM để có phí giao dịch thấp hơn."
+    "tip": "Chuyển đổi USDT sang SOL để có phí giao dịch thấp hơn, hoặc giữ USDT để chi tiêu dễ dàng hơn."
   },
   "sovico": {
     "title": "Hệ sinh thái Sovico",
@@ -655,7 +655,7 @@
     "services": {
       "title": "Dịch vụ",
       "subtitle": "Marketplace dịch vụ với thanh toán SYP",
-      "payment": "Thanh toán bằng SYP, XLM, USDC",
+      "payment": "Thanh toán bằng SOL hoặc USDT",
       "buy": "Mua ngay"
     },
     "promotions": {
