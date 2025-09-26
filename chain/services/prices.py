@@ -12,8 +12,8 @@ COINGECKO_SIMPLE_PRICE_URL = f"{COINGECKO_API_URL}/simple/price"
 TOKEN_MAPPINGS = {
     "native": "solana",  # SOL
     "So11111111111111111111111111111111111111112": "solana",  # SOL mint
-    "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "tether",  # USDT
-    "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU": "usd-coin",  # USDC
+    "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "tether",  # dUSDT
+    "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU": "usd-coin",  # dUSDC
 }
 
 # Cache for prices
@@ -165,14 +165,14 @@ def get_token_info(token_mint: str) -> Dict[str, Any]:
         })
     elif token_mint == "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB":
         token_info.update({
-            "symbol": "USDT",
-            "name": "Tether USD",
+            "symbol": "dUSDT",
+            "name": "Devnet Tether USD",
             "decimals": 6
         })
     elif token_mint == "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU":
         token_info.update({
-            "symbol": "USDC",
-            "name": "USD Coin",
+            "symbol": "dUSDC",
+            "name": "Devnet USD Coin",
             "decimals": 6
         })
     

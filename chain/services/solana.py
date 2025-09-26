@@ -85,7 +85,7 @@ def get_token_balance(pub: str, mint: str) -> int:
         return 0
 
 def balances_of(pub: str) -> Dict[str, Any]:
-    """Get all balances (SOL + USDT + USDC) for an account from on-chain devnet"""
+    """Get all balances (SOL + dUSDT + dUSDC) for an account from on-chain devnet"""
     balances = {}
     
     # SOL balance (in lamports) - from on-chain devnet
@@ -98,24 +98,24 @@ def balances_of(pub: str) -> Dict[str, Any]:
         "symbol": "SOL"
     }
     
-    # USDT balance (in smallest unit) - from on-chain devnet
-    usdt_balance = get_token_balance(pub, USDT_MINT)
-    balances["USDT"] = {
-        "balance": str(usdt_balance),
-        "balance_ui": str(usdt_balance / 1_000_000),  # USDT has 6 decimals
+    # dUSDT balance (in smallest unit) - from on-chain devnet
+    dusdt_balance = get_token_balance(pub, USDT_MINT)
+    balances["dUSDT"] = {
+        "balance": str(dusdt_balance),
+        "balance_ui": str(dusdt_balance / 1_000_000),  # dUSDT has 6 decimals
         "mint": USDT_MINT,
         "decimals": 6,
-        "symbol": "USDT"
+        "symbol": "dUSDT"
     }
     
-    # USDC balance (in smallest unit) - from on-chain devnet
-    usdc_balance = get_token_balance(pub, USDC_MINT)
-    balances["USDC"] = {
-        "balance": str(usdc_balance),
-        "balance_ui": str(usdc_balance / 1_000_000),  # USDC has 6 decimals
+    # dUSDC balance (in smallest unit) - from on-chain devnet
+    dusdc_balance = get_token_balance(pub, USDC_MINT)
+    balances["dUSDC"] = {
+        "balance": str(dusdc_balance),
+        "balance_ui": str(dusdc_balance / 1_000_000),  # dUSDC has 6 decimals
         "mint": USDC_MINT,
         "decimals": 6,
-        "symbol": "USDC"
+        "symbol": "dUSDC"
     }
     
     return balances

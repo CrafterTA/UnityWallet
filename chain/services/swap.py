@@ -18,40 +18,38 @@ from services.solana import (
 from services.prices import get_token_price, calculate_usd_value
 from models.schemas import TokenRef
 
-SOL_MINT = "So11111111111111111111111111111111111111112"
-
 # Jupiter API configuration
 JUPITER_API_URL = "https://quote-api.jup.ag/v6/quote"
 JUPITER_SWAP_URL = "https://quote-api.jup.ag/v6/swap"
 
 # Raydium configuration for devnet
 RAYDIUM_DEVNET_POOLS = {
-    "SOL_USDC": {
-        "pool_id": "mock_pool_sol_usdc",
+    "SOL_dUSDC": {
+        "pool_id": "mock_pool_sol_dusdc",
         "base_mint": "So11111111111111111111111111111111111111112",  # SOL
-        "quote_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",  # USDC
+        "quote_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",  # dUSDC
         "base_decimals": 9,
         "quote_decimals": 6,
         "base_reserve": "1000000000000",  # 1000 SOL
-        "quote_reserve": "200000000000",  # 200,000 USDC
+        "quote_reserve": "200000000000",  # 200,000 dUSDC
     },
-    "SOL_USDT": {
-        "pool_id": "mock_pool_sol_usdt",
+    "SOL_dUSDT": {
+        "pool_id": "mock_pool_sol_dusdt",
         "base_mint": "So11111111111111111111111111111111111111112",  # SOL
-        "quote_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # USDT
+        "quote_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # dUSDT
         "base_decimals": 9,
         "quote_decimals": 6,
         "base_reserve": "1000000000000",  # 1000 SOL
-        "quote_reserve": "180000000000",  # 180,000 USDT
+        "quote_reserve": "180000000000",  # 180,000 dUSDT
     },
-    "USDC_USDT": {
-        "pool_id": "mock_pool_usdc_usdt",
-        "base_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",  # USDC
-        "quote_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # USDT
+    "dUSDC_dUSDT": {
+        "pool_id": "mock_pool_dusdc_dusdt",
+        "base_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",  # dUSDC
+        "quote_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # dUSDT
         "base_decimals": 6,
         "quote_decimals": 6,
-        "base_reserve": "100000000000",  # 100,000 USDC
-        "quote_reserve": "100000000000",  # 100,000 USDT
+        "base_reserve": "100000000000",  # 100,000 dUSDC
+        "quote_reserve": "100000000000",  # 100,000 dUSDT
     }
 }
 
@@ -91,16 +89,17 @@ def _to7(x: str | float | Decimal) -> str:
     return str(d.quantize(Decimal("0.0000001"), rounding=ROUND_DOWN))
 
 def _convert_ui_to_lamports(amount: str, token_ref: TokenRef) -> str:
-    """Convert UI amount (e.g. 1.0 SOL) to lamports/smallest unit"""
+    """Convert UI amount to lamports/smallest unit"""
     try:
         ui_amount = Decimal(amount)
-        mint = (token_ref.mint or "").strip()
-        if mint in ("native", SOL_MINT):
-            multiplier = Decimal("1000000000")
+        if token_ref.mint == "native":
+            # SOL: 1 SOL = 1,000,000,000 lamports
+            return str(int(ui_amount * Decimal("1000000000")))
         else:
-            decimals = token_ref.decimals if token_ref.decimals is not None else 6
+            # SPL tokens: use decimals from token_ref
+            decimals = token_ref.decimals or 6  # Default to 6 decimals
             multiplier = Decimal(10) ** decimals
-        return str(int(ui_amount * multiplier))
+            return str(int(ui_amount * multiplier))
     except (InvalidOperation, ValueError):
         return amount  # Return original if conversion fails
 
@@ -543,33 +542,33 @@ def _get_rate_string(source_mint: str, dest_mint: str) -> str:
         market_rate = float(source_price) / float(dest_price)
         
         if source_mint == "native" and dest_mint == DUSDC_MINT:
-            return f"1 SOL = {market_rate:.2f} USDC (Real Market Rate)"
+            return f"1 SOL = {market_rate:.2f} dUSDC (Real Market Rate)"
         elif source_mint == "native" and dest_mint == DUSDT_MINT:
-            return f"1 SOL = {market_rate:.2f} USDT (Real Market Rate)"
+            return f"1 SOL = {market_rate:.2f} dUSDT (Real Market Rate)"
         elif source_mint == DUSDC_MINT and dest_mint == DUSDT_MINT:
-            return f"1 USDC = {market_rate:.2f} USDT (Real Market Rate)"
+            return f"1 dUSDC = {market_rate:.2f} dUSDT (Real Market Rate)"
         elif source_mint == DUSDT_MINT and dest_mint == DUSDC_MINT:
-            return f"1 USDT = {1/market_rate:.2f} USDC (Real Market Rate)"
+            return f"1 dUSDT = {1/market_rate:.2f} dUSDC (Real Market Rate)"
         elif source_mint == DUSDC_MINT and dest_mint == "native":
-            return f"{market_rate:.2f} USDC = 1 SOL (Real Market Rate)"
+            return f"{market_rate:.2f} dUSDC = 1 SOL (Real Market Rate)"
         elif source_mint == DUSDT_MINT and dest_mint == "native":
-            return f"{market_rate:.2f} USDT = 1 SOL (Real Market Rate)"
+            return f"{market_rate:.2f} dUSDT = 1 SOL (Real Market Rate)"
         else:
             return f"1:100 (Real Market Rate: {market_rate:.2f})"
     else:
         # Fallback to mock rates
         if source_mint == "native" and dest_mint == DUSDC_MINT:
-            return "1 SOL = 200 USDC (Mock Rate)"
+            return "1 SOL = 200 dUSDC (Mock Rate)"
         elif source_mint == "native" and dest_mint == DUSDT_MINT:
-            return "1 SOL = 180 USDT (Mock Rate)"
+            return "1 SOL = 180 dUSDT (Mock Rate)"
         elif source_mint == DUSDC_MINT and dest_mint == DUSDT_MINT:
-            return "1 USDC = 1 USDT (Mock Rate)"
+            return "1 dUSDC = 1 dUSDT (Mock Rate)"
         elif source_mint == DUSDT_MINT and dest_mint == DUSDC_MINT:
-            return "1 USDT = 1 USDC (Mock Rate)"
+            return "1 dUSDT = 1 dUSDC (Mock Rate)"
         elif source_mint == DUSDC_MINT and dest_mint == "native":
-            return "200 USDC = 1 SOL (Mock Rate)"
+            return "200 dUSDC = 1 SOL (Mock Rate)"
         elif source_mint == DUSDT_MINT and dest_mint == "native":
-            return "180 USDT = 1 SOL (Mock Rate)"
+            return "180 dUSDT = 1 SOL (Mock Rate)"
         else:
             return "1:100 (Mock Rate)"
 
@@ -733,13 +732,13 @@ def _mock_raydium_execution(
         else:
             # Fallback to mock rates
             if source_token.mint == "native" and dest_token.mint == DUSDC_MINT:
-                # Mock rate: 1 SOL = 200 USDC
+                # Mock rate: 1 SOL = 200 dUSDC
                 dest_amount_float = source_amount_float * 200.0
             elif source_token.mint == "native" and dest_token.mint == DUSDT_MINT:
-                # Mock rate: 1 SOL = 180 USDT
+                # Mock rate: 1 SOL = 180 dUSDT
                 dest_amount_float = source_amount_float * 180.0
             elif source_token.mint == DUSDC_MINT and dest_token.mint == DUSDT_MINT:
-                # Mock rate: 1 USDC = 1 USDT (1:1)
+                # Mock rate: 1 dUSDC = 1 dUSDT (1:1)
                 dest_amount_float = source_amount_float * 1.0
             else:
                 # Generic mock rate: 1:100
@@ -754,13 +753,13 @@ def _mock_raydium_execution(
         else:
             # Fallback to mock rates
             if source_token.mint == "native" and dest_token.mint == DUSDC_MINT:
-                # Mock rate: 1 SOL = 200 USDC
+                # Mock rate: 1 SOL = 200 dUSDC
                 source_amount_float = dest_amount_float / 200.0
             elif source_token.mint == "native" and dest_token.mint == DUSDT_MINT:
-                # Mock rate: 1 SOL = 180 USDT
+                # Mock rate: 1 SOL = 180 dUSDT
                 source_amount_float = dest_amount_float / 180.0
             elif source_token.mint == DUSDC_MINT and dest_token.mint == DUSDT_MINT:
-                # Mock rate: 1 USDC = 1 USDT (1:1)
+                # Mock rate: 1 dUSDC = 1 dUSDT (1:1)
                 source_amount_float = dest_amount_float / 1.0
             else:
                 # Generic mock rate: 1:100
@@ -778,37 +777,34 @@ def _mock_raydium_execution(
         updated_balances["SOL"]["balance"] = str(int(max(0, new_sol) * 1_000_000_000))
     
     if dest_token.mint == DUSDC_MINT:
-        # Increase USDC balance
-        current_usdc = float(updated_balances["USDC"]["balance_ui"])
-        new_usdc = current_usdc + dest_amount_float
-        updated_balances["USDC"]["balance_ui"] = str(new_usdc)
-        updated_balances["USDC"]["balance"] = str(int(new_usdc * 1_000_000))
+        # Increase dUSDC balance
+        current_dusdc = float(updated_balances["dUSDC"]["balance_ui"])
+        new_dusdc = current_dusdc + dest_amount_float
+        updated_balances["dUSDC"]["balance_ui"] = str(new_dusdc)
+        updated_balances["dUSDC"]["balance"] = str(int(new_dusdc * 1_000_000))
     elif dest_token.mint == DUSDT_MINT:
-        # Increase USDT balance
-        current_usdt = float(updated_balances["USDT"]["balance_ui"])
-        new_usdt = current_usdt + dest_amount_float
-        updated_balances["USDT"]["balance_ui"] = str(new_usdt)
-        updated_balances["USDT"]["balance"] = str(int(new_usdt * 1_000_000))
+        # Increase dUSDT balance
+        current_dusdt = float(updated_balances["dUSDT"]["balance_ui"])
+        new_dusdt = current_dusdt + dest_amount_float
+        updated_balances["dUSDT"]["balance_ui"] = str(new_dusdt)
+        updated_balances["dUSDT"]["balance"] = str(int(new_dusdt * 1_000_000))
     
-    pool = _find_raydium_pool(source_token.mint, dest_token.mint)
     return {
-        "signature": None,  # No real signature because this is a mock execution
+        "signature": mock_signature,
         "transaction": "mock_raydium_transaction_for_devnet",
         "balances": updated_balances,
-        "links": {
-            "explorer": None,
-            "solscan": None,
-            "solanafm": None,
-            "solanabeach": None
-        },
+        "explorer_link": f"https://explorer.solana.com/tx/{mock_signature}?cluster=devnet",
+        "solscan_link": f"https://solscan.io/tx/{mock_signature}?cluster=devnet",
+        "solanafm_link": f"https://solana.fm/tx/{mock_signature}?cluster=devnet",
+        "beach_link": f"https://solanabeach.io/transaction/{mock_signature}",
         "raydium_mode": True,
-        "note": "Mock Raydium execution for devnet testing - no on-chain transaction submitted",
+        "note": "Mock Raydium execution for devnet testing",
         "swap_details": {
             "mode": mode,
             "source_amount": source_amount,
             "dest_amount": str(dest_amount_float),
-            "dex": "Raydium (mock)",
-            "pool_id": pool["pool_id"] if pool else "unknown",
+            "dex": "Raydium",
+            "pool_id": _find_raydium_pool(source_token.mint, dest_token.mint)["pool_id"] if _find_raydium_pool(source_token.mint, dest_token.mint) else "unknown",
             "rate": _get_rate_string(source_token.mint, dest_token.mint)
         }
     }
@@ -941,7 +937,7 @@ def quote_send_raydium(
             "route": [{"mint": input_mint}, {"mint": output_mint}]
         },
         "raydium_mode": True,
-        "note": "Raydium quote for devnet testing with USDC/USDT"
+        "note": "Raydium quote for devnet testing with dUSDC"
     }
 
 def quote_receive_raydium(
@@ -1020,7 +1016,7 @@ def quote_receive_raydium(
             "route": [{"mint": input_mint}, {"mint": output_mint}]
         },
         "raydium_mode": True,
-        "note": "Raydium quote for devnet testing with USDC/USDT"
+        "note": "Raydium quote for devnet testing with dUSDC"
     }
 
 def exec_send_raydium(

@@ -41,7 +41,7 @@ def get_network_status():
             "network": "devnet",
             "supported_dex": "Raydium",
             "jupiter_support": False,
-            "note": "Jupiter API does not support devnet. Using Raydium with USDC/USDT for devnet testing.",
+            "note": "Jupiter API does not support devnet. Using Raydium with dUSDC for devnet testing.",
             "features": {
                 "real_swap": True,
                 "raydium_swap": True,
@@ -50,27 +50,27 @@ def get_network_status():
             },
                    "supported_tokens": {
                        "SOL": "So11111111111111111111111111111111111111112",
-                       "USDC": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-                       "USDT": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                       "dUSDC": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+                       "dUSDT": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
                    },
             "raydium_pools": {
-                "SOL_USDC": {
-                    "pool_id": "mock_pool_sol_usdc",
+                "SOL_dUSDC": {
+                    "pool_id": "mock_pool_sol_dusdc",
                     "base_mint": "So11111111111111111111111111111111111111112",
                     "quote_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-                    "rate": "1 SOL = 200 USDC"
+                    "rate": "1 SOL = 200 dUSDC"
                 },
-                "SOL_USDT": {
-                    "pool_id": "mock_pool_sol_usdt",
+                "SOL_dUSDT": {
+                    "pool_id": "mock_pool_sol_dusdt",
                     "base_mint": "So11111111111111111111111111111111111111112",
                     "quote_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-                    "rate": "1 SOL = 180 USDT"
+                    "rate": "1 SOL = 180 dUSDT"
                 },
-                "USDC_USDT": {
-                    "pool_id": "mock_pool_usdc_usdt",
+                "dUSDC_dUSDT": {
+                    "pool_id": "mock_pool_dusdc_dusdt",
                     "base_mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
                     "quote_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-                    "rate": "1 USDC = 1 USDT"
+                    "rate": "1 dUSDC = 1 dUSDT"
                 }
             }
         }
@@ -362,17 +362,13 @@ def exec_swap_unified(body: ExecuteSwapReq):
             if use_devnet:
                 result = exec_send_raydium(body.secret, destination, body.source_token,
                                           body.source_amount, body.dest_token, dest_min, body.route)
-                if result.get("raydium_mode"):
-                    # Keep simulated balances for mock Raydium execution and expose actual on-chain snapshot separately
-                    result["balances_onchain"] = balances_of(source_public)
-                else:
-                    updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
-                    result["balances"] = updated_balances
             else:
                 result = exec_send(body.secret, destination, body.source_token,
                                  body.source_amount, body.dest_token, dest_min, body.route)
-                updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
-                result["balances"] = updated_balances
+            
+            # Get updated balances after swap
+            updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
+            result["balances"] = updated_balances
             result["swap_info"] = {
                 "mode": "send",
                 "source_token": body.source_token.mint,
@@ -431,16 +427,13 @@ def exec_swap_unified(body: ExecuteSwapReq):
             if use_devnet:
                 result = exec_receive_raydium(body.secret, destination, body.dest_token, body.dest_amount,
                                               body.source_token, source_max, body.route)
-                if result.get("raydium_mode"):
-                    result["balances_onchain"] = balances_of(source_public)
-                else:
-                    updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
-                    result["balances"] = updated_balances
             else:
                 result = exec_receive(body.secret, destination, body.dest_token, body.dest_amount,
                                     body.source_token, source_max, body.route)
-                updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
-                result["balances"] = updated_balances
+            
+            # Get updated balances after swap
+            updated_balances = balances_of_with_retry(source_public, max_retries=3, delay=2.0)
+            result["balances"] = updated_balances
             result["swap_info"] = {
                 "mode": "receive",
                 "source_token": body.source_token.mint,

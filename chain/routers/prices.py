@@ -24,17 +24,17 @@ def get_prices():
                     "symbol": "SOL",
                     "name": "Solana"
                 },
-                "USDT": {
+                "dUSDT": {
                     "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
                     "coin_id": "tether", 
-                    "symbol": "USDT",
-                    "name": "Tether USD"
+                    "symbol": "dUSDT",
+                    "name": "Devnet Tether USD"
                 },
-                "USDC": {
+                "dUSDC": {
                     "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
                     "coin_id": "usd-coin",
-                    "symbol": "USDC", 
-                    "name": "USD Coin"
+                    "symbol": "dUSDC", 
+                    "name": "Devnet USD Coin"
                 }
             }
         }
@@ -113,17 +113,17 @@ def get_supported_tokens():
                 "decimals": 9,
                 "coin_id": "solana"
             },
-            "USDT": {
+            "dUSDT": {
                 "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-                "symbol": "USDT", 
-                "name": "Tether USD",
+                "symbol": "dUSDT", 
+                "name": "Devnet Tether USD",
                 "decimals": 6,
                 "coin_id": "tether"
             },
-            "USDC": {
+            "dUSDC": {
                 "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-                "symbol": "USDC", 
-                "name": "USD Coin",
+                "symbol": "dUSDC", 
+                "name": "Devnet USD Coin",
                 "decimals": 6,
                 "coin_id": "usd-coin"
             }
