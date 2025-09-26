@@ -192,13 +192,13 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 <div className={`
                   text-2xl font-bold text-red-400
                 `}>
-                   -{formatAmount(transaction.source_amount || '0', transaction.source_asset_code || 'USDT')}
+                   -{formatAmount(transaction.source_amount || '0', transaction.source_asset_code || 'SOL')}
                 </div>
                 <div className="text-gray-400">→</div>
                 <div className={`
                   text-2xl font-bold text-green-400
                 `}>
-                  +{formatAmount(transaction.amount, transaction.asset_code || 'SOL')}
+                  +{formatAmount(transaction.amount, transaction.asset_code || 'USDT')}
                 </div>
               </div>
             ) : (
@@ -216,7 +216,7 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               ${isDark ? 'text-gray-400' : 'text-gray-600'}
             `}>
               {transaction.tx_type === 'SWAP' ? 
-                 `${transaction.source_asset_code || 'USDT'} → ${transaction.asset_code}` :
+                 `${transaction.source_asset_code || 'SOL'} → ${transaction.asset_code || 'USDT'}` :
                 transaction.asset_code}
             </div>
           </div>

@@ -97,8 +97,8 @@ function QRCodeGenerator() {
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-white backdrop-blur-sm"
             >
               {balances?.map((balance) => (
-                <option key={balance.asset_code} value={balance.asset_code} className="bg-slate-800 text-white">
-                  {balance.asset_code} ({parseFloat(balance.amount).toFixed(3)} {t('qr.available', 'available')})
+                <option key={balance.symbol} value={balance.symbol} className="bg-slate-800 text-white">
+                  {balance.symbol} ({parseFloat(balance.balance_ui || '0').toFixed(3)} {t('qr.available', 'available')})
                 </option>
               ))}
             </select>
